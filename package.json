@@ -1,0 +1,46 @@
+{
+  "name": "central-kitchen",
+  "version": "1.0.0",
+  "description": "Central Kitchen ERP System",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint -- --fix",
+    "clean": "turbo run clean",
+    "test": "turbo run test",
+    "test:run": "turbo run test:run",
+    "typecheck": "turbo run typecheck",
+    "db:generate": "turbo run db:generate",
+    "db:migrate": "turbo run db:migrate",
+    "db:push": "turbo run db:push",
+    "db:studio": "turbo run db:studio",
+    "db:seed": "turbo run db:seed",
+    "dev:api": "turbo run dev --filter=erp-api",
+    "dev:web": "turbo run dev --filter=inventory",
+    "build:api": "turbo run build --filter=erp-api",
+    "build:web": "turbo run build --filter=inventory",
+    "start:api": "pnpm build:api && node erp-api/dist/index.js",
+    "start:web": "pnpm build:web && npx serve inventory/dist",
+    "kill-port": "tsx scripts/kill-port.ts"
+  },
+  "keywords": [
+    "erp",
+    "central-kitchen",
+    "monorepo"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.20.0",
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "tsx": "^4.20.6",
+    "turbo": "^2.6.0"
+  },
+  "dependencies": {
+    "next-themes": "^0.4.6"
+  }
+}
