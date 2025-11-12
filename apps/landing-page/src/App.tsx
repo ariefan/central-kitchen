@@ -97,6 +97,15 @@ function InventoryRow({ name, status }: { name: string; status: 'good' | 'warnin
   )
 }
 
+// LogoPill component
+function LogoPill({ text }: { text: string }) {
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+      {text}
+    </div>
+  )
+}
+
 // Product mock with charts
 function ProductMock() {
   return (
@@ -204,53 +213,55 @@ function App() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center"
-          >
-            <Badge className="mb-4 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
-              Manajemen F&B yang Sederhana
+      <section className="relative overflow-hidden">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:py-24">
+          <div>
+            <Badge className="bg-orange-200/80 text-zinc-900 dark:bg-orange-900/40 dark:text-orange-100">
+              Aplikasi khusus untuk tim yang tidak percaya solusi serba‑sama
             </Badge>
-
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 bg-clip-text text-transparent">
-              Aplikasi personal yang<br />mengikuti alur kerja Anda
-            </h1>
-
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-4 max-w-2xl mx-auto">
-              Bukan sebaliknya.
-            </p>
-
-            <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
-              Hari ini kami fokus pada ERP untuk F&B—membantu dapur pusat, cloud kitchen, dan bisnis kuliner mengelola inventori, resep, produksi, dan pesanan dalam satu platform.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700">
-                Coba Gratis 14 Hari
-                <ChevronRight className="ml-2 w-4 h-4" />
-              </Button>
-              <Button size="lg" variant="outline" className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400">
-                Lihat Demo
-              </Button>
-            </div>
-
-            {/* Product Mock */}
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="mt-16 relative"
+              transition={{ duration: 0.5 }}
+              className="mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl"
             >
-              <ProductMock />
+              Aplikasi personal yang mengikuti alur kerja Anda—
+              <span className="bg-gradient-to-r from-orange-600 via-amber-500 to-pink-500 bg-clip-text text-transparent dark:from-orange-400 dark:via-amber-300 dark:to-pink-300">
+                bukan sebaliknya
+              </span>
+            </motion.h1>
+            <p className="mt-4 max-w-xl text-base text-zinc-700 dark:text-zinc-200">
+              Kami merancang produk adaptif dengan asistensi AI yang terasa kustom sejak hari pertama. Hari ini kami fokus pada <span className="font-semibold"> ERP untuk F&B</span>—besok, apa pun yang dibutuhkan operasional Anda. B2B, B2C, atau B2G—selama bersifat personal, itu wilayah kami.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Button size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
+                <Sparkles className="mr-2 h-4 w-4" /> Lihat demo langsung
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="bg-white text-zinc-900 hover:bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-800/80 border-zinc-300 dark:border-zinc-700"
+                asChild
+              >
+                <a href="#product">Jelajahi paket F&B</a>
+              </Button>
+              <div className="text-xs text-zinc-600 dark:text-zinc-300">Onboarding cepat · Dukungan manusia · Tanpa kuncian vendor</div>
+            </div>
+            <div className="mt-8 flex items-center gap-6 opacity-90">
+              <LogoPill text="Kafe" />
+              <LogoPill text="Restoran" />
+              <LogoPill text="Dapur Cloud" />
+              <LogoPill text="Kantin Instansi" />
+            </div>
+          </div>
 
-              {/* Decorative Elements */}
-              <div className="absolute -top-4 -right-4 w-24 h-24 bg-orange-200 dark:bg-orange-900 rounded-full blur-3xl opacity-50"></div>
-              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-orange-300 dark:bg-orange-800 rounded-full blur-3xl opacity-50"></div>
-            </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="relative"
+          >
+            <ProductMock />
           </motion.div>
         </div>
       </section>
