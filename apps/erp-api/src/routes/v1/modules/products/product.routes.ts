@@ -18,7 +18,12 @@ const productInsertSchema = createInsertSchema(products, {
   updatedAt: true,
 });
 
-const productSelectSchema = createSelectSchema(products);
+// Override UUID validation to be less strict
+const productSelectSchema = createSelectSchema(products).extend({
+  id: z.string(),
+  tenantId: z.string(),
+  baseUomId: z.string(),
+});
 
 // Response schemas
 const productResponseSchema = z.object({
