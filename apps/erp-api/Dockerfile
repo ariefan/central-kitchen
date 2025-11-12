@@ -42,12 +42,12 @@ RUN pnpm install --frozen-lockfile
 COPY --from=builder /app/apps/erp-api/dist ./apps/erp-api/dist
 
 # Copy migration files and config (CRITICAL for production)
-COPY --from=builder /app/apps/erp-api/drizzle ./apps/erp-api/drizzle
-COPY --from=builder /app/apps/erp-api/drizzle.config.ts ./apps/erp-api/drizzle.config.ts
+COPY apps/erp-api/drizzle ./apps/erp-api/drizzle
+COPY apps/erp-api/drizzle.config.ts ./apps/erp-api/drizzle.config.ts
 
 # Copy source files needed for migrations (db schema)
-COPY --from=builder /app/apps/erp-api/src/db ./apps/erp-api/src/db
-COPY --from=builder /app/apps/erp-api/src/config ./apps/erp-api/src/config
+COPY apps/erp-api/src/db ./apps/erp-api/src/db
+COPY apps/erp-api/src/config ./apps/erp-api/src/config
 
 # Create a non-root user
 RUN addgroup -g 1001 -S nodejs && \
