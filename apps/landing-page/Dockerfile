@@ -1,10 +1,10 @@
 FROM nginx:alpine
 
 # Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/landing-page/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy static files
-COPY index.html /usr/share/nginx/html/
+COPY apps/landing-page/index.html /usr/share/nginx/html/
 
 # Expose port 80
 EXPOSE 80
