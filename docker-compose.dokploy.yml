@@ -1,8 +1,6 @@
 # Docker Compose Configuration for Dokploy
 # Optimized for deployment on Dokploy with Traefik integration
 
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
