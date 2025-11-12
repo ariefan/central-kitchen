@@ -29,8 +29,8 @@ RUN pnpm --filter=inventory build
 # Production stage - using nginx to serve static files
 FROM nginx:alpine
 
-# Copy built application
-COPY --from=builder /app/apps/inventory/dist /usr/share/nginx/html
+# Copy built application from client directory (TanStack Start output)
+COPY --from=builder /app/apps/inventory/dist/client /usr/share/nginx/html
 
 # Copy custom nginx configuration
 COPY apps/inventory/nginx.conf /etc/nginx/conf.d/default.conf
