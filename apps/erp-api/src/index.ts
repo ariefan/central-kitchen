@@ -1,5 +1,5 @@
-import { build } from './app';
-import { env } from './config/env';
+import { build } from './app.js';
+import { env } from './config/env.js';
 
 // Create server instance with all configuration from app.ts
 const server = await build();
