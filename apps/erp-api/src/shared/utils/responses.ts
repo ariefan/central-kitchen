@@ -1,7 +1,7 @@
 import type { FastifyError, FastifyReply } from 'fastify';
 import { z, ZodError } from 'zod';
 
-import type { ApiResponse, ErrorResponse } from '../types.js';
+import type { ApiResponse, ErrorResponse } from '../types/index.js';
 
 // Success response schema
 export const successResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
