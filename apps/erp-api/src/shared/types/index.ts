@@ -1,5 +1,5 @@
 // Re-export all types from schema
-export * from '../../config/schema';
+export * from '../../config/schema.js';
 
 // Common API types
 export interface PaginationParams {

@@ -1,6 +1,6 @@
 import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
-import { handleValidationError, handleDatabaseError } from '../shared/utils/responses';
+import { handleValidationError, handleDatabaseError } from '../shared/utils/responses.js';
 
 export const errorHandler = (
   error: FastifyError,

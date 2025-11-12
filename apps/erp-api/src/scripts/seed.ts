@@ -1,6 +1,6 @@
-import { db } from '../config/database';
+import { db } from '../config/database.js';
 import { sql, eq } from 'drizzle-orm';
-import * as schema from '../config/schema';
+import * as schema from '../config/schema.js';
 import { randomUUID } from 'crypto';
 import { faker } from '@faker-js/faker';
 
