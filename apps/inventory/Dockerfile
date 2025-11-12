@@ -26,23 +26,26 @@ ARG VITE_API_URL=https://api.personalapp.id
 ENV VITE_API_URL=$VITE_API_URL
 RUN pnpm --filter=inventory build
 
-# Production stage - using nginx to serve static files
-FROM nginx:alpine
+# Production stage - using Node.js to run TanStack Start with Nitro
+FROM node:20-alpine
 
-# Copy built application from client directory (TanStack Start output)
-COPY --from=builder /app/apps/inventory/dist/client /usr/share/nginx/html
+WORKDIR /app
 
-# Copy custom nginx configuration
-COPY apps/inventory/nginx.conf /etc/nginx/conf.d/default.conf
+# Copy built application (.output contains both server and client)
+COPY --from=builder /app/apps/inventory/.output ./.output
 
-# Nginx runs as root by default which is needed to bind to port 80
-# The worker processes will run as nginx user (configured in nginx.conf)
-# This is the standard and secure way to run nginx in containers
+# Create a non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 && \
+    chown -R nodejs:nodejs /app
 
-EXPOSE 80
+USER nodejs
+
+EXPOSE 3000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 
-CMD ["nginx", "-g", "daemon off;"]
+# Run the Nitro server
+CMD ["node", ".output/server/index.mjs"]
