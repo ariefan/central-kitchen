@@ -1,0 +1,30 @@
+
+> inventory@ build C:\Users\arief\Herd\central-kitchen\apps\inventory
+> vite build
+
+Route file "C:/Users/arief/Herd/central-kitchen/apps/inventory/src/routes/requisitions/index.tsx" does not contain any route piece. This is likely a mistake.
+Route file "C:/Users/arief/Herd/central-kitchen/apps/inventory/src/routes/uom-conversions/index.tsx" does not contain any route piece. This is likely a mistake.
+Route file "C:/Users/arief/Herd/central-kitchen/apps/inventory/src/routes/requisitions/index.tsx" does not contain any route piece. This is likely a mistake.
+Route file "C:/Users/arief/Herd/central-kitchen/apps/inventory/src/routes/uom-conversions/index.tsx" does not contain any route piece. This is likely a mistake.
+Route file "C:/Users/arief/Herd/central-kitchen/apps/inventory/src/routes/requisitions/index.tsx" does not contain any route piece. This is likely a mistake.
+Route file "C:/Users/arief/Herd/central-kitchen/apps/inventory/src/routes/uom-conversions/index.tsx" does not contain any route piece. This is likely a mistake.
+[36mvite v7.2.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m✓[39m 2406 modules transformed.
+[31m✗[39m Build failed in 18.91s
+[31merror during build:
+[31m[vite]: Rollup failed to resolve import "@/hooks/use-toast" from "C:/Users/arief/Herd/central-kitchen/apps/inventory/src/routes/recipes/index.tsx?tsr-split=component".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rollupOptions.external`[31m
+    at viteLog (file:///C:/Users/arief/Herd/central-kitchen/node_modules/.pnpm/vite@7.2.1_@types+node@22.1_78d1110b04d3cbfc9712ffbe88d3a060/node_modules/vite/dist/node/chunks/config.js:34247:57)
+    at file:///C:/Users/arief/Herd/central-kitchen/node_modules/.pnpm/vite@7.2.1_@types+node@22.1_78d1110b04d3cbfc9712ffbe88d3a060/node_modules/vite/dist/node/chunks/config.js:34281:73
+    at onwarn (file:///C:/Users/arief/Herd/central-kitchen/node_modules/.pnpm/@vitejs+plugin-react@5.1.0__6cc6a1e524dc6015cc7eadac59b7f2a2/node_modules/@vitejs/plugin-react/dist/index.js:76:7)
+    at file:///C:/Users/arief/Herd/central-kitchen/node_modules/.pnpm/vite@7.2.1_@types+node@22.1_78d1110b04d3cbfc9712ffbe88d3a060/node_modules/vite/dist/node/chunks/config.js:34281:28
+    at onRollupLog (file:///C:/Users/arief/Herd/central-kitchen/node_modules/.pnpm/vite@7.2.1_@types+node@22.1_78d1110b04d3cbfc9712ffbe88d3a060/node_modules/vite/dist/node/chunks/config.js:34276:63)
+    at onLog (file:///C:/Users/arief/Herd/central-kitchen/node_modules/.pnpm/vite@7.2.1_@types+node@22.1_78d1110b04d3cbfc9712ffbe88d3a060/node_modules/vite/dist/node/chunks/config.js:34079:4)
+    at file:///C:/Users/arief/Herd/central-kitchen/node_modules/.pnpm/rollup@4.52.5/node_modules/rollup/dist/es/shared/node-entry.js:20937:32
+    at Object.logger [as onLog] (file:///C:/Users/arief/Herd/central-kitchen/node_modules/.pnpm/rollup@4.52.5/node_modules/rollup/dist/es/shared/node-entry.js:22823:9)
+    at ModuleLoader.handleInvalidResolvedId (file:///C:/Users/arief/Herd/central-kitchen/node_modules/.pnpm/rollup@4.52.5/node_modules/rollup/dist/es/shared/node-entry.js:21567:26)
+    at file:///C:/Users/arief/Herd/central-kitchen/node_modules/.pnpm/rollup@4.52.5/node_modules/rollup/dist/es/shared/node-entry.js:21525:26[39m
+ ELIFECYCLE  Command failed with exit code 1.
