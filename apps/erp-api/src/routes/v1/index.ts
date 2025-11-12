@@ -24,7 +24,7 @@ import { adjustmentRoutes } from './modules/adjustments/adjustment.routes.js';
 import { reportRoutes } from './modules/reports/reports.routes.js';
 import { categoryRoutes } from './modules/categories/category.routes.js';
 import { uomConversionRoutes } from './modules/uom-conversions/uom-conversion.routes.js';
-import { mockAuthMiddleware } from '@/shared/middleware/auth';
+import { mockAuthMiddleware } from '../../shared/middleware/auth.js';
 
 export async function apiV1Routes(fastify: FastifyInstance) {
   // Add mock auth middleware for development

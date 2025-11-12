@@ -1,9 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '@/shared/utils/responses';
-import { db } from '@/config/database';
-import { users } from '@/config/schema';
+import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses';
+import { db } from '../../../../config/database';
+import { users } from '../../../../config/schema';
 import { eq } from 'drizzle-orm';
 
 // Create schemas from the database schema (single source of truth)

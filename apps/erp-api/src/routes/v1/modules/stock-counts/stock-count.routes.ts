@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '@/shared/utils/responses';
-import { db } from '@/config/database';
+import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses';
+import { db } from '../../../../config/database';
 import {
   stockCounts,
   stockCountLines,
@@ -9,10 +9,10 @@ import {
   locations,
   lots,
   stockLedger
-} from '@/config/schema';
+} from '../../../../config/schema';
 import { eq, and, sql, desc, ilike, type SQL } from 'drizzle-orm';
-import { getTenantId, getUserId } from '@/shared/middleware/auth';
-import { PaginatedResponse } from '@/shared/types';
+import { getTenantId, getUserId } from '../../../../shared/middleware/auth';
+import { PaginatedResponse } from '../../../../shared/types';
 
 // Stock Count schemas
 const stockCountCreateSchema = z.object({

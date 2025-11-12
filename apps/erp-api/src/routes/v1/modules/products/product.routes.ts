@@ -1,12 +1,12 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '@/shared/utils/responses';
-import { db } from '@/config/database';
-import { products, productKinds, productPacks, uoms } from '@/config/schema';
+import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses';
+import { db } from '../../../../config/database';
+import { products, productKinds, productPacks, uoms } from '../../../../config/schema';
 import { eq, and, sql } from 'drizzle-orm';
-import { getTenantId } from '@/shared/middleware/auth';
-import { PaginatedResponse } from '@/shared/types';
+import { getTenantId } from '../../../../shared/middleware/auth';
+import { PaginatedResponse } from '../../../../shared/types';
 
 // Create schemas from the database schema (single source of truth)
 const productInsertSchema = createInsertSchema(products, {

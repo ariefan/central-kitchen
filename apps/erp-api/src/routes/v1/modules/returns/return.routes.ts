@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { createSuccessResponse, createNotFoundError, createBadRequestError, notFoundResponseSchema } from '@/shared/utils/responses';
-import { db } from '@/config/database';
-import { returnOrders, returnOrderItems, products, customers, suppliers, locations, uoms, lots, stockLedger } from '@/config/schema';
+import { createSuccessResponse, createNotFoundError, createBadRequestError, notFoundResponseSchema } from '../../../../shared/utils/responses';
+import { db } from '../../../../config/database';
+import { returnOrders, returnOrderItems, products, customers, suppliers, locations, uoms, lots, stockLedger } from '../../../../config/schema';
 import { eq, and, sql, desc } from 'drizzle-orm';
-import { getTenantId, getUserId } from '@/shared/middleware/auth';
+import { getTenantId, getUserId } from '../../../../shared/middleware/auth';
 
 type ReturnOrder = typeof returnOrders.$inferSelect;
 

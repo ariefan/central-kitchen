@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { createSuccessResponse, successResponseSchema, createNotFoundError, notFoundResponseSchema } from '@/shared/utils/responses';
-import { db } from '@/config/database';
-import { orders, payments, orderItems, stockLedger } from '@/config/schema';
+import { createSuccessResponse, successResponseSchema, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses';
+import { db } from '../../../../config/database';
+import { orders, payments, orderItems, stockLedger } from '../../../../config/schema';
 import { eq, and } from 'drizzle-orm';
-import { getTenantId, getUserId } from '@/shared/middleware/auth';
+import { getTenantId, getUserId } from '../../../../shared/middleware/auth';
 
 // Simple order schema for testing
 const orderCreateSchema = z.object({

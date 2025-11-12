@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '@/shared/utils/responses';
-import { db } from '@/config/database';
-import { uomConversions, uoms } from '@/config/schema';
+import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses';
+import { db } from '../../../../config/database';
+import { uomConversions, uoms } from '../../../../config/schema';
 import { eq, and, sql } from 'drizzle-orm';
-import { getTenantId } from '@/shared/middleware/auth';
+import { getTenantId } from '../../../../shared/middleware/auth';
 
 // Schemas
 const uomConversionCreateSchema = z.object({

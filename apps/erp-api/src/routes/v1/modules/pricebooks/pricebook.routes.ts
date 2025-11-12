@@ -1,11 +1,11 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
-import { createSuccessResponse, createNotFoundError } from '@/shared/utils/responses';
-import { db } from '@/config/database';
-import { priceBooks, priceBookItems } from '@/config/schema';
+import { createSuccessResponse, createNotFoundError } from '../../../../shared/utils/responses';
+import { db } from '../../../../config/database';
+import { priceBooks, priceBookItems } from '../../../../config/schema';
 import { eq, and } from 'drizzle-orm';
-import { getTenantId } from '@/shared/middleware/auth';
+import { getTenantId } from '../../../../shared/middleware/auth';
 
 // Price book schemas
 const priceBookInsertSchema = createInsertSchema(priceBooks).omit({

@@ -1,11 +1,11 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { createSuccessResponse, createNotFoundError, notFoundResponseSchema, createBadRequestError } from '@/shared/utils/responses';
-import { db } from '@/config/database';
-import { posShifts, drawerMovements, locations } from '@/config/schema';
+import { createSuccessResponse, createNotFoundError, notFoundResponseSchema, createBadRequestError } from '../../../../shared/utils/responses';
+import { db } from '../../../../config/database';
+import { posShifts, drawerMovements, locations } from '../../../../config/schema';
 import { eq, and, desc, isNull, sql } from 'drizzle-orm';
-import { getTenantId, getUserId } from '@/shared/middleware/auth';
+import { getTenantId, getUserId } from '../../../../shared/middleware/auth';
 
 // Movement kinds
 const movementKinds = ['cash_in', 'cash_out', 'paid_out', 'drop'] as const;

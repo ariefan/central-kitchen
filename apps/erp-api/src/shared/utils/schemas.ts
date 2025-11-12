@@ -58,4 +58,4 @@ export function createEntitySchemas(
 }
 
 // Helper for location types (import from schema)
-export { locationTypes, productKinds, orderChannels, orderStatuses } from '@/config/schema';
+export { locationTypes, productKinds, orderChannels, orderStatuses } from '../../config/schema';

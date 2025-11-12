@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { createSuccessResponse, createNotFoundError, createBadRequestError, notFoundResponseSchema } from '@/shared/utils/responses';
-import { db } from '@/config/database';
-import { recipes, recipeItems, products, uoms } from '@/config/schema';
+import { createSuccessResponse, createNotFoundError, createBadRequestError, notFoundResponseSchema } from '../../../../shared/utils/responses';
+import { db } from '../../../../config/database';
+import { recipes, recipeItems, products, uoms } from '../../../../config/schema';
 import { eq, and, sql, desc } from 'drizzle-orm';
-import { getTenantId } from '@/shared/middleware/auth';
+import { getTenantId } from '../../../../shared/middleware/auth';
 
 // Recipe Item schemas
 const recipeItemSchema = z.object({

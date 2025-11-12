@@ -1,12 +1,12 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
-import { createSuccessResponse, createNotFoundError, createDeleteResponse, notFoundResponseSchema, deleteResponseSchema } from '@/shared/utils/responses';
-import { createEntitySchemas } from '@/shared/utils/schemas';
-import { db } from '@/config/database';
-import { locations, locationTypes } from '@/config/schema';
+import { createSuccessResponse, createNotFoundError, createDeleteResponse, notFoundResponseSchema, deleteResponseSchema } from '../../../../shared/utils/responses';
+import { createEntitySchemas } from '../../../../shared/utils/schemas';
+import { db } from '../../../../config/database';
+import { locations, locationTypes } from '../../../../config/schema';
 import { eq } from 'drizzle-orm';
-import { getTenantId } from '@/shared/middleware/auth';
+import { getTenantId } from '../../../../shared/middleware/auth';
 
 // Create schemas from the database schema (single source of truth)
 const locationInsertSchema = createInsertSchema(locations, {
