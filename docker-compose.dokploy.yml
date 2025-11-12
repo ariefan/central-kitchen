@@ -116,6 +116,39 @@ services:
           cpus: '0.25'
           memory: 128M
 
+  # Landing Page
+  landing:
+    build:
+      context: .
+      dockerfile: apps/landing-page/Dockerfile
+    restart: unless-stopped
+    networks:
+      - dokploy-network
+    labels:
+      # Traefik labels for Dokploy
+      - "traefik.enable=true"
+      - "traefik.http.routers.landing.rule=Host(`personalapp.id`) || Host(`www.personalapp.id`)"
+      - "traefik.http.routers.landing.entrypoints=websecure"
+      - "traefik.http.routers.landing.tls.certresolver=letsencrypt"
+      - "traefik.http.services.landing.loadbalancer.server.port=80"
+      # HTTP to HTTPS redirect
+      - "traefik.http.routers.landing-http.rule=Host(`personalapp.id`) || Host(`www.personalapp.id`)"
+      - "traefik.http.routers.landing-http.entrypoints=web"
+      - "traefik.http.routers.landing-http.middlewares=redirect-to-https"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
 volumes:
   postgres_data:
     driver: local
