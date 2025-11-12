@@ -45,8 +45,7 @@ COPY --from=builder /app/apps/erp-api/dist ./apps/erp-api/dist
 COPY apps/erp-api/drizzle ./apps/erp-api/drizzle
 COPY apps/erp-api/drizzle.config.ts ./apps/erp-api/drizzle.config.ts
 
-# Copy source files needed for migrations (db schema)
-COPY apps/erp-api/src/db ./apps/erp-api/src/db
+# Copy source files needed for migrations (db schema in src/config)
 COPY apps/erp-api/src/config ./apps/erp-api/src/config
 
 # Create a non-root user
