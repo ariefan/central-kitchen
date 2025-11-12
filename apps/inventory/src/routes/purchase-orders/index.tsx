@@ -5,7 +5,7 @@ import { useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, useFormArray } from "react-hook-form"
+import { useForm, useFieldArray } from "react-hook-form"
 import { z } from "zod"
 import {
   Plus,
@@ -522,7 +522,7 @@ function PurchaseOrdersIndex() {
     },
   })
 
-  const { fields, append, remove } = useFormArray({
+  const { fields, append, remove } = useFieldArray({
     control: createForm.control,
     name: "items",
   })
