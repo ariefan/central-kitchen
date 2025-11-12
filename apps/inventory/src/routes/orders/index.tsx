@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import { Plus, Search, RefreshCw, Eye, Edit, Trash2, ShoppingCart, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Package, CreditCard, Store, User, Calendar, ChefHat, Truck, Receipt, FileText, TrendingUp, Payment } from 'lucide-react'
+import { Plus, Search, RefreshCw, Eye, Edit, Trash2, ShoppingCart, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Package, CreditCard, Store, User, Calendar, ChefHat, Truck, Receipt, FileText, TrendingUp } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
