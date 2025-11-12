@@ -683,7 +683,7 @@ function POSIndex() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('id-ID', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',

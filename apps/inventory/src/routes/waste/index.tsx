@@ -227,7 +227,7 @@ const mockWasteRecords: WasteRecord[] = [
     status: 'approved',
     priority: 'high',
     totalValue: 1250.00,
-    currency: 'USD',
+    currency: 'IDR',
     items: [
       {
         id: '1',
@@ -319,7 +319,7 @@ const mockWasteRecords: WasteRecord[] = [
     status: 'submitted',
     priority: 'medium',
     totalValue: 450.00,
-    currency: 'USD',
+    currency: 'IDR',
     items: [
       {
         id: '4',
@@ -519,7 +519,7 @@ function WasteRecordForm({ wasteRecord, onClose }: { wasteRecord?: WasteRecord; 
     const recordData = {
       ...formData,
       totalValue: calculateTotal(),
-      currency: 'USD',
+      currency: 'IDR',
       correctiveActions: formData.correctiveActions.filter(action => action.trim() !== ''),
       preventionMeasures: formData.preventionMeasures.filter(measure => measure.trim() !== ''),
     }
@@ -947,7 +947,7 @@ function WasteManagementIndex() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('id-ID', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',

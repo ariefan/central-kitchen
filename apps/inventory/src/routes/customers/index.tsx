@@ -491,7 +491,7 @@ function CustomersIndex() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('id-ID', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -499,9 +499,9 @@ function CustomersIndex() {
   }
 
   const formatCurrency = (amount: string) => {
-    return parseFloat(amount || '0').toLocaleString('en-US', {
+    return parseFloat(amount || '0').toLocaleString('id-ID', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'IDR',
     })
   }
 

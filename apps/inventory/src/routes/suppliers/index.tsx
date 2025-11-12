@@ -103,7 +103,7 @@ const mockSuppliers: Supplier[] = [
     businessDetails: {
       taxId: '12-3456789',
       paymentTerms: 'NET 30',
-      currency: 'USD',
+      currency: 'IDR',
       leadTimeDays: 2,
       minimumOrderValue: 500
     },
@@ -142,7 +142,7 @@ const mockSuppliers: Supplier[] = [
     businessDetails: {
       taxId: '87-6543210',
       paymentTerms: 'NET 15',
-      currency: 'USD',
+      currency: 'IDR',
       leadTimeDays: 1,
       minimumOrderValue: 250
     },
@@ -181,7 +181,7 @@ const mockSuppliers: Supplier[] = [
     businessDetails: {
       taxId: '45-6789012',
       paymentTerms: 'NET 45',
-      currency: 'USD',
+      currency: 'IDR',
       leadTimeDays: 3,
       minimumOrderValue: 1000
     },
@@ -219,7 +219,7 @@ const mockSuppliers: Supplier[] = [
     businessDetails: {
       taxId: '76-5432109',
       paymentTerms: 'NET 60',
-      currency: 'USD',
+      currency: 'IDR',
       leadTimeDays: 5,
       minimumOrderValue: 2000
     },

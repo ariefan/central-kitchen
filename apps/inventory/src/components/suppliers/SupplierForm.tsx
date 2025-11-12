@@ -135,7 +135,7 @@ export default function SupplierForm({
       country: 'USA',
       taxId: '',
       paymentTerms: 'NET 30',
-      currency: 'USD',
+      currency: 'IDR',
       leadTimeDays: 3,
       minimumOrderValue: 100,
       categories: [],

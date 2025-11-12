@@ -715,7 +715,7 @@ function MenusIndex() {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'No limit'
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('id-ID', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',

@@ -251,7 +251,7 @@ const mockSupplierReturns: SupplierReturn[] = [
     status: 'submitted',
     priority: 'high',
     totalAmount: 1250.00,
-    currency: 'USD',
+    currency: 'IDR',
     items: [
       {
         id: '1',
@@ -399,7 +399,7 @@ function SupplierReturnForm({ supplierReturn, onClose }: { supplierReturn?: Supp
     const returnData = {
       ...formData,
       totalAmount: calculateTotal(),
-      currency: 'USD',
+      currency: 'IDR',
     }
 
     if (supplierReturn?.id) {
@@ -781,7 +781,7 @@ function SupplierReturnsIndex() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('id-ID', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
