@@ -5,10 +5,10 @@ import cors from '@fastify/cors';
 import { serializerCompiler, validatorCompiler, jsonSchemaTransform, jsonSchemaTransformObject, ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 
-import { env } from './config/env';
-import { db } from './config/database';
-import { errorHandler } from './middleware/error-handler';
-import { apiV1Routes } from './routes/v1/index';
+import { env } from './config/env.js';
+import { db } from './config/database.js';
+import { errorHandler } from './middleware/error-handler.js';
+import { apiV1Routes } from './routes/v1/index.js';
 
 export async function build() {
   const server = Fastify({
