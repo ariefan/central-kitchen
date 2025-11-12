@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses';
-import { db } from '../../../../config/database';
-import { purchaseOrders, purchaseOrderItems, products, uoms, docStatuses } from '../../../../config/schema';
+import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses.js';
+import { db } from '../../../../config/database.js';
+import { purchaseOrders, purchaseOrderItems, products, uoms, docStatuses } from '../../../../config/schema.js';
 import { eq, and, sql } from 'drizzle-orm';
-import { getTenantId, getUserId } from '../../../../shared/middleware/auth';
+import { getTenantId, getUserId } from '../../../../shared/middleware/auth.js';
 
 // Purchase Order schemas
 const purchaseOrderItemSchema = z.object({

@@ -1,12 +1,12 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
-import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses';
-import { db } from '../../../../config/database';
-import { customers } from '../../../../config/schema';
+import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses.js';
+import { db } from '../../../../config/database.js';
+import { customers } from '../../../../config/schema.js';
 import { eq, and, sql } from 'drizzle-orm';
-import { getTenantId } from '../../../../shared/middleware/auth';
-import { PaginatedResponse } from '../../../../shared/types';
+import { getTenantId } from '../../../../shared/middleware/auth.js';
+import { PaginatedResponse } from '../../../../shared/types/index.js';
 
 // Create schemas from the database schema (single source of truth)
 const customerInsertSchema = createInsertSchema(customers, {

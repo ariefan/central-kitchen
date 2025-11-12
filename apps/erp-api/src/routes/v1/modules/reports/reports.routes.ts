@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { createSuccessResponse, notFoundResponseSchema } from '../../../../shared/utils/responses';
-import { db } from '../../../../config/database';
-import { orders, orderItems, payments, products, purchaseOrders, stockLedger, locations } from '../../../../config/schema';
+import { createSuccessResponse, notFoundResponseSchema } from '../../../../shared/utils/responses.js';
+import { db } from '../../../../config/database.js';
+import { orders, orderItems, payments, products, purchaseOrders, stockLedger, locations } from '../../../../config/schema.js';
 import { eq, and, sql, desc, gte, lte, sum, count, avg } from 'drizzle-orm';
-import { getTenantId } from '../../../../shared/middleware/auth';
+import { getTenantId } from '../../../../shared/middleware/auth.js';
 
 // Query schemas
 const dateRangeSchema = z.object({

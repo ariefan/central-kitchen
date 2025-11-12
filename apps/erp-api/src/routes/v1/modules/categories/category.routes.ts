@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { createSuccessResponse, createErrorResponse } from '../../../../shared/utils/responses';
+import { createSuccessResponse, createErrorResponse } from '../../../../shared/utils/responses.js';
 
 export function categoryRoutes(fastify: FastifyInstance) {
   // GET /api/v1/categories - List all categories

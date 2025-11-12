@@ -1,9 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { createSelectSchema } from 'drizzle-zod';
-import { successResponseSchema, createSuccessResponse } from '../../../../shared/utils/responses';
-import { users, tenants, locations } from '../../../../config/schema';
-import { getCurrentUser, getCurrentTenant } from '../../../../shared/middleware/auth';
+import { successResponseSchema, createSuccessResponse } from '../../../../shared/utils/responses.js';
+import { users, tenants, locations } from '../../../../config/schema.js';
+import { getCurrentUser, getCurrentTenant } from '../../../../shared/middleware/auth.js';
 
 // Generate schemas from database tables with proper type handling
 const userSchema = createSelectSchema(users, {

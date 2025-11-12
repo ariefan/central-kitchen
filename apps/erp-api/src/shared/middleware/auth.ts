@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { users, tenants, locations } from '../../config/schema';
-import { db } from '../../config/database';
+import { users, tenants, locations } from '../../config/schema.js';
+import { db } from '../../config/database.js';
 import { eq, and } from 'drizzle-orm';
 
 // Interface for mock user data (matches database schema)

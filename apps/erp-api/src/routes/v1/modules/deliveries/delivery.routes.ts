@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses';
-import { db } from '../../../../config/database';
-import { deliveries, orders, customers, addresses } from '../../../../config/schema';
+import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses.js';
+import { db } from '../../../../config/database.js';
+import { deliveries, orders, customers, addresses } from '../../../../config/schema.js';
 import { eq, and, sql } from 'drizzle-orm';
-import { getTenantId } from '../../../../shared/middleware/auth';
+import { getTenantId } from '../../../../shared/middleware/auth.js';
 
 // Delivery status enum
 const deliveryStatuses = ['requested', 'assigned', 'picked_up', 'delivered', 'failed'] as const;
