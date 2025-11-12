@@ -1,36 +1,178 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Moon, Sun, ChefHat, Package, TrendingUp, Shield, Zap, Users, Layers, Bot, ChevronRight, Mail, Phone, MapPin } from 'lucide-react'
+import { Moon, Sun, ChefHat, Package, TrendingUp, Shield, Zap, Users, Sparkles, ShoppingCart, BarChart3, ShieldCheck, ChevronRight, Mail, Phone, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Input } from '@/components/ui/input'
 
-function App() {
-  const [darkMode, setDarkMode] = useState(false)
+// Gradient decoration component
+function GradientDecor() {
+  return (
+    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
+      <div className="absolute left-[10%] top-[-10%] h-72 w-72 rounded-full bg-orange-200/50 blur-3xl dark:bg-orange-900/30" />
+      <div className="absolute right-[15%] top-[20%] h-96 w-96 rounded-full bg-orange-300/40 blur-3xl dark:bg-orange-800/20" />
+      <div className="absolute left-[20%] bottom-[10%] h-80 w-80 rounded-full bg-orange-100/60 blur-3xl dark:bg-orange-950/40" />
+    </div>
+  )
+}
+
+// Enhanced mode toggle component
+function ModeToggle({ small = false }: { small?: boolean }) {
+  const [isDark, setIsDark] = useState(false)
 
   useEffect(() => {
-    const isDark = localStorage.getItem('darkMode') === 'true'
-    setDarkMode(isDark)
-    if (isDark) {
+    const stored = localStorage.getItem('darkMode')
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const shouldBeDark = stored === 'true' || (stored === null && systemDark)
+
+    setIsDark(shouldBeDark)
+    if (shouldBeDark) {
       document.documentElement.classList.add('dark')
     }
   }, [])
 
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode
-    setDarkMode(newDarkMode)
-    localStorage.setItem('darkMode', String(newDarkMode))
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+  const toggle = () => {
+    const newDark = !isDark
+    setIsDark(newDark)
+    localStorage.setItem('darkMode', String(newDark))
+    document.documentElement.classList.toggle('dark', newDark)
   }
 
   return (
+    <Button
+      variant="ghost"
+      size={small ? "sm" : "icon"}
+      onClick={toggle}
+      className="rounded-full"
+    >
+      {isDark ? <Sun className={small ? "w-4 h-4" : "w-5 h-5"} /> : <Moon className={small ? "w-4 h-4" : "w-5 h-5"} />}
+    </Button>
+  )
+}
+
+// Statistics chip component
+function StatChip({ label, value, trend }: { label: string; value: string; trend?: string }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs text-gray-500 dark:text-gray-400">{label}</span>
+      <span className="text-lg font-bold text-gray-900 dark:text-white">{value}</span>
+      {trend && <span className="text-xs text-green-600 dark:text-green-400">{trend}</span>}
+    </div>
+  )
+}
+
+// Progress row component
+function ProgressRow({ name, value, max, color = "orange" }: { name: string; value: number; max: number; color?: string }) {
+  const percentage = (value / max) * 100
+
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-xs text-gray-600 dark:text-gray-300 flex-1 truncate">{name}</span>
+      <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+        <div
+          className={`h-full bg-${color}-500 rounded-full transition-all duration-300`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+      <span className="text-xs font-medium text-gray-700 dark:text-gray-200 w-8 text-right">{value}</span>
+    </div>
+  )
+}
+
+// Inventory row component
+function InventoryRow({ name, status }: { name: string; status: 'good' | 'warning' | 'critical' }) {
+  const colors = {
+    good: 'bg-green-500',
+    warning: 'bg-yellow-500',
+    critical: 'bg-red-500'
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className={`w-2 h-2 rounded-full ${colors[status]}`} />
+      <span className="text-xs text-gray-600 dark:text-gray-300">{name}</span>
+    </div>
+  )
+}
+
+// Product mock with charts
+function ProductMock() {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 border border-orange-100 dark:border-gray-700">
+      <div className="flex items-center gap-2 mb-6">
+        <div className="w-3 h-3 rounded-full bg-red-400"></div>
+        <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+        <div className="w-3 h-3 rounded-full bg-green-400"></div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Pesanan Hari Ini</CardDescription>
+            <CardTitle className="text-2xl">127</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-green-600 dark:text-green-400">+18% dari kemarin</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Pendapatan</CardDescription>
+            <CardTitle className="text-2xl">Rp 18.5JT</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-green-600 dark:text-green-400">+12.3% dari kemarin</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Avg. Ticket</CardDescription>
+            <CardTitle className="text-2xl">Rp 145K</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-orange-600 dark:text-orange-400">-2.1% dari kemarin</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Mini chart area */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Menu Terlaris</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <ProgressRow name="Nasi Goreng Spesial" value={45} max={50} />
+            <ProgressRow name="Ayam Geprek" value={38} max={50} />
+            <ProgressRow name="Es Teh Manis" value={62} max={70} />
+            <ProgressRow name="Mie Goreng" value={28} max={50} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Status Inventori</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <InventoryRow name="Beras (50kg)" status="good" />
+            <InventoryRow name="Ayam Fillet (25kg)" status="good" />
+            <InventoryRow name="Minyak Goreng (20L)" status="warning" />
+            <InventoryRow name="Cabai Rawit (5kg)" status="critical" />
+            <InventoryRow name="Bawang Merah (10kg)" status="good" />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+function App() {
+  return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <GradientDecor />
+
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-orange-100 dark:border-gray-800">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -39,30 +181,23 @@ function App() {
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-2"
           >
-            <ChefHat className="w-8 h-8 text-orange-500" />
+            <Sparkles className="w-8 h-8 text-orange-500" />
             <span className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
-              Central Kitchen ERP
+              personalapp.id
             </span>
           </motion.div>
 
           <nav className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-orange-500 transition">Features</a>
-            <a href="#products" className="text-gray-600 dark:text-gray-300 hover:text-orange-500 transition">Products</a>
-            <a href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-orange-500 transition">Pricing</a>
-            <a href="#contact" className="text-gray-600 dark:text-gray-300 hover:text-orange-500 transition">Contact</a>
+            <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-orange-500 transition">Fitur</a>
+            <a href="#products" className="text-gray-600 dark:text-gray-300 hover:text-orange-500 transition">Produk</a>
+            <a href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-orange-500 transition">Harga</a>
+            <a href="#contact" className="text-gray-600 dark:text-gray-300 hover:text-orange-500 transition">Kontak</a>
           </nav>
 
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleDarkMode}
-              className="rounded-full"
-            >
-              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </Button>
+            <ModeToggle />
             <Button className="bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700">
-              Get Started
+              Mulai Sekarang
             </Button>
           </div>
         </div>
@@ -78,72 +213,39 @@ function App() {
             className="text-center"
           >
             <Badge className="mb-4 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
-              F&B Management Made Simple
+              Manajemen F&B yang Sederhana
             </Badge>
 
             <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 bg-clip-text text-transparent">
-              Run Your Kitchen
-              <br />
-              Like a Pro
+              Aplikasi personal yang<br />mengikuti alur kerja Anda
             </h1>
 
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-              Complete ERP solution for central kitchens, cloud kitchens, and F&B businesses. Manage inventory, recipes, production, and orders in one place.
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-4 max-w-2xl mx-auto">
+              Bukan sebaliknya.
+            </p>
+
+            <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
+              Hari ini kami fokus pada ERP untuk F&B—membantu dapur pusat, cloud kitchen, dan bisnis kuliner mengelola inventori, resep, produksi, dan pesanan dalam satu platform.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700">
-                Start Free Trial
+                Coba Gratis 14 Hari
                 <ChevronRight className="ml-2 w-4 h-4" />
               </Button>
               <Button size="lg" variant="outline" className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400">
-                Watch Demo
+                Lihat Demo
               </Button>
             </div>
 
-            {/* Mock Dashboard Preview */}
+            {/* Product Mock */}
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
               className="mt-16 relative"
             >
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 border border-orange-100 dark:border-gray-700">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardDescription>Today's Revenue</CardDescription>
-                      <CardTitle className="text-2xl">Rp 12,500,000</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-green-600 dark:text-green-400">+12.5% from yesterday</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardDescription>Active Orders</CardDescription>
-                      <CardTitle className="text-2xl">48</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-orange-600 dark:text-orange-400">6 pending production</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardDescription>Stock Alert</CardDescription>
-                      <CardTitle className="text-2xl">3 Items</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-red-600 dark:text-red-400">Need reordering</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+              <ProductMock />
 
               {/* Decorative Elements */}
               <div className="absolute -top-4 -right-4 w-24 h-24 bg-orange-200 dark:bg-orange-900 rounded-full blur-3xl opacity-50"></div>
@@ -153,8 +255,8 @@ function App() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 px-4 bg-white dark:bg-gray-900">
+      {/* Product Tiles Section */}
+      <section id="products" className="py-20 px-4 bg-white dark:bg-gray-900">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0 }}
@@ -163,107 +265,35 @@ function App() {
             className="text-center mb-16"
           >
             <Badge className="mb-4 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
-              Core Features
+              Modul Produk
             </Badge>
             <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
-              Everything You Need to Scale
+              Dibangun untuk Operasional F&B
             </h2>
             <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Built specifically for F&B operations with modular features that grow with your business
+              Solusi modular yang berkembang sesuai kebutuhan bisnis Anda
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                icon: <Layers className="w-6 h-6" />,
-                title: "Modular by Design",
-                description: "Start with what you need. Add modules as you grow. No bloat, just efficiency."
-              },
-              {
-                icon: <Bot className="w-6 h-6" />,
-                title: "AI-Powered Insights",
-                description: "Smart forecasting, automated reordering, and intelligent recipe costing."
-              },
-              {
-                icon: <Shield className="w-6 h-6" />,
-                title: "Enterprise Security",
-                description: "Bank-level encryption, role-based access, and complete audit trails."
-              },
-              {
-                icon: <Zap className="w-6 h-6" />,
-                title: "Lightning Fast",
-                description: "Optimized for speed. Process orders in milliseconds, not seconds."
-              },
-              {
-                icon: <Users className="w-6 h-6" />,
-                title: "Multi-Location",
-                description: "Manage multiple kitchens, warehouses, and outlets from one dashboard."
-              },
-              {
-                icon: <TrendingUp className="w-6 h-6" />,
-                title: "Real-Time Analytics",
-                description: "Live dashboards, profit tracking, and performance metrics at your fingertips."
-              }
-            ].map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="h-full hover:shadow-lg transition-shadow border-orange-100 dark:border-gray-700">
-                  <CardHeader>
-                    <div className="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900 flex items-center justify-center text-orange-600 dark:text-orange-400 mb-4">
-                      {feature.icon}
-                    </div>
-                    <CardTitle>{feature.title}</CardTitle>
-                    <CardDescription>{feature.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Products Section */}
-      <section id="products" className="py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <Badge className="mb-4 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
-              Product Modules
-            </Badge>
-            <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
-              Built for F&B Operations
-            </h2>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
                 icon: <ChefHat className="w-8 h-8" />,
-                title: "Kitchen & Recipes",
-                description: "Recipe management, batch production, yield tracking, and cost calculation. Perfect for central kitchens.",
-                features: ["Recipe versioning", "Batch scaling", "Cost analysis", "Prep scheduling"]
+                title: "Dapur & Resep",
+                description: "Manajemen resep, produksi batch, tracking yield, dan kalkulasi biaya. Sempurna untuk dapur pusat.",
+                features: ["Versioning resep", "Scaling batch otomatis", "Analisis biaya COGS", "Penjadwalan prep"]
               },
               {
                 icon: <Package className="w-8 h-8" />,
-                title: "Inventory Control",
-                description: "Real-time stock tracking, automated reordering, expiry management, and multi-warehouse support.",
-                features: ["FIFO/FEFO tracking", "Auto-reorder", "Waste tracking", "Supplier management"]
+                title: "Persediaan & COGS",
+                description: "Tracking stok real-time, auto-reorder, manajemen kedaluwarsa, dan dukungan multi-gudang.",
+                features: ["Tracking FIFO/FEFO", "Auto-reorder cerdas", "Tracking waste", "Manajemen supplier"]
               },
               {
-                icon: <TrendingUp className="w-8 h-8" />,
-                title: "POS & Orders",
-                description: "Integrated point-of-sale, order management, delivery tracking, and customer loyalty programs.",
-                features: ["Multi-channel orders", "Table management", "Payment integration", "Loyalty rewards"]
+                icon: <ShoppingCart className="w-8 h-8" />,
+                title: "POS & Pesanan",
+                description: "Point-of-sale terintegrasi, manajemen pesanan, tracking delivery, dan program loyalitas pelanggan.",
+                features: ["Order multi-channel", "Manajemen meja", "Integrasi payment", "Reward loyalitas"]
               }
             ].map((product, index) => (
               <motion.div
@@ -298,8 +328,8 @@ function App() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 bg-white dark:bg-gray-900">
+      {/* Features Section */}
+      <section id="features" className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0 }}
@@ -308,58 +338,199 @@ function App() {
             className="text-center mb-16"
           >
             <Badge className="mb-4 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
-              Pricing
+              Fitur Utama
             </Badge>
             <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
-              Simple, Transparent Pricing
+              Semua yang Anda Butuhkan untuk Berkembang
             </h2>
-            <p className="text-gray-600 dark:text-gray-300">
-              Pay for what you use. Scale as you grow. No hidden fees.
+            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Dibangun khusus untuk operasional F&B dengan fitur modular yang berkembang bersama bisnis Anda
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                name: "Starter",
+                icon: <BarChart3 className="w-6 h-6" />,
+                title: "Desain Modular",
+                description: "Mulai dengan yang Anda butuhkan. Tambahkan modul seiring pertumbuhan. Tanpa fitur berlebihan, hanya efisiensi."
+              },
+              {
+                icon: <Sparkles className="w-6 h-6" />,
+                title: "Insight Bertenaga AI",
+                description: "Forecasting cerdas, auto-reorder otomatis, dan kalkulasi biaya resep yang intelligent."
+              },
+              {
+                icon: <ShieldCheck className="w-6 h-6" />,
+                title: "Keamanan Enterprise",
+                description: "Enkripsi tingkat bank, akses berbasis role, dan jejak audit lengkap."
+              },
+              {
+                icon: <Zap className="w-6 h-6" />,
+                title: "Sangat Cepat",
+                description: "Dioptimalkan untuk kecepatan. Proses pesanan dalam milidetik, bukan detik."
+              },
+              {
+                icon: <Users className="w-6 h-6" />,
+                title: "Multi-Lokasi",
+                description: "Kelola multiple dapur, gudang, dan outlet dari satu dashboard."
+              },
+              {
+                icon: <TrendingUp className="w-6 h-6" />,
+                title: "Analitik Real-Time",
+                description: "Dashboard live, tracking profit, dan metrik performa di ujung jari Anda."
+              }
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="h-full hover:shadow-lg transition-shadow border-orange-100 dark:border-gray-700">
+                  <CardHeader>
+                    <div className="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900 flex items-center justify-center text-orange-600 dark:text-orange-400 mb-4">
+                      {feature.icon}
+                    </div>
+                    <CardTitle>{feature.title}</CardTitle>
+                    <CardDescription>{feature.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Use Cases Section */}
+      <section className="py-20 px-4 bg-white dark:bg-gray-900">
+        <div className="container mx-auto max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <Badge className="mb-4 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
+              Use Cases
+            </Badge>
+            <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+              Untuk Siapa personalapp.id?
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              {
+                title: "Dapur Pusat & Catering",
+                description: "Kelola produksi batch besar, tracking COGS per resep, dan distribusi ke multiple outlet dengan mudah.",
+                image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&auto=format&fit=crop"
+              },
+              {
+                title: "Cloud Kitchen & Virtual Brand",
+                description: "Operasikan multiple brand dari satu dapur. Manajemen menu, inventori, dan pesanan online terintegrasi.",
+                image: "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=800&auto=format&fit=crop"
+              },
+              {
+                title: "Restoran & Kafe",
+                description: "Dari POS hingga inventori, dari reservasi hingga program loyalitas—semua dalam satu platform.",
+                image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop"
+              },
+              {
+                title: "Food Retail & FMCG",
+                description: "Manajemen produksi, distribusi, dan penjualan produk makanan packaged dengan tracking batch dan kedaluwarsa.",
+                image: "https://images.unsplash.com/photo-1601599561213-832382fd07ba?w=800&auto=format&fit=crop"
+              }
+            ].map((usecase, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="h-full overflow-hidden border-orange-200 dark:border-gray-700 hover:border-orange-400 dark:hover:border-orange-600 transition-colors">
+                  <div className="h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    <img
+                      src={usecase.image}
+                      alt={usecase.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <CardHeader>
+                    <CardTitle>{usecase.title}</CardTitle>
+                    <CardDescription>{usecase.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <Badge className="mb-4 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
+              Harga
+            </Badge>
+            <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+              Harga Sederhana & Transparan
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300">
+              Bayar sesuai kebutuhan. Scale seiring pertumbuhan. Tanpa biaya tersembunyi.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Pemula",
                 price: "2,500,000",
-                period: "per month",
-                description: "Perfect for single location operations",
+                period: "per bulan",
+                description: "Sempurna untuk operasional single-location",
                 features: [
-                  "1 Location",
-                  "Up to 5 users",
-                  "Basic inventory",
-                  "Recipe management",
+                  "1 Lokasi",
+                  "Hingga 5 pengguna",
+                  "Inventori dasar",
+                  "Manajemen resep",
                   "Email support"
                 ]
               },
               {
-                name: "Growth",
+                name: "Pertumbuhan",
                 price: "7,500,000",
-                period: "per month",
+                period: "per bulan",
                 popular: true,
-                description: "For growing multi-location businesses",
+                description: "Untuk bisnis multi-lokasi yang berkembang",
                 features: [
-                  "Up to 5 locations",
-                  "Unlimited users",
-                  "Advanced inventory",
+                  "Hingga 5 lokasi",
+                  "Unlimited pengguna",
+                  "Inventori advanced",
                   "Production planning",
                   "Priority support",
-                  "API access"
+                  "Akses API"
                 ]
               },
               {
                 name: "Enterprise",
-                price: "Custom",
-                period: "per month",
-                description: "For large-scale operations",
+                price: "Hubungi Kami",
+                period: "per bulan",
+                description: "Untuk operasional skala besar",
                 features: [
-                  "Unlimited locations",
-                  "Unlimited users",
-                  "Custom modules",
+                  "Unlimited lokasi",
+                  "Unlimited pengguna",
+                  "Modul custom",
                   "Dedicated support",
-                  "On-premise option",
-                  "SLA guarantee"
+                  "Opsi on-premise",
+                  "Garansi SLA"
                 ]
               }
             ].map((plan, index) => (
@@ -373,15 +544,17 @@ function App() {
                 <Card className={`h-full ${plan.popular ? 'border-orange-500 dark:border-orange-600 shadow-lg scale-105' : 'border-orange-100 dark:border-gray-700'}`}>
                   <CardHeader>
                     {plan.popular && (
-                      <Badge className="mb-2 w-fit bg-orange-500 text-white">Most Popular</Badge>
+                      <Badge className="mb-2 w-fit bg-orange-500 text-white">Paling Populer</Badge>
                     )}
                     <CardTitle className="text-2xl">{plan.name}</CardTitle>
                     <CardDescription>{plan.description}</CardDescription>
                     <div className="mt-4">
                       <span className="text-3xl font-bold text-gray-900 dark:text-white">
-                        Rp {plan.price}
+                        {plan.price.includes('Hubungi') ? plan.price : `Rp ${plan.price}`}
                       </span>
-                      <span className="text-gray-600 dark:text-gray-400 ml-2">{plan.period}</span>
+                      {!plan.price.includes('Hubungi') && (
+                        <span className="text-gray-600 dark:text-gray-400 ml-2">{plan.period}</span>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -400,7 +573,7 @@ function App() {
                           : 'bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-900 dark:text-orange-300'
                       }`}
                     >
-                      Get Started
+                      Mulai Sekarang
                     </Button>
                   </CardContent>
                 </Card>
@@ -411,7 +584,7 @@ function App() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 bg-white dark:bg-gray-900">
         <div className="container mx-auto max-w-3xl">
           <motion.div
             initial={{ opacity: 0 }}
@@ -423,31 +596,31 @@ function App() {
               FAQ
             </Badge>
             <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
-              Frequently Asked Questions
+              Pertanyaan yang Sering Diajukan
             </h2>
           </motion.div>
 
           <Accordion type="single" collapsible className="w-full">
             {[
               {
-                question: "How long does implementation take?",
-                answer: "Most businesses are up and running within 1-2 weeks. Our team handles data migration, training, and setup to ensure a smooth transition."
+                question: "Berapa lama waktu implementasi?",
+                answer: "Sebagian besar bisnis sudah berjalan dalam 1-2 minggu. Tim kami menangani migrasi data, training, dan setup untuk memastikan transisi yang mulus."
               },
               {
-                question: "Can I integrate with my existing POS system?",
-                answer: "Yes! We offer integrations with popular POS systems, or you can use our built-in POS module. Our API allows custom integrations."
+                question: "Apakah bisa integrasi dengan sistem POS yang sudah ada?",
+                answer: "Ya! Kami menawarkan integrasi dengan sistem POS populer, atau Anda bisa menggunakan modul POS built-in kami. API kami memungkinkan integrasi custom."
               },
               {
-                question: "Is my data secure?",
-                answer: "Absolutely. We use bank-level encryption, regular backups, and comply with international data protection standards. Your data is yours."
+                question: "Apakah data saya aman?",
+                answer: "Tentu saja. Kami menggunakan enkripsi tingkat bank, backup reguler, dan mematuhi standar perlindungan data internasional. Data Anda adalah milik Anda."
               },
               {
-                question: "Do you offer training?",
-                answer: "Yes! We provide comprehensive onboarding training, video tutorials, and ongoing support to ensure your team is confident using the system."
+                question: "Apakah ada training?",
+                answer: "Ya! Kami menyediakan training onboarding komprehensif, tutorial video, dan dukungan berkelanjutan untuk memastikan tim Anda percaya diri menggunakan sistem."
               },
               {
-                question: "What if I need custom features?",
-                answer: "Our Enterprise plan includes custom module development. We work with you to build exactly what your business needs."
+                question: "Bagaimana jika saya butuh fitur khusus?",
+                answer: "Paket Enterprise kami mencakup pengembangan modul custom. Kami bekerja sama dengan Anda untuk membangun persis apa yang bisnis Anda butuhkan."
               }
             ].map((faq, index) => (
               <AccordionItem key={index} value={`item-${index}`}>
@@ -470,25 +643,25 @@ function App() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl font-bold mb-4 text-white">
-              Ready to Transform Your Kitchen?
+              Siap Mengubah Operasional Dapur Anda?
             </h2>
             <p className="text-xl text-orange-100 mb-8">
-              Join hundreds of F&B businesses already using Central Kitchen ERP
+              Bergabunglah dengan ratusan bisnis F&B yang sudah menggunakan personalapp.id
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
               <Input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Masukkan email Anda"
                 className="bg-white dark:bg-gray-800"
               />
               <Button size="lg" className="bg-white text-orange-600 hover:bg-orange-50">
-                Start Free Trial
+                Coba Gratis
               </Button>
             </div>
 
             <p className="mt-4 text-sm text-orange-100">
-              No credit card required. 14-day free trial.
+              Tanpa kartu kredit. Gratis 14 hari.
             </p>
           </motion.div>
         </div>
@@ -500,36 +673,36 @@ function App() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <ChefHat className="w-6 h-6 text-orange-500" />
-                <span className="font-bold text-gray-900 dark:text-white">Central Kitchen ERP</span>
+                <Sparkles className="w-6 h-6 text-orange-500" />
+                <span className="font-bold text-gray-900 dark:text-white">personalapp.id</span>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Complete ERP solution for F&B businesses
+                Aplikasi personal untuk operasional F&B Anda
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4 text-gray-900 dark:text-white">Product</h4>
+              <h4 className="font-semibold mb-4 text-gray-900 dark:text-white">Produk</h4>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                <li><a href="#features" className="hover:text-orange-500">Features</a></li>
-                <li><a href="#pricing" className="hover:text-orange-500">Pricing</a></li>
-                <li><a href="#" className="hover:text-orange-500">Integrations</a></li>
+                <li><a href="#features" className="hover:text-orange-500">Fitur</a></li>
+                <li><a href="#pricing" className="hover:text-orange-500">Harga</a></li>
+                <li><a href="#" className="hover:text-orange-500">Integrasi</a></li>
                 <li><a href="#" className="hover:text-orange-500">API</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4 text-gray-900 dark:text-white">Company</h4>
+              <h4 className="font-semibold mb-4 text-gray-900 dark:text-white">Perusahaan</h4>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                <li><a href="#" className="hover:text-orange-500">About</a></li>
+                <li><a href="#" className="hover:text-orange-500">Tentang</a></li>
                 <li><a href="#" className="hover:text-orange-500">Blog</a></li>
-                <li><a href="#" className="hover:text-orange-500">Careers</a></li>
-                <li><a href="#contact" className="hover:text-orange-500">Contact</a></li>
+                <li><a href="#" className="hover:text-orange-500">Karir</a></li>
+                <li><a href="#contact" className="hover:text-orange-500">Kontak</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4 text-gray-900 dark:text-white">Contact</h4>
+              <h4 className="font-semibold mb-4 text-gray-900 dark:text-white">Kontak</h4>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                 <li className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
@@ -549,11 +722,11 @@ function App() {
 
           <div className="border-t border-orange-100 dark:border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              © 2025 Central Kitchen ERP. All rights reserved.
+              © 2025 personalapp.id. Dibangun dengan cinta untuk operator—disukai kucing oranye.
             </p>
             <div className="flex gap-4 mt-4 md:mt-0">
-              <a href="#" className="text-sm text-gray-600 dark:text-gray-300 hover:text-orange-500">Privacy Policy</a>
-              <a href="#" className="text-sm text-gray-600 dark:text-gray-300 hover:text-orange-500">Terms of Service</a>
+              <a href="#" className="text-sm text-gray-600 dark:text-gray-300 hover:text-orange-500">Kebijakan Privasi</a>
+              <a href="#" className="text-sm text-gray-600 dark:text-gray-300 hover:text-orange-500">Syarat Layanan</a>
             </div>
           </div>
         </div>
