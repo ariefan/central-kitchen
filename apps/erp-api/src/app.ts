@@ -23,8 +23,13 @@ export async function build() {
 
   // Register CORS
   const allowedOrigins = env.NODE_ENV === 'production'
-    ? ['https://your-project-name.vercel.app', 'https://your-custom-domain.com']
-    : ['http://localhost:3000'];
+    ? [
+        'https://erp.personalapp.id',
+        'https://api.personalapp.id',
+        'https://your-project-name.vercel.app',
+        'https://your-custom-domain.com'
+      ]
+    : ['http://localhost:3000', 'http://localhost:5173'];
 
   await server.register(cors, {
     origin: allowedOrigins,

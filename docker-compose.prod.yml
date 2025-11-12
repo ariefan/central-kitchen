@@ -1,0 +1,75 @@
+# Production Docker Compose Configuration
+# This extends docker-compose.yml with production-specific settings
+
+version: '3.8'
+
+services:
+  postgres:
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    # Production uses persistent bind mount for easier backup
+    # Comment out this volume override to use named volume from base docker-compose.yml
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  api:
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/erp-api
+      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=production
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  web:
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  nginx:
+    ports:
+      - "80:80"
+      - "443:443"
+    # SSL certificate path - uses local ./nginx/ssl by default
+    # If using Let's Encrypt, uncomment the line below:
+    # volumes:
+    #   - /etc/letsencrypt/live:/etc/nginx/ssl:ro
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+volumes:
+  nginx_cache:

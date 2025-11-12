@@ -47,7 +47,13 @@
       "Bash(pnpm eslint)",
       "Bash(git commit:*)",
       "Bash(rm:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(pnpm build:api:*)",
+      "Bash(chmod:*)",
+      "Bash(docker run:*)",
+      "Bash(ssh -i \"dev.pem\" ubuntu@ec2-18-143-15-78.ap-southeast-1.compute.amazonaws.com \"curl -sSL https://dokploy.com/install.sh | sh\")",
+      "Bash(ssh -i \"C:\\Users\\arief\\.ssh\\dev.pem\" ubuntu@ec2-18-143-15-78.ap-southeast-1.compute.amazonaws.com \"curl -sSL https://dokploy.com/install.sh | sudo sh\")",
+      "Bash(ssh:*)"
     ],
     "deny": [],
     "ask": []

@@ -108,13 +108,17 @@ export function uomConversionRoutes(fastify: FastifyInstance) {
 
       // Get the "to" UOM separately
       const conversion = conversionData[0];
+      if (!conversion) {
+        return createNotFoundError('UOM conversion not found', reply);
+      }
+
       const toUomData = await db.select()
         .from(uoms)
         .where(eq(uoms.id, conversion.conversion.toUomId))
         .limit(1);
 
       const conversionWithUOMs = {
-        ...conversion!.conversion,
+        ...conversion.conversion,
         fromUom: conversion.fromUom,
         toUom: toUomData[0],
       };
@@ -185,7 +189,6 @@ export function uomConversionRoutes(fastify: FastifyInstance) {
         .set({
           ...request.body,
           factor: request.body.factor?.toString(),
-          updatedAt: new Date(),
         })
         .where(eq(uomConversions.id, request.params.id))
         .returning();
@@ -272,22 +275,26 @@ export function uomConversionRoutes(fastify: FastifyInstance) {
 
       if (directConversion.length) {
         const conversion = directConversion[0];
-        const toUomData = await db.select()
-          .from(uoms)
-          .where(eq(uoms.id, conversion.conversion.toUomId))
-          .limit(1);
+        if (!conversion) {
+          // Continue to next conversion attempt
+        } else {
+          const toUomData = await db.select()
+            .from(uoms)
+            .where(eq(uoms.id, conversion.conversion.toUomId))
+            .limit(1);
 
-        const factor = parseFloat(conversion.conversion.factor);
-        const convertedQuantity = quantity * factor;
+          const factor = parseFloat(conversion.conversion.factor);
+          const convertedQuantity = quantity * factor;
 
-        return reply.send(createSuccessResponse({
-          fromUom: conversion.fromUom,
-          toUom: toUomData[0],
-          originalQuantity: quantity,
-          convertedQuantity,
-          conversionFactor: factor,
-          path: [conversion],
-        }, 'Conversion calculated successfully'));
+          return reply.send(createSuccessResponse({
+            fromUom: conversion.fromUom,
+            toUom: toUomData[0],
+            originalQuantity: quantity,
+            convertedQuantity,
+            conversionFactor: factor,
+            path: [conversion],
+          }, 'Conversion calculated successfully'));
+        }
       }
 
       // Try reverse conversion
@@ -306,27 +313,31 @@ export function uomConversionRoutes(fastify: FastifyInstance) {
 
       if (reverseConversion.length) {
         const conversion = reverseConversion[0];
-        const fromUomData = await db.select()
-          .from(uoms)
-          .where(eq(uoms.id, conversion.conversion.toUomId))
-          .limit(1);
+        if (!conversion) {
+          // Continue to next conversion attempt
+        } else {
+          const fromUomData = await db.select()
+            .from(uoms)
+            .where(eq(uoms.id, conversion.conversion.toUomId))
+            .limit(1);
 
-        const toUomData = await db.select()
-          .from(uoms)
-          .where(eq(uoms.id, conversion.conversion.fromUomId))
-          .limit(1);
+          const toUomData = await db.select()
+            .from(uoms)
+            .where(eq(uoms.id, conversion.conversion.fromUomId))
+            .limit(1);
 
-        const factor = parseFloat(conversion.conversion.factor);
-        const convertedQuantity = quantity / factor;
+          const factor = parseFloat(conversion.conversion.factor);
+          const convertedQuantity = quantity / factor;
 
-        return reply.send(createSuccessResponse({
-          fromUom: fromUomData[0],
-          toUom: toUomData[0],
-          originalQuantity: quantity,
-          convertedQuantity,
-          conversionFactor: 1 / factor,
-          path: [conversion],
-        }, 'Conversion calculated successfully'));
+              return reply.send(createSuccessResponse({
+            fromUom: fromUomData[0],
+            toUom: toUomData[0],
+            originalQuantity: quantity,
+            convertedQuantity,
+            conversionFactor: 1 / factor,
+            path: [conversion],
+          }, 'Conversion calculated successfully'));
+        }
       }
 
       // No direct conversion found

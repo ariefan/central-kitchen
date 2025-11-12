@@ -1,32 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "pnpm build",
-  "outputDirectory": "apps/inventory/dist",
-  "installCommand": "pnpm install",
-  "framework": "vite",
-  "functions": {
-    "apps/erp-api/api/index.ts": {
-      "runtime": "nodejs18.x",
-      "maxDuration": 30
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.ts"
-    },
-    {
-      "source": "/health",
-      "destination": "/api/index.ts"
-    },
-    {
-      "source": "/docs",
-      "destination": "/api/index.ts"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production",
-    "HOST": "0.0.0.0",
-    "PORT": "8000"
-  }
+  "buildCommand": "pnpm build:api",
+  "installCommand": "pnpm install"
 }
