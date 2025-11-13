@@ -137,7 +137,8 @@ services:
       # HTTP to HTTPS redirect
       - "traefik.http.routers.landing-http.rule=Host(`personalapp.id`) || Host(`www.personalapp.id`)"
       - "traefik.http.routers.landing-http.entrypoints=web"
-      - "traefik.http.routers.landing-http.middlewares=redirect-to-https"
+      - "traefik.http.routers.landing-http.middlewares=redirect-to-https-landing"
+      - "traefik.http.middlewares.redirect-to-https-landing.redirectscheme.scheme=https"
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:80/ || exit 1"]
       interval: 30s
