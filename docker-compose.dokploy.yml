@@ -60,8 +60,8 @@ services:
       # HTTP to HTTPS redirect
       - "traefik.http.routers.api-http.rule=Host(`api.personalapp.id`)"
       - "traefik.http.routers.api-http.entrypoints=web"
-      - "traefik.http.routers.api-http.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.api-http.middlewares=redirect-to-https-api"
+      - "traefik.http.middlewares.redirect-to-https-api.redirectscheme.scheme=https"
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8000/health || exit 1"]
       interval: 30s
@@ -102,8 +102,8 @@ services:
       # HTTP to HTTPS redirect
       - "traefik.http.routers.web-http.rule=Host(`erp.personalapp.id`)"
       - "traefik.http.routers.web-http.entrypoints=web"
-      - "traefik.http.routers.web-http.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.web-http.middlewares=redirect-to-https-web"
+      - "traefik.http.middlewares.redirect-to-https-web.redirectscheme.scheme=https"
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/ || exit 1"]
       interval: 30s
