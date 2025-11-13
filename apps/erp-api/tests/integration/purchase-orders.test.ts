@@ -71,7 +71,13 @@ describe('Purchase Orders', () => {
     const payload = response.json();
     expect(payload).toHaveProperty('success', true);
     expect(payload).toHaveProperty('data');
-    expect(Array.isArray(payload.data)).toBe(true);
+    expect(payload.data).toHaveProperty('items');
+    expect(payload.data).toHaveProperty('total');
+    expect(payload.data).toHaveProperty('limit');
+    expect(payload.data).toHaveProperty('offset');
+    expect(payload.data).toHaveProperty('hasNext');
+    expect(payload.data).toHaveProperty('hasPrev');
+    expect(Array.isArray(payload.data.items)).toBe(true);
   });
 
   it('should create a new purchase order', async () => {

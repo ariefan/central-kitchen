@@ -1,9 +1,20 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses.js';
+import {
+  createSuccessResponse,
+  createPaginatedResponse,
+  successResponseSchema,
+  createNotFoundError,
+  notFoundResponseSchema
+} from '../../../../shared/utils/responses.js';
+import {
+  baseQuerySchema,
+  createPaginatedResponseSchema
+} from '../../../../shared/utils/schemas.js';
+import { buildQueryConditions } from '../../../../shared/utils/query-builder.js';
 import { db } from '../../../../config/database.js';
 import { purchaseOrders, purchaseOrderItems, products, uoms, docStatuses } from '../../../../config/schema.js';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, count } from 'drizzle-orm';
 import { getTenantId, getUserId } from '../../../../shared/middleware/auth.js';
 
 // Purchase Order schemas
@@ -28,18 +39,52 @@ const purchaseOrderCreateSchema = z.object({
 
 const purchaseOrderUpdateSchema = purchaseOrderCreateSchema.partial().omit({ items: true });
 
-// Response schemas
-const purchaseOrderResponseSchema = z.object({
-  success: z.literal(true),
-  data: z.any(),
-  message: z.string(),
+// Purchase Order filter schema for query params
+const purchaseOrderFiltersSchema = z.object({
+  status: z.enum(docStatuses.purchaseOrder).optional(),
+  supplierId: z.string().uuid().optional(),
+  locationId: z.string().uuid().optional(),
 });
 
-const purchaseOrdersResponseSchema = z.object({
-  success: z.literal(true),
-  data: z.array(z.any()),
-  message: z.string(),
+// Combined query schema for GET /purchase-orders
+const purchaseOrderQuerySchema = baseQuerySchema.merge(purchaseOrderFiltersSchema);
+
+// Purchase Order response schema
+const purchaseOrderSchema = z.object({
+  id: z.string().uuid(),
+  tenantId: z.string().uuid(),
+  orderNumber: z.string(),
+  supplierId: z.string().uuid(),
+  locationId: z.string().uuid(),
+  orderDate: z.date(),
+  expectedDeliveryDate: z.date().nullable(),
+  actualDeliveryDate: z.date().nullable(),
+  status: z.string(),
+  subtotal: z.string(),
+  taxAmount: z.string(),
+  shippingCost: z.string(),
+  discount: z.string(),
+  totalAmount: z.string(),
+  paymentTerms: z.number().nullable(),
+  notes: z.string().nullable(),
+  createdBy: z.string().uuid(),
+  approvedBy: z.string().uuid().nullable(),
+  approvedAt: z.date().nullable(),
+  metadata: z.unknown().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
+
+// Purchase Order with items schema (for GET by ID)
+const purchaseOrderWithItemsSchema = purchaseOrderSchema.extend({
+  items: z.array(z.any()), // Items come from a JOIN, so structure is complex
+});
+
+// Response schemas
+const purchaseOrderResponseSchema = successResponseSchema(purchaseOrderSchema);
+const purchaseOrderWithItemsResponseSchema = successResponseSchema(purchaseOrderWithItemsSchema);
+
+const purchaseOrdersResponseSchema = createPaginatedResponseSchema(purchaseOrderSchema);
 
 export function purchaseOrderRoutes(fastify: FastifyInstance) {
   // GET /api/v1/purchase-orders - List all purchase orders
@@ -47,44 +92,73 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
     '/',
     {
       schema: {
-        description: 'Get all purchase orders',
+        description: 'Get all purchase orders with pagination, sorting, and search',
         tags: ['Purchase Orders'],
-        querystring: z.object({
-          status: z.enum(docStatuses.purchaseOrder).optional(),
-          supplierId: z.string().uuid().optional(),
-          locationId: z.string().uuid().optional(),
-        }),
+        querystring: purchaseOrderQuerySchema,
         response: {
           200: purchaseOrdersResponseSchema,
         },
       },
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (request: FastifyRequest<{ Querystring: z.infer<typeof purchaseOrderQuerySchema> }>, reply: FastifyReply) => {
       const tenantId = getTenantId(request);
-      const { status, supplierId, locationId } = request.query as {
-        status?: string;
-        supplierId?: string;
-        locationId?: string;
-      };
+      const {
+        limit,
+        offset,
+        sortBy,
+        sortOrder,
+        search,
+        status,
+        supplierId,
+        locationId,
+      } = request.query;
 
-      let whereConditions = [eq(purchaseOrders.tenantId, tenantId)];
+      // Build filters object (excluding pagination/sort params)
+      const filters: Record<string, unknown> = { tenantId };
+      if (status) filters.status = status;
+      if (supplierId) filters.supplierId = supplierId;
+      if (locationId) filters.locationId = locationId;
 
-      if (status) {
-        whereConditions.push(eq(purchaseOrders.status, status));
+      // Build query conditions using our query builder
+      const queryConditions = buildQueryConditions({
+        filters,
+        search,
+        searchFields: ['orderNumber', 'notes'], // Search in order number and notes
+        sortBy,
+        sortOrder,
+        limit,
+        offset,
+        // Type assertion required: Drizzle's PgTable has deeply nested generic types
+        // that are incompatible with our simplified TableOrColumns interface.
+        // The runtime behavior is correct as we only access column properties.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        table: purchaseOrders as any,
+        allowedSortFields: ['orderNumber', 'orderDate', 'createdAt', 'updatedAt', 'totalAmount', 'status', 'expectedDeliveryDate'],
+      });
+
+      // Get total count
+      const countResult = await db
+        .select({ value: count() })
+        .from(purchaseOrders)
+        .where(queryConditions.where);
+
+      const total = countResult[0]?.value ?? 0;
+
+      // Get paginated data
+      let query = db.select().from(purchaseOrders).where(queryConditions.where);
+
+      // Apply sorting if provided
+      if (queryConditions.orderBy) {
+        // Type assertion required: Drizzle's query builder returns a complex chained type
+        // that TypeScript cannot properly infer after orderBy is applied dynamically.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        query = query.orderBy(...queryConditions.orderBy) as any;
       }
 
-      if (supplierId) {
-        whereConditions.push(eq(purchaseOrders.supplierId, supplierId));
-      }
+      // Apply pagination
+      const allOrders = await query.limit(limit).offset(offset);
 
-      if (locationId) {
-        whereConditions.push(eq(purchaseOrders.locationId, locationId));
-      }
-
-      const allOrders = await db.select().from(purchaseOrders)
-        .where(and(...whereConditions))
-        .orderBy(purchaseOrders.createdAt);
-      return reply.send(createSuccessResponse(allOrders, 'Purchase orders retrieved successfully'));
+      return reply.send(createPaginatedResponse(allOrders, total, limit, offset));
     }
   );
 
@@ -97,7 +171,7 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
         tags: ['Purchase Orders'],
         params: z.object({ id: z.string().uuid() }),
         response: {
-          200: purchaseOrderResponseSchema,
+          200: purchaseOrderWithItemsResponseSchema,
           404: notFoundResponseSchema,
         },
       },
@@ -194,8 +268,8 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           quantity: item.quantity.toString(),
           uomId: item.uomId,
           unitPrice: item.unitPrice.toString(),
-          discount: item.discount.toString(),
-          taxRate: item.taxRate.toString(),
+          discount: (item.discount ?? 0).toString(),
+          taxRate: (item.taxRate ?? 0).toString(),
           lineTotal: item.lineTotal.toString(),
           notes: item.notes ?? null,
           purchaseOrderId: order!.id,

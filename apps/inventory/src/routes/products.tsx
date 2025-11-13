@@ -97,6 +97,25 @@ function Products() {
     setSelectedProduct(null)
   }
 
+  // Bulk operation handlers
+  const handleBulkDelete = async (ids: string[]) => {
+    for (const id of ids) {
+      await deleteProduct.mutateAsync(id)
+    }
+  }
+
+  const handleBulkUpdateStatus = async (ids: string[], status: boolean) => {
+    for (const id of ids) {
+      await updateProduct.mutateAsync({ id, data: { isActive: status } })
+    }
+  }
+
+  const handleImport = async (products: Partial<Product>[]) => {
+    for (const product of products) {
+      await createProduct.mutateAsync(product as any)
+    }
+  }
+
   if (error) {
     return (
       <div className="space-y-6">
@@ -163,6 +182,9 @@ function Products() {
               onEdit={handleEdit}
               onView={handleView}
               onDelete={handleDelete}
+              onBulkDelete={handleBulkDelete}
+              onBulkUpdateStatus={handleBulkUpdateStatus}
+              onImport={handleImport}
             />
           )}
         </CardContent>

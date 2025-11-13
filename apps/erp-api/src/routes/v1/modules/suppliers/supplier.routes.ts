@@ -1,12 +1,22 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses.js';
+import {
+  createSuccessResponse,
+  createPaginatedResponse,
+  successResponseSchema,
+  createNotFoundError,
+  notFoundResponseSchema
+} from '../../../../shared/utils/responses.js';
+import {
+  baseQuerySchema,
+  createPaginatedResponseSchema
+} from '../../../../shared/utils/schemas.js';
+import { buildQueryConditions } from '../../../../shared/utils/query-builder.js';
 import { db } from '../../../../config/database.js';
 import { suppliers } from '../../../../config/schema.js';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, count } from 'drizzle-orm';
 import { getTenantId } from '../../../../shared/middleware/auth.js';
-import { PaginatedResponse } from '../../../../shared/types/index.js';
 
 // Create schemas from the database schema (single source of truth)
 const supplierInsertSchema = createInsertSchema(suppliers).omit({
@@ -18,23 +28,18 @@ const supplierInsertSchema = createInsertSchema(suppliers).omit({
 
 const supplierSelectSchema = createSelectSchema(suppliers);
 
-// Response schemas
-const supplierResponseSchema = z.object({
-  success: z.literal(true),
-  data: supplierSelectSchema,
-  message: z.string(),
+// Supplier filter schema for query params
+const supplierFiltersSchema = z.object({
+  isActive: z.coerce.boolean().optional(),
 });
 
-const suppliersResponseSchema = z.object({
-  success: z.literal(true),
-  data: z.object({
-    items: z.array(supplierSelectSchema),
-    total: z.number(),
-    limit: z.number(),
-    offset: z.number(),
-  }),
-  message: z.string(),
-});
+// Combined query schema for GET /suppliers
+const supplierQuerySchema = baseQuerySchema.merge(supplierFiltersSchema);
+
+// Response schemas
+const supplierResponseSchema = successResponseSchema(supplierSelectSchema);
+
+const suppliersResponseSchema = createPaginatedResponseSchema(supplierSelectSchema);
 
 export function supplierRoutes(fastify: FastifyInstance) {
   // GET /api/v1/suppliers - List all suppliers
@@ -42,61 +47,69 @@ export function supplierRoutes(fastify: FastifyInstance) {
     '/',
     {
       schema: {
-        description: 'Get all suppliers with pagination',
+        description: 'Get all suppliers with pagination, sorting, and search',
         tags: ['Suppliers'],
-        querystring: z.object({
-          isActive: z.coerce.boolean().optional(),
-          search: z.string().optional(),
-          limit: z.number().min(1).max(1000).default(100),
-          offset: z.number().min(0).default(0),
-        }),
+        querystring: supplierQuerySchema,
         response: {
           200: suppliersResponseSchema,
         },
       },
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (request: FastifyRequest<{ Querystring: z.infer<typeof supplierQuerySchema> }>, reply: FastifyReply) => {
       const tenantId = getTenantId(request);
-      const { isActive, search, limit, offset } = request.query as {
-        isActive?: boolean;
-        search?: string;
-        limit?: number;
-        offset?: number;
-      };
+      const {
+        limit,
+        offset,
+        sortBy,
+        sortOrder,
+        search,
+        isActive,
+      } = request.query;
 
-      let whereConditions = [eq(suppliers.tenantId, tenantId)];
+      // Build filters object (excluding pagination/sort params)
+      const filters: Record<string, unknown> = { tenantId };
+      if (isActive !== undefined) filters.isActive = isActive;
 
-      if (isActive !== undefined) {
-        whereConditions.push(eq(suppliers.isActive, isActive));
-      }
+      // Build query conditions using our query builder
+      const queryConditions = buildQueryConditions({
+        filters,
+        search,
+        searchFields: ['name', 'code', 'email', 'phone'], // Search in name, code, email, and phone
+        sortBy,
+        sortOrder,
+        limit,
+        offset,
+        // Type assertion required: Drizzle's PgTable has deeply nested generic types
+        // that are incompatible with our simplified TableOrColumns interface.
+        // The runtime behavior is correct as we only access column properties.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        table: suppliers as any,
+        allowedSortFields: ['name', 'code', 'email', 'createdAt', 'updatedAt', 'isActive'],
+      });
 
-      if (search) {
-        whereConditions.push(sql`${suppliers.name} ILIKE ${'%' + search + '%'} OR ${suppliers.code} ILIKE ${'%' + search + '%'}`);
-      }
-
-      // Get total count for pagination
-      const totalCountResult = await db
-        .select({ count: sql<number>`count(*)` })
+      // Get total count
+      const countResult = await db
+        .select({ value: count() })
         .from(suppliers)
-        .where(and(...whereConditions));
+        .where(queryConditions.where);
 
-      const totalCount = Number(totalCountResult[0]?.count ?? 0);
+      const total = countResult[0]?.value ?? 0;
 
-      // Get paginated suppliers
-      const paginatedSuppliers = await db.select().from(suppliers)
-        .where(and(...whereConditions))
-        .orderBy(suppliers.name)
-        .limit(limit ?? 100)
-        .offset(offset ?? 0);
+      // Get paginated data
+      let query = db.select().from(suppliers).where(queryConditions.where);
 
-      const paginatedResponse: PaginatedResponse<typeof paginatedSuppliers[0]> = {
-        items: paginatedSuppliers,
-        total: totalCount,
-        limit: limit ?? 100,
-        offset: offset ?? 0,
-      };
+      // Apply sorting if provided
+      if (queryConditions.orderBy) {
+        // Type assertion required: Drizzle's query builder returns a complex chained type
+        // that TypeScript cannot properly infer after orderBy is applied dynamically.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        query = query.orderBy(...queryConditions.orderBy) as any;
+      }
 
-      return reply.send(createSuccessResponse(paginatedResponse, 'Suppliers retrieved successfully'));
+      // Apply pagination
+      const allSuppliers = await query.limit(limit).offset(offset);
+
+      return reply.send(createPaginatedResponse(allSuppliers, total, limit, offset));
     }
   );
 

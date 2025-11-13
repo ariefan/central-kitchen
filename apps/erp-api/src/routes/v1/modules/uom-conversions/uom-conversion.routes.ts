@@ -3,8 +3,7 @@ import { z } from 'zod';
 import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses.js';
 import { db } from '../../../../config/database.js';
 import { uomConversions, uoms } from '../../../../config/schema.js';
-import { eq, and, sql } from 'drizzle-orm';
-import { getTenantId } from '../../../../shared/middleware/auth.js';
+import { eq, and } from 'drizzle-orm';
 
 // Schemas
 const uomConversionCreateSchema = z.object({

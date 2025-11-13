@@ -57,5 +57,37 @@ export function createEntitySchemas(
   };
 }
 
+// Standard query parameter schemas
+export const paginationSchema = z.object({
+  limit: z.coerce.number().min(1).max(1000).default(100),
+  offset: z.coerce.number().min(0).default(0),
+});
+
+export const sortSchema = z.object({
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(['asc', 'desc']).default('asc'),
+});
+
+export const searchSchema = z.string().min(1).max(100).optional();
+
+// Base query schema combining pagination, sort, and search
+export const baseQuerySchema = paginationSchema.merge(sortSchema).extend({
+  search: searchSchema,
+});
+
+// Factory for paginated response schemas
+export function createPaginatedResponseSchema<T extends z.ZodTypeAny>(itemSchema: T) {
+  return successResponseSchema(
+    z.object({
+      items: z.array(itemSchema),
+      total: z.number(),
+      limit: z.number(),
+      offset: z.number(),
+      hasNext: z.boolean(),
+      hasPrev: z.boolean(),
+    })
+  );
+}
+
 // Helper for location types (import from schema)
 export { locationTypes, productKinds, orderChannels, orderStatuses } from '../../config/schema.js';

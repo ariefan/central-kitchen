@@ -72,6 +72,30 @@ export const createSuccessResponse = <T>(
     message
   });
 
+/**
+ * Creates a standardized paginated response
+ * @param items - Array of items for current page
+ * @param total - Total count of all items
+ * @param limit - Number of items per page
+ * @param offset - Starting position
+ * @returns Paginated success response with navigation metadata
+ */
+export const createPaginatedResponse = <T>(
+  items: T[],
+  total: number,
+  limit: number,
+  offset: number
+) => {
+  return createSuccessResponse({
+    items,
+    total,
+    limit,
+    offset,
+    hasNext: offset + limit < total,
+    hasPrev: offset > 0,
+  }, `Retrieved ${items.length} of ${total} items`);
+};
+
 // Special response creator for delete operations
 export const createDeleteResponse = (message: string = 'Resource deleted successfully'): ApiResponse<null> => ({
   success: true,

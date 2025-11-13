@@ -72,7 +72,13 @@ describe('Orders', () => {
     const payload = response.json();
     expect(payload).toHaveProperty('success', true);
     expect(payload).toHaveProperty('data');
-    expect(Array.isArray(payload.data)).toBe(true);
+    expect(payload.data).toHaveProperty('items');
+    expect(payload.data).toHaveProperty('total');
+    expect(payload.data).toHaveProperty('limit');
+    expect(payload.data).toHaveProperty('offset');
+    expect(payload.data).toHaveProperty('hasNext');
+    expect(payload.data).toHaveProperty('hasPrev');
+    expect(Array.isArray(payload.data.items)).toBe(true);
   });
 
   it('should create a new order', async () => {
@@ -131,6 +137,10 @@ describe('Orders', () => {
       payload: newOrder
     });
 
+    if (createResponse.statusCode !== 201) {
+      console.log('Order creation failed:', createResponse.payload);
+    }
+    expect(createResponse.statusCode).toBe(201);
     const createPayload = createResponse.json();
     const orderId = createPayload.data.id;
 

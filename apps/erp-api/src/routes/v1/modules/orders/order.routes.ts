@@ -1,9 +1,20 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { createSuccessResponse, successResponseSchema, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses.js';
+import {
+  createSuccessResponse,
+  createPaginatedResponse,
+  successResponseSchema,
+  createNotFoundError,
+  notFoundResponseSchema
+} from '../../../../shared/utils/responses.js';
+import {
+  baseQuerySchema,
+  createPaginatedResponseSchema
+} from '../../../../shared/utils/schemas.js';
+import { buildQueryConditions } from '../../../../shared/utils/query-builder.js';
 import { db } from '../../../../config/database.js';
 import { orders, payments, orderItems, stockLedger } from '../../../../config/schema.js';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, count } from 'drizzle-orm';
 import { getTenantId, getUserId } from '../../../../shared/middleware/auth.js';
 
 // Simple order schema for testing
@@ -31,10 +42,49 @@ const prepStatusUpdateSchema = z.object({
   notes: z.string().optional(),
 });
 
-// Response schemas
-const orderResponseSchema = successResponseSchema(z.any());
+// Order filter schema for query params
+const orderFiltersSchema = z.object({
+  status: z.string().optional(),
+  channel: z.enum(['pos', 'online', 'wholesale']).optional(),
+  type: z.enum(['dine_in', 'take_away', 'delivery']).optional(),
+  kitchenStatus: z.enum(['open', 'preparing', 'ready', 'served', 'cancelled']).optional(),
+  locationId: z.string().uuid().optional(),
+  customerId: z.string().uuid().optional(),
+});
 
-const ordersResponseSchema = successResponseSchema(z.array(z.any()));
+// Combined query schema for GET /orders
+const orderQuerySchema = baseQuerySchema.merge(orderFiltersSchema);
+
+// Order response schema
+const orderSchema = z.object({
+  id: z.string().uuid(),
+  tenantId: z.string().uuid(),
+  orderNumber: z.string(),
+  locationId: z.string().uuid(),
+  customerId: z.string().uuid().nullable(),
+  deviceId: z.string().nullable(),
+  channel: z.string(),
+  type: z.string(),
+  status: z.string(),
+  kitchenStatus: z.string(),
+  tableNo: z.string().nullable(),
+  addressId: z.string().uuid().nullable(),
+  subtotal: z.string(),
+  taxAmount: z.string(),
+  discountAmount: z.string(),
+  serviceChargeAmount: z.string(),
+  tipsAmount: z.string(),
+  voucherAmount: z.string(),
+  totalAmount: z.string(),
+  createdBy: z.string().uuid().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+// Response schemas
+const orderResponseSchema = successResponseSchema(orderSchema);
+
+const ordersResponseSchema = createPaginatedResponseSchema(orderSchema);
 
 export function orderRoutes(fastify: FastifyInstance) {
   // GET /api/v1/orders - List all orders
@@ -42,16 +92,79 @@ export function orderRoutes(fastify: FastifyInstance) {
     '/',
     {
       schema: {
-        description: 'Get all orders',
+        description: 'Get all orders with pagination, sorting, and search',
         tags: ['Orders'],
-                response: {
+        querystring: orderQuerySchema,
+        response: {
           200: ordersResponseSchema,
         },
       },
     },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      const allOrders = await db.select().from(orders);
-      return reply.send(createSuccessResponse(allOrders, 'Orders retrieved successfully'));
+    async (request: FastifyRequest<{ Querystring: z.infer<typeof orderQuerySchema> }>, reply: FastifyReply) => {
+      const tenantId = getTenantId(request);
+      const {
+        limit,
+        offset,
+        sortBy,
+        sortOrder,
+        search,
+        status,
+        channel,
+        type,
+        kitchenStatus,
+        locationId,
+        customerId,
+      } = request.query;
+
+      // Build filters object (excluding pagination/sort params)
+      const filters: Record<string, unknown> = { tenantId };
+      if (status) filters.status = status;
+      if (channel) filters.channel = channel;
+      if (type) filters.type = type;
+      if (kitchenStatus) filters.kitchenStatus = kitchenStatus;
+      if (locationId) filters.locationId = locationId;
+      if (customerId) filters.customerId = customerId;
+
+      // Build query conditions using our query builder
+      const queryConditions = buildQueryConditions({
+        filters,
+        search,
+        searchFields: ['orderNumber', 'tableNo'], // Search in order number and table number
+        sortBy,
+        sortOrder,
+        limit,
+        offset,
+        // Type assertion required: Drizzle's PgTable has deeply nested generic types
+        // that are incompatible with our simplified TableOrColumns interface.
+        // The runtime behavior is correct as we only access column properties.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        table: orders as any,
+        allowedSortFields: ['orderNumber', 'createdAt', 'updatedAt', 'totalAmount', 'status', 'kitchenStatus'],
+      });
+
+      // Get total count
+      const countResult = await db
+        .select({ value: count() })
+        .from(orders)
+        .where(queryConditions.where);
+
+      const total = countResult[0]?.value ?? 0;
+
+      // Get paginated data
+      let query = db.select().from(orders).where(queryConditions.where);
+
+      // Apply sorting if provided
+      if (queryConditions.orderBy) {
+        // Type assertion required: Drizzle's query builder returns a complex chained type
+        // that TypeScript cannot properly infer after orderBy is applied dynamically.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        query = query.orderBy(...queryConditions.orderBy) as any;
+      }
+
+      // Apply pagination
+      const allOrders = await query.limit(limit).offset(offset);
+
+      return reply.send(createPaginatedResponse(allOrders, total, limit, offset));
     }
   );
 

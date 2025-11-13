@@ -104,6 +104,7 @@ describe('Goods Receipts', () => {
     expect(poDetailsResponse.statusCode).toBe(200);
     const poDetailsPayload = poDetailsResponse.json();
     if (!poDetailsPayload.data.items || poDetailsPayload.data.items.length === 0) {
+      console.log('PO Details Response:', JSON.stringify(poDetailsPayload, null, 2));
       throw new Error('Purchase order was created without items');
     }
     const firstItem = poDetailsPayload.data.items[0];

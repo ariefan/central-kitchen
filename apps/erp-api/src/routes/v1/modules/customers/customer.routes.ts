@@ -1,12 +1,22 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
-import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses.js';
+import {
+  createSuccessResponse,
+  createPaginatedResponse,
+  successResponseSchema,
+  createNotFoundError,
+  notFoundResponseSchema
+} from '../../../../shared/utils/responses.js';
+import {
+  baseQuerySchema,
+  createPaginatedResponseSchema
+} from '../../../../shared/utils/schemas.js';
+import { buildQueryConditions } from '../../../../shared/utils/query-builder.js';
 import { db } from '../../../../config/database.js';
 import { customers } from '../../../../config/schema.js';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, count } from 'drizzle-orm';
 import { getTenantId } from '../../../../shared/middleware/auth.js';
-import { PaginatedResponse } from '../../../../shared/types/index.js';
 
 // Create schemas from the database schema (single source of truth)
 const customerInsertSchema = createInsertSchema(customers, {
@@ -20,23 +30,39 @@ const customerInsertSchema = createInsertSchema(customers, {
   updatedAt: true,
 });
 
-// Simple response schemas for now
-const customerResponseSchema = z.object({
-  success: z.literal(true),
-  data: z.any(),
-  message: z.string(),
+// Customer filter schema for query params
+const customerFiltersSchema = z.object({
+  isActive: z.coerce.boolean().optional(),
 });
 
-const customersResponseSchema = z.object({
-  success: z.literal(true),
-  data: z.object({
-    items: z.array(z.any()),
-    total: z.number(),
-    limit: z.number(),
-    offset: z.number(),
-  }),
-  message: z.string(),
+// Combined query schema for GET /customers
+const customerQuerySchema = baseQuerySchema.merge(customerFiltersSchema);
+
+// Customer response schema
+const customerSchema = z.object({
+  id: z.string().uuid(),
+  tenantId: z.string().uuid(),
+  authUserId: z.string().uuid().nullable(),
+  code: z.string(),
+  name: z.string(),
+  type: z.string(),
+  contactPerson: z.string().nullable(),
+  email: z.string().nullable(),
+  phone: z.string().nullable(),
+  address: z.string().nullable(),
+  city: z.string().nullable(),
+  paymentTerms: z.number().nullable(),
+  creditLimit: z.string().nullable(),
+  isActive: z.boolean(),
+  metadata: z.unknown().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
+
+// Response schemas
+const customerResponseSchema = successResponseSchema(customerSchema);
+
+const customersResponseSchema = createPaginatedResponseSchema(customerSchema);
 
 export function customerRoutes(fastify: FastifyInstance) {
   // GET /api/v1/customers - List all customers
@@ -44,64 +70,69 @@ export function customerRoutes(fastify: FastifyInstance) {
     '/',
     {
       schema: {
-        description: 'Get all customers with pagination',
+        description: 'Get all customers with pagination, sorting, and search',
         tags: ['Customers'],
-        querystring: z.object({
-          search: z.string().optional(),
-          isActive: z.boolean().optional(),
-          limit: z.number().min(1).max(1000).default(100),
-          offset: z.number().min(0).default(0),
-        }),
+        querystring: customerQuerySchema,
         response: {
           200: customersResponseSchema,
         },
       },
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (request: FastifyRequest<{ Querystring: z.infer<typeof customerQuerySchema> }>, reply: FastifyReply) => {
       const tenantId = getTenantId(request);
-      const { search, isActive, limit, offset } = request.query as {
-        search?: string;
-        isActive?: boolean;
-        limit?: number;
-        offset?: number;
-      };
+      const {
+        limit,
+        offset,
+        sortBy,
+        sortOrder,
+        search,
+        isActive,
+      } = request.query;
 
-      // Build where conditions
-      const whereConditions = [eq(customers.tenantId, tenantId)];
+      // Build filters object (excluding pagination/sort params)
+      const filters: Record<string, unknown> = { tenantId };
+      if (isActive !== undefined) filters.isActive = isActive;
 
-      if (isActive !== undefined) {
-        whereConditions.push(eq(customers.isActive, isActive));
+      // Build query conditions using our query builder
+      const queryConditions = buildQueryConditions({
+        filters,
+        search,
+        searchFields: ['name', 'email', 'phone', 'code'], // Search in name, email, phone, and code
+        sortBy,
+        sortOrder,
+        limit,
+        offset,
+        // Type assertion required: Drizzle's PgTable has deeply nested generic types
+        // that are incompatible with our simplified TableOrColumns interface.
+        // The runtime behavior is correct as we only access column properties.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        table: customers as any,
+        allowedSortFields: ['name', 'code', 'email', 'createdAt', 'updatedAt', 'isActive'],
+      });
+
+      // Get total count
+      const countResult = await db
+        .select({ value: count() })
+        .from(customers)
+        .where(queryConditions.where);
+
+      const total = countResult[0]?.value ?? 0;
+
+      // Get paginated data
+      let query = db.select().from(customers).where(queryConditions.where);
+
+      // Apply sorting if provided
+      if (queryConditions.orderBy) {
+        // Type assertion required: Drizzle's query builder returns a complex chained type
+        // that TypeScript cannot properly infer after orderBy is applied dynamically.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        query = query.orderBy(...queryConditions.orderBy) as any;
       }
 
-      if (search) {
-        whereConditions.push(sql`(${customers.name} ILIKE ${'%' + search + '%'} OR ${customers.email} ILIKE ${'%' + search + '%'} OR ${customers.phone} ILIKE ${'%' + search + '%'})`);
-      }
+      // Apply pagination
+      const allCustomers = await query.limit(limit).offset(offset);
 
-      // Get total count for pagination
-      const totalCountResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(customers)
-        .where(and(...whereConditions));
-
-      const totalCount = Number(totalCountResult[0]?.count ?? 0);
-
-      // Get paginated customers
-      const paginatedCustomers = await db
-        .select()
-        .from(customers)
-        .where(and(...whereConditions))
-        .orderBy(customers.name)
-        .limit(limit ?? 100)
-        .offset(offset ?? 0);
-
-      const paginatedResponse: PaginatedResponse<typeof paginatedCustomers[0]> = {
-        items: paginatedCustomers,
-        total: totalCount,
-        limit: limit ?? 100,
-        offset: offset ?? 0,
-      };
-
-      return reply.send(createSuccessResponse(paginatedResponse, 'Customers retrieved successfully'));
+      return reply.send(createPaginatedResponse(allCustomers, total, limit, offset));
     }
   );
 
