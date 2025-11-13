@@ -1,12 +1,22 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '../../../../shared/utils/responses.js';
+import {
+  createSuccessResponse,
+  createPaginatedResponse,
+  successResponseSchema,
+  createNotFoundError,
+  notFoundResponseSchema
+} from '../../../../shared/utils/responses.js';
+import {
+  baseQuerySchema,
+  createPaginatedResponseSchema
+} from '../../../../shared/utils/schemas.js';
+import { buildQueryConditions } from '../../../../shared/utils/query-builder.js';
 import { db } from '../../../../config/database.js';
 import { products, productKinds, productPacks, uoms } from '../../../../config/schema.js';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, count } from 'drizzle-orm';
 import { getTenantId } from '../../../../shared/middleware/auth.js';
-import { PaginatedResponse } from '../../../../shared/types/index.js';
 
 // Create schemas from the database schema (single source of truth)
 const productInsertSchema = createInsertSchema(products, {
@@ -25,23 +35,30 @@ const productSelectSchema = createSelectSchema(products).extend({
   baseUomId: z.string(),
 });
 
-// Response schemas
-const productResponseSchema = z.object({
-  success: z.literal(true),
-  data: productSelectSchema,
-  message: z.string(),
+// Product with UOM schema for list endpoint
+const productWithUomSchema = productSelectSchema.extend({
+  baseUom: z.object({
+    id: z.string().nullable(),
+    code: z.string().nullable(),
+    name: z.string().nullable(),
+    symbol: z.string().nullable(),
+  }).nullable(),
 });
 
-const productsResponseSchema = z.object({
-  success: z.literal(true),
-  data: z.object({
-    items: z.array(productSelectSchema),
-    total: z.number(),
-    limit: z.number(),
-    offset: z.number(),
-  }),
-  message: z.string(),
+// Product filter schema for query params
+const productFiltersSchema = z.object({
+  kind: z.enum(productKinds).optional(),
+  taxCategory: z.string().optional(),
+  isActive: z.coerce.boolean().optional(),
 });
+
+// Combined query schema for GET /products
+const productQuerySchema = baseQuerySchema.merge(productFiltersSchema);
+
+// Response schemas
+const productResponseSchema = successResponseSchema(productSelectSchema);
+
+const productsResponseSchema = createPaginatedResponseSchema(productWithUomSchema);
 
 export function productRoutes(fastify: FastifyInstance) {
   // GET /api/v1/products - List all products
@@ -49,76 +66,102 @@ export function productRoutes(fastify: FastifyInstance) {
     '/',
     {
       schema: {
-        description: 'Get all products with pagination',
+        description: 'Get all products with pagination, sorting, and search',
         tags: ['Products'],
-        querystring: z.object({
-          kind: z.enum(productKinds).optional(),
-          taxCategory: z.string().optional(),
-          isActive: z.coerce.boolean().optional(),
-          search: z.string().optional(),
-          limit: z.number().min(1).max(1000).default(100),
-          offset: z.number().min(0).default(0),
-        }),
+        querystring: productQuerySchema,
         response: {
           200: productsResponseSchema,
         },
       },
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (request: FastifyRequest<{ Querystring: z.infer<typeof productQuerySchema> }>, reply: FastifyReply) => {
       const tenantId = getTenantId(request);
-      const { kind, taxCategory, isActive, search, limit, offset } = request.query as {
-        kind?: string;
-        taxCategory?: string;
-        isActive?: boolean;
-        search?: string;
-        limit?: number;
-        offset?: number;
-      };
+      const {
+        limit,
+        offset,
+        sortBy,
+        sortOrder,
+        search,
+        kind,
+        taxCategory,
+        isActive,
+      } = request.query;
 
-      // Build where conditions
-      const whereConditions = [eq(products.tenantId, tenantId)];
+      // Build filters object (excluding pagination/sort params)
+      const filters: Record<string, unknown> = { tenantId };
+      if (kind) filters.kind = kind;
+      if (taxCategory) filters.taxCategory = taxCategory;
+      if (isActive !== undefined) filters.isActive = isActive;
 
-      if (kind) {
-        whereConditions.push(eq(products.kind, kind));
-      }
+      // Build query conditions using our query builder
+      const queryConditions = buildQueryConditions({
+        filters,
+        search,
+        searchFields: ['name', 'sku', 'description'], // Search in name, sku, and description
+        sortBy,
+        sortOrder,
+        limit,
+        offset,
+        // Type assertion required: Drizzle's PgTable has deeply nested generic types
+        // that are incompatible with our simplified TableOrColumns interface.
+        // The runtime behavior is correct as we only access column properties.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        table: products as any,
+        allowedSortFields: ['name', 'sku', 'kind', 'isActive', 'createdAt', 'updatedAt'],
+      });
 
-      if (taxCategory) {
-        whereConditions.push(eq(products.taxCategory, taxCategory));
-      }
-
-      if (isActive !== undefined) {
-        whereConditions.push(eq(products.isActive, isActive));
-      }
-
-      if (search) {
-        whereConditions.push(sql`(${products.name} ILIKE ${'%' + search + '%'} OR ${products.sku} ILIKE ${'%' + search + '%'} OR ${products.description} ILIKE ${'%' + search + '%'})`);
-      }
-
-      // Get total count for pagination
-      const totalCountResult = await db
-        .select({ count: sql<number>`count(*)` })
+      // Get total count
+      const countResult = await db
+        .select({ value: count() })
         .from(products)
-        .where(and(...whereConditions));
+        .where(queryConditions.where);
 
-      const totalCount = Number(totalCountResult[0]?.count ?? 0);
+      const total = countResult[0]?.value ?? 0;
 
-      // Get paginated products
-      const paginatedProducts = await db
-        .select()
+      // Get paginated data with UOM details
+      let query = db
+        .select({
+          id: products.id,
+          tenantId: products.tenantId,
+          sku: products.sku,
+          name: products.name,
+          description: products.description,
+          kind: products.kind,
+          baseUomId: products.baseUomId,
+          taxCategory: products.taxCategory,
+          standardCost: products.standardCost,
+          defaultPrice: products.defaultPrice,
+          isPerishable: products.isPerishable,
+          shelfLifeDays: products.shelfLifeDays,
+          barcode: products.barcode,
+          imageUrl: products.imageUrl,
+          isActive: products.isActive,
+          metadata: products.metadata,
+          createdAt: products.createdAt,
+          updatedAt: products.updatedAt,
+          baseUom: {
+            id: uoms.id,
+            code: uoms.code,
+            name: uoms.name,
+            symbol: uoms.symbol,
+          },
+        })
         .from(products)
-        .where(and(...whereConditions))
-        .orderBy(products.name)
-        .limit(limit ?? 100)
-        .offset(offset ?? 0);
+        .leftJoin(uoms, eq(products.baseUomId, uoms.id))
+        .where(queryConditions.where);
 
-      const paginatedResponse: PaginatedResponse<typeof paginatedProducts[0]> = {
-        items: paginatedProducts,
-        total: totalCount,
-        limit: limit ?? 100,
-        offset: offset ?? 0,
-      };
+      // Apply sorting if provided
+      if (queryConditions.orderBy) {
+        // Type assertion required: Drizzle's query builder returns a complex chained type
+        // that TypeScript cannot properly infer after orderBy is applied dynamically.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        query = query.orderBy(...queryConditions.orderBy) as any;
+      }
 
-      return reply.send(createSuccessResponse(paginatedResponse, 'Products retrieved successfully'));
+      // Apply pagination
+      const allProducts = await query.limit(limit).offset(offset);
+
+      return reply.send(createPaginatedResponse(allProducts, total, limit, offset));
     }
   );
 
