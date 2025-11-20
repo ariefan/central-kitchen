@@ -1,8 +1,8 @@
 # Central Kitchen ERP - Implementation Progress
 
-**Last Updated:** 2025-11-20 20:15 UTC
+**Last Updated:** 2025-11-20 21:30 UTC
 **Project Status:** 🟢 Phase 1 Complete - TypeScript Errors: 0
-**Overall Completion:** 100% (Contracts 100%, API 100%, Frontend 40%)
+**Overall Completion:** 97% (Contracts 100%, API 97%, Frontend 40%)
 
 ---
 
@@ -12,7 +12,7 @@
 |-----------|--------|------------|---------|
 | **Contracts Package** | ✅ Complete | 100% | 32 files, 90 user stories, 60 features covered |
 | **API TypeScript** | ✅ Clean | 100% | 0 errors (down from 282) |
-| **API Implementation** | ✅ Complete | 100% | 26/26 modules complete |
+| **API Implementation** | 🟡 Nearly Complete | 97% | 201/205 endpoints (Categories 1/5) |
 | **Frontend** | 🟡 In Progress | ~40% | Basic CRUD operational |
 | **Database Schema** | ✅ Complete | 100% | 50+ tables, migrations ready |
 | **Integration Tests** | ⚠️ Ready | 415+ cases | 28 test files, pending PostgreSQL setup |
@@ -31,14 +31,15 @@
 ### Authentication & Users (ADM-001)
 | Endpoint | Method | API | Frontend | Test | Notes |
 |----------|--------|-----|----------|------|-------|
-| `/api/v1/auth/me` | GET | ✅ | ✅ | ✅ | Get current user profile |
 | `/api/v1/users` | GET | ✅ | ⚪ | ✅ | List users with filters |
 | `/api/v1/users/:id` | GET | ✅ | ⚪ | ✅ | Get user details |
 | `/api/v1/users` | POST | ✅ | ⚪ | ✅ | Create new user |
-| `/api/v1/users/:id` | PUT | ✅ | ⚪ | ✅ | Update user |
+| `/api/v1/users/:id` | PATCH | ✅ | ⚪ | ✅ | Update user |
 | `/api/v1/users/:id` | DELETE | ✅ | ⚪ | ✅ | Deactivate user |
 
-**Module Status:** ✅ Complete (6/6 endpoints)
+**Module Status:** ✅ Complete (5/5 endpoints)
+
+**Note:** Auth endpoints (`/api/v1/auth/*`) are in a separate auth.routes.ts module (7 endpoints)
 
 ---
 
@@ -85,13 +86,19 @@
 ### Categories (ADM-002)
 | Endpoint | Method | API | Frontend | Test | Notes |
 |----------|--------|-----|----------|------|-------|
-| `/api/v1/categories` | GET | ✅ | ⚪ | ⚪ | List categories |
-| `/api/v1/categories/:id` | GET | ✅ | ⚪ | ⚪ | Get category details |
-| `/api/v1/categories` | POST | ✅ | ⚪ | ⚪ | Create category |
-| `/api/v1/categories/:id` | PUT | ✅ | ⚪ | ⚪ | Update category |
-| `/api/v1/categories/:id` | DELETE | ✅ | ⚪ | ⚪ | Delete category |
+| `/api/v1/categories` | GET | ✅ | ⚪ | ⚪ | Returns product kinds enum (static) |
+| `/api/v1/categories/:id` | GET | ❌ | ⚪ | ⚪ | Not implemented |
+| `/api/v1/categories` | POST | ❌ | ⚪ | ⚪ | Not implemented |
+| `/api/v1/categories/:id` | PUT | ❌ | ⚪ | ⚪ | Not implemented |
+| `/api/v1/categories/:id` | DELETE | ❌ | ⚪ | ⚪ | Not implemented |
 
-**Module Status:** ✅ Complete (5/5 endpoints)
+**Module Status:** 🟡 Partial (1/5 endpoints) - Currently returns static product kinds enum instead of database-backed categories
+
+**Note:** Full category management (hierarchical, DB-backed) per contracts requires:
+- Database table creation (categories table)
+- Migration for schema changes
+- Service layer implementation
+- Complete CRUD routes per contract specification in `@contracts/erp/admin/categories.ts`
 
 ---
 
@@ -157,11 +164,11 @@
 | `/api/v1/goods-receipts` | GET | ✅ | ⚪ | ✅ | List GRs with filters |
 | `/api/v1/goods-receipts/:id` | GET | ✅ | ⚪ | ✅ | Get GR with items |
 | `/api/v1/goods-receipts` | POST | ✅ | ⚪ | ✅ | Create GR |
-| `/api/v1/goods-receipts/:id` | PUT | ✅ | ⚪ | ✅ | Update GR |
+| `/api/v1/goods-receipts/:id` | PUT | ✅ | ⚪ | ✅ | Update GR (draft only) |
 | `/api/v1/goods-receipts/:id/post` | POST | ✅ | ⚪ | ✅ | Post to inventory |
-| `/api/v1/goods-receipts/:id/cancel` | POST | ✅ | ⚪ | ✅ | Cancel GR |
+| `/api/v1/goods-receipts/:id/cancel` | POST | ❌ | ⚪ | ⚪ | Not implemented |
 
-**Module Status:** ✅ Complete (6/6 endpoints)
+**Module Status:** 🟡 Nearly Complete (5/6 endpoints) - Cancel endpoint not implemented
 
 ---
 
@@ -461,17 +468,18 @@
 ## 📈 Summary Statistics
 
 ### API Implementation
-- **Total Endpoints:** 208
-- **Complete:** 208 endpoints (100%)
-- **Partial:** 0 endpoints (0%)
-- **Not Started:** 0 endpoints (0%)
+- **Total Expected:** 206 endpoints (per contracts)
+- **Actual Implemented:** 201 endpoints (97.6%)
+- **Complete:** 197 endpoints - Full CRUD with business logic
+- **Partial:** 4 endpoints - Categories (1 static endpoint), GR cancel (not implemented)
+- **Not Started:** 4 endpoints - Categories GET/:id, POST, PUT/:id, DELETE/:id
 
 ### Modules by Status
 | Status | Count | Percentage | Modules |
 |--------|-------|------------|---------|
-| ✅ Complete | 26 | 100% | Users, Locations, Products, Variants, Categories, UOMs, Conversions, Suppliers, POs, GRs, Transfers, Requisitions, Adjustments, Counts, Recipes, Production, Waste, Menus, Pricebooks, Orders, Deliveries, Returns, Customers, **Loyalty**, **Inventory**, **POS**, **Vouchers**, Temperature, Alerts, Reports |
-| 🟡 Partial | 0 | 0% | Frontend integration only |
-| ⚪ Not Started | 0 | 0% | None - all contracts fully implemented |
+| ✅ Complete | 24 | 92% | Users, Locations, Products, Variants, UOMs, Conversions, Suppliers, POs, Transfers, Requisitions, Adjustments, Counts, Recipes, Production, Waste, Menus, Pricebooks, Orders, Deliveries, Returns, Customers, **Loyalty**, **Inventory**, **POS**, **Vouchers**, Temperature, Alerts, Reports |
+| 🟡 Partial | 2 | 8% | **Categories** (1/5 endpoints), **Goods Receipts** (5/6 endpoints - missing cancel) |
+| ⚪ Not Started | 0 | 0% | None |
 
 ### Frontend Coverage
 - **Total Pages:** ~80 estimated

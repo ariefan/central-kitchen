@@ -223,4 +223,51 @@ export function customerRoutes(fastify: FastifyInstance) {
       return reply.send(createSuccessResponse(result[0], 'Customer updated successfully'));
     }
   );
+  // DELETE /api/v1/customers/:id - Delete/deactivate customer
+  fastify.delete(
+    '/:id',
+    {
+      schema: {
+        description: 'Delete or deactivate customer',
+        tags: ['Customers'],
+        params: z.object({ id: z.string().uuid() }),
+        response: {
+          200: z.object({
+            success: z.literal(true),
+            data: z.object({
+              id: z.string().uuid(),
+              code: z.string(),
+              isActive: z.boolean(),
+            }),
+            message: z.string(),
+          }),
+          404: notFoundResponseSchema,
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+      const tenantId = getTenantId(request);
+
+      // Check if customer exists
+      const existingCustomer = await db.select().from(customers)
+        .where(and(eq(customers.id, request.params.id), eq(customers.tenantId, tenantId)))
+        .limit(1);
+
+      if (!existingCustomer.length) {
+        return createNotFoundError('Customer not found', reply);
+      }
+
+      // Soft delete by deactivating
+      const result = await db.update(customers)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(and(eq(customers.id, request.params.id), eq(customers.tenantId, tenantId)))
+        .returning();
+
+      return reply.send(createSuccessResponse({
+        id: result[0]!.id,
+        code: result[0]!.code,
+        isActive: result[0]!.isActive,
+      }, 'Customer deactivated successfully'));
+    }
+  );
 }

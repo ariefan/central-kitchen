@@ -146,4 +146,51 @@ export function userRoutes(fastify: FastifyInstance) {
       return reply.send(createSuccessResponse(result[0], 'User updated successfully'));
     }
   );
+
+  // DELETE /api/v1/users/:id - Delete/deactivate user
+  fastify.delete(
+    '/:id',
+    {
+      schema: {
+        description: 'Delete or deactivate user',
+        tags: ['Users'],
+        params: z.object({ id: z.string().uuid() }),
+        response: {
+          200: z.object({
+            success: z.literal(true),
+            data: z.object({
+              id: z.string().uuid(),
+              email: z.string(),
+              isActive: z.boolean(),
+            }),
+            message: z.string(),
+          }),
+          404: notFoundResponseSchema,
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+      // Check if user exists
+      const existingUser = await db.select().from(users)
+        .where(eq(users.id, request.params.id))
+        .limit(1);
+
+      if (!existingUser.length) {
+        return createNotFoundError('User not found', reply);
+      }
+
+      // Soft delete by deactivating
+      const result = await db
+        .update(users)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(users.id, request.params.id))
+        .returning();
+
+      return reply.send(createSuccessResponse({
+        id: result[0]!.id,
+        email: result[0]!.email,
+        isActive: result[0]!.isActive,
+      }, 'User deactivated successfully'));
+    }
+  );
 }

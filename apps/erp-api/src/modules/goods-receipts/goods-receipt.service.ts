@@ -1,6 +1,7 @@
 import { goodsReceiptRepository } from './goods-receipt.repository.js';
 import {
   goodsReceiptCreateSchema,
+  goodsReceiptUpdateSchema,
   goodsReceiptQuerySchema,
 } from './goods-receipt.schema.js';
 import { normalizePaginationParams, buildQueryConditions } from '../shared/pagination.js';
@@ -143,6 +144,40 @@ export const goodsReceiptService = {
     });
 
     return result;
+  },
+
+  async update(id: string, rawBody: unknown, context: RequestContext) {
+    const body = goodsReceiptUpdateSchema.parse(rawBody);
+
+    // Check if goods receipt exists and is in draft status
+    const [existingGR] = await db
+      .select()
+      .from(goodsReceipts)
+      .where(and(eq(goodsReceipts.id, id), eq(goodsReceipts.tenantId, context.tenantId)))
+      .limit(1);
+
+    if (!existingGR) {
+      return null;
+    }
+
+    // Check if already posted (cannot update posted receipts)
+    const metadata = existingGR.metadata as { postedAt?: string } | null;
+    if (metadata?.postedAt) {
+      throw new Error('Cannot update a posted goods receipt');
+    }
+
+    // Update the goods receipt
+    const [updated] = await db
+      .update(goodsReceipts)
+      .set({
+        ...body,
+        receiptDate: body.receiptDate ? new Date(body.receiptDate) : undefined,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(goodsReceipts.id, id), eq(goodsReceipts.tenantId, context.tenantId)))
+      .returning();
+
+    return updated ?? null;
   },
 
   /**
