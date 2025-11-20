@@ -2,43 +2,43 @@
 
 ## 📊 Test Run Summary
 
-- **Run timestamp**: 2025-11-20T07:56:27.403Z
-- **Duration**: 12.28s
+- **Run timestamp**: 2025-11-20T21:27:58.729Z
+- **Duration**: 25.14s
 - **Result**: FAILED
-- **Tests**: 326 total | 0 passed | 0 failed | 326 skipped
-- **Success Rate**: 0.0%
+- **Tests**: 326 total | 177 passed | 26 failed | 123 skipped
+- **Success Rate**: 54.3%
 
 ## 📁 Module Summary
 
 | File | Passed | Failed | Skipped | Duration (ms) | Success Rate |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | tests/integration/adjustments.test.ts | 0 | 0 | 0 | 0 | 0.0% |
-| tests/integration/auth.test.ts | 0 | 0 | 8 | 1245 | 0.0% |
-| tests/integration/customers.test.ts | 0 | 0 | 4 | 1183 | 0.0% |
-| tests/integration/deliveries.test.ts | 0 | 0 | 14 | 1200 | 0.0% |
-| tests/integration/fefo-picking.test.ts | 0 | 0 | 10 | 1178 | 0.0% |
-| tests/integration/goods-receipts.test.ts | 0 | 0 | 3 | 1239 | 0.0% |
-| tests/integration/health.test.ts | 0 | 0 | 1 | 1189 | 0.0% |
-| tests/integration/inventory-views.test.ts | 0 | 0 | 15 | 35 | 0.0% |
-| tests/integration/inventory.test.ts | 0 | 0 | 19 | 1211 | 0.0% |
-| tests/integration/locations.test.ts | 0 | 0 | 26 | 1208 | 0.0% |
-| tests/integration/menus.test.ts | 0 | 0 | 8 | 1183 | 0.0% |
-| tests/integration/multi-location.test.ts | 0 | 0 | 11 | 1237 | 0.0% |
+| tests/integration/auth.test.ts | 0 | 0 | 8 | 4977 | 0.0% |
+| tests/integration/customers.test.ts | 0 | 0 | 4 | 4963 | 0.0% |
+| tests/integration/deliveries.test.ts | 0 | 0 | 14 | 5313 | 0.0% |
+| tests/integration/fefo-picking.test.ts | 0 | 0 | 10 | 5016 | 0.0% |
+| tests/integration/goods-receipts.test.ts | 0 | 0 | 3 | 4927 | 0.0% |
+| tests/integration/health.test.ts | 0 | 0 | 1 | 4981 | 0.0% |
+| tests/integration/inventory-views.test.ts | 15 | 0 | 0 | 473 | 100.0% |
+| tests/integration/inventory.test.ts | 19 | 0 | 0 | 5618 | 100.0% |
+| tests/integration/locations.test.ts | 26 | 0 | 0 | 6144 | 100.0% |
+| tests/integration/menus.test.ts | 0 | 0 | 8 | 4982 | 0.0% |
+| tests/integration/multi-location.test.ts | 5 | 6 | 0 | 5613 | 45.5% |
 | tests/integration/orders.test.ts | 0 | 0 | 0 | 0 | 0.0% |
-| tests/integration/product-variants.test.ts | 0 | 0 | 26 | 1207 | 0.0% |
-| tests/integration/production-orders.test.ts | 0 | 0 | 15 | 1241 | 0.0% |
-| tests/integration/products-bulk.test.ts | 0 | 0 | 28 | 1189 | 0.0% |
-| tests/integration/products.test.ts | 0 | 0 | 35 | 1170 | 0.0% |
-| tests/integration/profile.test.ts | 0 | 0 | 14 | 1159 | 0.0% |
+| tests/integration/product-variants.test.ts | 0 | 0 | 26 | 4993 | 0.0% |
+| tests/integration/production-orders.test.ts | 15 | 0 | 0 | 5415 | 100.0% |
+| tests/integration/products-bulk.test.ts | 9 | 19 | 0 | 5710 | 32.1% |
+| tests/integration/products.test.ts | 0 | 0 | 35 | 4927 | 0.0% |
+| tests/integration/profile.test.ts | 0 | 0 | 14 | 4973 | 0.0% |
 | tests/integration/purchase-orders.test.ts | 0 | 0 | 0 | 0 | 0.0% |
 | tests/integration/recipes.test.ts | 0 | 0 | 0 | 0 | 0.0% |
-| tests/integration/requisitions.test.ts | 0 | 0 | 7 | 104 | 0.0% |
+| tests/integration/requisitions.test.ts | 7 | 0 | 0 | 474 | 100.0% |
 | tests/integration/returns.test.ts | 0 | 0 | 0 | 0 | 0.0% |
 | tests/integration/stock-counts.test.ts | 0 | 0 | 0 | 0 | 0.0% |
-| tests/integration/suppliers.test.ts | 0 | 0 | 27 | 111 | 0.0% |
-| tests/integration/transfers.test.ts | 0 | 0 | 12 | 108 | 0.0% |
-| tests/integration/uoms.test.ts | 0 | 0 | 23 | 103 | 0.0% |
-| tests/integration/waste.test.ts | 0 | 0 | 20 | 116 | 0.0% |
+| tests/integration/suppliers.test.ts | 27 | 0 | 0 | 1104 | 100.0% |
+| tests/integration/transfers.test.ts | 12 | 0 | 0 | 474 | 100.0% |
+| tests/integration/uoms.test.ts | 23 | 0 | 0 | 590 | 100.0% |
+| tests/integration/waste.test.ts | 19 | 1 | 0 | 564 | 95.0% |
 
 ## 🧪 Detailed Test Results
 
@@ -116,76 +116,76 @@
 
 | Test Name | Status | Duration (ms) | Retries |
 | --- | --- | ---: | ---: |
-| INV-001: Inventory Views > get_mavg_cost function > should calculate moving average cost correctly | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > get_mavg_cost function > should return standard cost if no cost layers exist | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > trg_prevent_negative_stock trigger > should allow consuming exactly available quantity | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > trg_prevent_negative_stock trigger > should allow positive inventory changes | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > trg_prevent_negative_stock trigger > should prevent negative inventory | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > v_fefo_pick > should not recommend expired lots | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > v_fefo_pick > should prioritize lots by expiry date (FEFO) | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > v_inventory_onhand > should aggregate on-hand inventory by product and location | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > v_inventory_onhand > should calculate total inventory value | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > v_inventory_onhand > should include product and location details | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > v_inventory_onhand > should not show products with zero inventory | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > v_lot_balances > should calculate days to expiry correctly | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > v_lot_balances > should only show lots with positive balance | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > v_lot_balances > should show lot unit cost from FIFO cost layer | ⏭️ skipped | 0 | 0 |
-| INV-001: Inventory Views > v_lot_balances > should show lot-level inventory balances | ⏭️ skipped | 0 | 0 |
+| INV-001: Inventory Views > get_mavg_cost function > should calculate moving average cost correctly | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > get_mavg_cost function > should return standard cost if no cost layers exist | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > trg_prevent_negative_stock trigger > should allow consuming exactly available quantity | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > trg_prevent_negative_stock trigger > should allow positive inventory changes | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > trg_prevent_negative_stock trigger > should prevent negative inventory | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > v_fefo_pick > should not recommend expired lots | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > v_fefo_pick > should prioritize lots by expiry date (FEFO) | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > v_inventory_onhand > should aggregate on-hand inventory by product and location | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > v_inventory_onhand > should calculate total inventory value | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > v_inventory_onhand > should include product and location details | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > v_inventory_onhand > should not show products with zero inventory | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > v_lot_balances > should calculate days to expiry correctly | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > v_lot_balances > should only show lots with positive balance | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > v_lot_balances > should show lot unit cost from FIFO cost layer | ✅ passed | 0 | 0 |
+| INV-001: Inventory Views > v_lot_balances > should show lot-level inventory balances | ✅ passed | 0 | 0 |
 
 ### tests/integration/inventory.test.ts
 
 | Test Name | Status | Duration (ms) | Retries |
 | --- | --- | ---: | ---: |
-| Inventory > Inventory Valuation > should calculate inventory valuation | ⏭️ skipped | 0 | 0 |
-| Inventory > Inventory Valuation > should calculate inventory valuation for specific location | ⏭️ skipped | 0 | 0 |
-| Inventory > Inventory Valuation > should calculate inventory valuation for specific product | ⏭️ skipped | 0 | 0 |
-| Inventory > Lot Management > should create a new lot | ⏭️ skipped | 0 | 0 |
-| Inventory > Lot Management > should filter lots by location | ⏭️ skipped | 0 | 0 |
-| Inventory > Lot Management > should filter lots by product | ⏭️ skipped | 0 | 0 |
-| Inventory > Lot Management > should get lot by ID | ⏭️ skipped | 0 | 0 |
-| Inventory > Lot Management > should list all inventory lots | ⏭️ skipped | 0 | 0 |
-| Inventory > Lot Management > should prevent duplicate lot numbers for same product/location | ⏭️ skipped | 0 | 0 |
-| Inventory > Lot Management > should return 404 for non-existent lot | ⏭️ skipped | 0 | 0 |
-| Inventory > Lot Management > should return 404 when creating lot for non-existent product | ⏭️ skipped | 0 | 0 |
-| Inventory > Lot Management > should search lots by lot number | ⏭️ skipped | 0 | 0 |
-| Inventory > Product Cost Analysis > should get product cost analysis | ⏭️ skipped | 0 | 0 |
-| Inventory > Product Cost Analysis > should get product cost analysis for specific location | ⏭️ skipped | 0 | 0 |
-| Inventory > Product Cost Analysis > should return 404 for non-existent product cost analysis | ⏭️ skipped | 0 | 0 |
-| Inventory > Stock Movements > should record stock movement (issuance) | ⏭️ skipped | 0 | 0 |
-| Inventory > Stock Movements > should record stock movement (receipt) | ⏭️ skipped | 0 | 0 |
-| Inventory > Stock Movements > should return 404 for movement with non-existent lot | ⏭️ skipped | 0 | 0 |
-| Inventory > Stock Movements > should return 404 for movement with non-existent product | ⏭️ skipped | 0 | 0 |
+| Inventory > Inventory Valuation > should calculate inventory valuation | ✅ passed | 0 | 0 |
+| Inventory > Inventory Valuation > should calculate inventory valuation for specific location | ✅ passed | 0 | 0 |
+| Inventory > Inventory Valuation > should calculate inventory valuation for specific product | ✅ passed | 0 | 0 |
+| Inventory > Lot Management > should create a new lot | ✅ passed | 0 | 0 |
+| Inventory > Lot Management > should filter lots by location | ✅ passed | 0 | 0 |
+| Inventory > Lot Management > should filter lots by product | ✅ passed | 0 | 0 |
+| Inventory > Lot Management > should get lot by ID | ✅ passed | 0 | 0 |
+| Inventory > Lot Management > should list all inventory lots | ✅ passed | 0 | 0 |
+| Inventory > Lot Management > should prevent duplicate lot numbers for same product/location | ✅ passed | 0 | 0 |
+| Inventory > Lot Management > should return 404 for non-existent lot | ✅ passed | 0 | 0 |
+| Inventory > Lot Management > should return 404 when creating lot for non-existent product | ✅ passed | 0 | 0 |
+| Inventory > Lot Management > should search lots by lot number | ✅ passed | 0 | 0 |
+| Inventory > Product Cost Analysis > should get product cost analysis | ✅ passed | 0 | 0 |
+| Inventory > Product Cost Analysis > should get product cost analysis for specific location | ✅ passed | 0 | 0 |
+| Inventory > Product Cost Analysis > should return 404 for non-existent product cost analysis | ✅ passed | 0 | 0 |
+| Inventory > Stock Movements > should record stock movement (issuance) | ✅ passed | 0 | 0 |
+| Inventory > Stock Movements > should record stock movement (receipt) | ✅ passed | 0 | 0 |
+| Inventory > Stock Movements > should return 404 for movement with non-existent lot | ✅ passed | 0 | 0 |
+| Inventory > Stock Movements > should return 404 for movement with non-existent product | ✅ passed | 0 | 0 |
 
 ### tests/integration/locations.test.ts
 
 | Test Name | Status | Duration (ms) | Retries |
 | --- | --- | ---: | ---: |
-| ADM-004: Location Management > DELETE /api/v1/locations/:id > should deactivate location (soft delete) | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > DELETE /api/v1/locations/:id > should require authentication | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > DELETE /api/v1/locations/:id > should return 404 for non-existent location | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > GET /api/v1/locations > should filter locations by city | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > GET /api/v1/locations > should filter locations by isActive status | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > GET /api/v1/locations > should filter locations by locationType | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > GET /api/v1/locations > should filter locations by name | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > GET /api/v1/locations > should require authentication | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > GET /api/v1/locations > should return paginated list of locations | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > GET /api/v1/locations/:id > should require authentication | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > GET /api/v1/locations/:id > should return 404 for non-existent location | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > GET /api/v1/locations/:id > should return location details | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > PATCH /api/v1/locations/:id > should require authentication | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > PATCH /api/v1/locations/:id > should return 404 for non-existent location | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > PATCH /api/v1/locations/:id > should update location active status | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > PATCH /api/v1/locations/:id > should update location address fields | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > PATCH /api/v1/locations/:id > should update location contact information | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > PATCH /api/v1/locations/:id > should update location coordinates | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > PATCH /api/v1/locations/:id > should update location name | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > POST /api/v1/locations > should auto-generate location code if not provided | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > POST /api/v1/locations > should create a new location with all fields | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > POST /api/v1/locations > should create a warehouse location | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > POST /api/v1/locations > should reject duplicate location code | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > POST /api/v1/locations > should require authentication | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > POST /api/v1/locations > should require locationType field | ⏭️ skipped | 0 | 0 |
-| ADM-004: Location Management > POST /api/v1/locations > should require name field | ⏭️ skipped | 0 | 0 |
+| ADM-004: Location Management > DELETE /api/v1/locations/:id > should deactivate location (soft delete) | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > DELETE /api/v1/locations/:id > should require authentication | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > DELETE /api/v1/locations/:id > should return 404 for non-existent location | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > GET /api/v1/locations > should filter locations by city | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > GET /api/v1/locations > should filter locations by isActive status | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > GET /api/v1/locations > should filter locations by locationType | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > GET /api/v1/locations > should filter locations by name | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > GET /api/v1/locations > should require authentication | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > GET /api/v1/locations > should return paginated list of locations | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > GET /api/v1/locations/:id > should require authentication | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > GET /api/v1/locations/:id > should return 404 for non-existent location | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > GET /api/v1/locations/:id > should return location details | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > PATCH /api/v1/locations/:id > should require authentication | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > PATCH /api/v1/locations/:id > should return 404 for non-existent location | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > PATCH /api/v1/locations/:id > should update location active status | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > PATCH /api/v1/locations/:id > should update location address fields | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > PATCH /api/v1/locations/:id > should update location contact information | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > PATCH /api/v1/locations/:id > should update location coordinates | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > PATCH /api/v1/locations/:id > should update location name | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > POST /api/v1/locations > should auto-generate location code if not provided | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > POST /api/v1/locations > should create a new location with all fields | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > POST /api/v1/locations > should create a warehouse location | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > POST /api/v1/locations > should reject duplicate location code | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > POST /api/v1/locations > should require authentication | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > POST /api/v1/locations > should require locationType field | ✅ passed | 0 | 0 |
+| ADM-004: Location Management > POST /api/v1/locations > should require name field | ✅ passed | 0 | 0 |
 
 ### tests/integration/menus.test.ts
 
@@ -204,17 +204,17 @@
 
 | Test Name | Status | Duration (ms) | Retries |
 | --- | --- | ---: | ---: |
-| AUTH-002: Multi-Location Access Control > GET /api/v1/auth/users/:id/locations > should return 404 for non-existent user | ⏭️ skipped | 0 | 0 |
-| AUTH-002: Multi-Location Access Control > GET /api/v1/auth/users/:id/locations > should return user locations list | ⏭️ skipped | 0 | 0 |
-| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/switch-location > should return 403 when switching to unassigned location | ⏭️ skipped | 0 | 0 |
-| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/switch-location > should return 404 for non-existent location | ⏭️ skipped | 0 | 0 |
-| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/switch-location > should switch to assigned location | ⏭️ skipped | 0 | 0 |
-| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/switch-location > should update user session context after switching | ⏭️ skipped | 0 | 0 |
-| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should add more locations without replacing | ⏭️ skipped | 0 | 0 |
-| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should assign locations to user | ⏭️ skipped | 0 | 0 |
-| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should handle duplicate location assignments gracefully | ⏭️ skipped | 0 | 0 |
-| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should replace existing locations when replaceExisting=true | ⏭️ skipped | 0 | 0 |
-| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should return 400 for invalid location ID | ⏭️ skipped | 0 | 0 |
+| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/switch-location > should return 403 when switching to unassigned location | ❌ failed | 0 | 0 |
+| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/switch-location > should switch to assigned location | ❌ failed | 0 | 0 |
+| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/switch-location > should update user session context after switching | ❌ failed | 0 | 0 |
+| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should add more locations without replacing | ❌ failed | 0 | 0 |
+| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should assign locations to user | ❌ failed | 0 | 0 |
+| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should handle duplicate location assignments gracefully | ❌ failed | 0 | 0 |
+| AUTH-002: Multi-Location Access Control > GET /api/v1/auth/users/:id/locations > should return 404 for non-existent user | ✅ passed | 0 | 0 |
+| AUTH-002: Multi-Location Access Control > GET /api/v1/auth/users/:id/locations > should return user locations list | ✅ passed | 0 | 0 |
+| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/switch-location > should return 404 for non-existent location | ✅ passed | 0 | 0 |
+| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should replace existing locations when replaceExisting=true | ✅ passed | 0 | 0 |
+| AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should return 400 for invalid location ID | ✅ passed | 0 | 0 |
 
 ### tests/integration/product-variants.test.ts
 
@@ -251,54 +251,54 @@
 
 | Test Name | Status | Duration (ms) | Retries |
 | --- | --- | ---: | ---: |
-| Production Orders > Production Order Management > should cancel production order | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should complete production order | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should create a new production order | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should filter production orders by date range | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should filter production orders by location | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should filter production orders by status | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should get production order by ID | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should list all production orders | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should put production order on hold | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should return 404 for non-existent production order | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should return 404 when creating production order for non-existent location | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should return 404 when creating production order for non-existent recipe | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should start production order | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should update production order | ⏭️ skipped | 0 | 0 |
-| Production Orders > Production Order Management > should validate required production order fields | ⏭️ skipped | 0 | 0 |
+| Production Orders > Production Order Management > should cancel production order | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should complete production order | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should create a new production order | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should filter production orders by date range | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should filter production orders by location | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should filter production orders by status | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should get production order by ID | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should list all production orders | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should put production order on hold | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should return 404 for non-existent production order | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should return 404 when creating production order for non-existent location | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should return 404 when creating production order for non-existent recipe | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should start production order | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should update production order | ✅ passed | 0 | 0 |
+| Production Orders > Production Order Management > should validate required production order fields | ✅ passed | 0 | 0 |
 
 ### tests/integration/products-bulk.test.ts
 
 | Test Name | Status | Duration (ms) | Retries |
 | --- | --- | ---: | ---: |
-| Product Bulk Operations (ADM-001) - API Endpoints > Export -> Import Roundtrip > should successfully import previously exported data | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should export all active products as CSV | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should export products filtered by kind | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should format CSV with proper quoting | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should include inactive products when specified | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should return empty CSV with no products | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle all product kinds | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle empty CSV | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle mixed valid and invalid rows | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle numeric values correctly | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle quoted fields with commas and special characters | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should import valid CSV data | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should import without skipHeader option | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should reject import with duplicate SKU | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should reject import with invalid product kind | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should reject import with missing required fields | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should reject import with non-existent UOM | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should return error details limited to 100 entries | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - Database Tests > Bulk operations simulation > should bulk insert multiple products | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - Database Tests > Bulk operations simulation > should query products with UOM join | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - Database Tests > CSV data format validation > should enforce unique SKU per tenant | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - Database Tests > CSV data format validation > should handle numeric fields correctly | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - Database Tests > CSV data format validation > should handle product kind enum values | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - Database Tests > CSV data format validation > should validate required fields for product creation | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - Database Tests > Product creation and retrieval > should create products with all required fields | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - Database Tests > Product creation and retrieval > should filter products by active status | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - Database Tests > Product creation and retrieval > should filter products by kind | ⏭️ skipped | 0 | 0 |
-| Product Bulk Operations (ADM-001) - Database Tests > Product creation and retrieval > should retrieve products by tenant | ⏭️ skipped | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > Export -> Import Roundtrip > should successfully import previously exported data | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should export all active products as CSV | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should export products filtered by kind | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should format CSV with proper quoting | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should include inactive products when specified | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle all product kinds | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle empty CSV | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle mixed valid and invalid rows | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle numeric values correctly | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle quoted fields with commas and special characters | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should import valid CSV data | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should import without skipHeader option | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should reject import with duplicate SKU | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should reject import with invalid product kind | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should reject import with missing required fields | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should reject import with non-existent UOM | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should return error details limited to 100 entries | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - Database Tests > Product creation and retrieval > should filter products by active status | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - Database Tests > Product creation and retrieval > should filter products by kind | ❌ failed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should return empty CSV with no products | ✅ passed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - Database Tests > Bulk operations simulation > should bulk insert multiple products | ✅ passed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - Database Tests > Bulk operations simulation > should query products with UOM join | ✅ passed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - Database Tests > CSV data format validation > should enforce unique SKU per tenant | ✅ passed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - Database Tests > CSV data format validation > should handle numeric fields correctly | ✅ passed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - Database Tests > CSV data format validation > should handle product kind enum values | ✅ passed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - Database Tests > CSV data format validation > should validate required fields for product creation | ✅ passed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - Database Tests > Product creation and retrieval > should create products with all required fields | ✅ passed | 0 | 0 |
+| Product Bulk Operations (ADM-001) - Database Tests > Product creation and retrieval > should retrieve products by tenant | ✅ passed | 0 | 0 |
 
 ### tests/integration/products.test.ts
 
@@ -363,119 +363,299 @@
 
 | Test Name | Status | Duration (ms) | Retries |
 | --- | --- | ---: | ---: |
-| Requisitions > should approve a requisition | ⏭️ skipped | 0 | 0 |
-| Requisitions > should create a new requisition | ⏭️ skipped | 0 | 0 |
-| Requisitions > should filter requisitions by status | ⏭️ skipped | 0 | 0 |
-| Requisitions > should list requisitions | ⏭️ skipped | 0 | 0 |
-| Requisitions > should reject a requisition | ⏭️ skipped | 0 | 0 |
-| Requisitions > should validate items are required | ⏭️ skipped | 0 | 0 |
-| Requisitions > should validate required fields | ⏭️ skipped | 0 | 0 |
+| Requisitions > should approve a requisition | ✅ passed | 0 | 0 |
+| Requisitions > should create a new requisition | ✅ passed | 0 | 0 |
+| Requisitions > should filter requisitions by status | ✅ passed | 0 | 0 |
+| Requisitions > should list requisitions | ✅ passed | 0 | 0 |
+| Requisitions > should reject a requisition | ✅ passed | 0 | 0 |
+| Requisitions > should validate items are required | ✅ passed | 0 | 0 |
+| Requisitions > should validate required fields | ✅ passed | 0 | 0 |
 
 ### tests/integration/suppliers.test.ts
 
 | Test Name | Status | Duration (ms) | Retries |
 | --- | --- | ---: | ---: |
-| PROC-006: Supplier Management > DELETE /api/v1/suppliers/:id > should deactivate supplier (soft delete) | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > DELETE /api/v1/suppliers/:id > should require authentication | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > DELETE /api/v1/suppliers/:id > should return 404 for non-existent supplier | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > GET /api/v1/suppliers > should filter suppliers by code | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > GET /api/v1/suppliers > should filter suppliers by email | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > GET /api/v1/suppliers > should filter suppliers by isActive status | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > GET /api/v1/suppliers > should filter suppliers by minimum rating | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > GET /api/v1/suppliers > should filter suppliers by name | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > GET /api/v1/suppliers > should require authentication | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > GET /api/v1/suppliers > should return paginated list of suppliers | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > GET /api/v1/suppliers/:id > should require authentication | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > GET /api/v1/suppliers/:id > should return 404 for non-existent supplier | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > GET /api/v1/suppliers/:id > should return supplier details | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should require authentication | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should return 404 for non-existent supplier | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should update supplier active status | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should update supplier contact information | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should update supplier name | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should update supplier payment terms and lead time | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should update supplier rating | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > POST /api/v1/suppliers > should auto-generate supplier code if not provided | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > POST /api/v1/suppliers > should create a new supplier with all fields | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > POST /api/v1/suppliers > should reject duplicate supplier code | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > POST /api/v1/suppliers > should require authentication | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > POST /api/v1/suppliers > should require email field | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > POST /api/v1/suppliers > should require name field | ⏭️ skipped | 0 | 0 |
-| PROC-006: Supplier Management > POST /api/v1/suppliers > should use default payment terms (30 days) if not provided | ⏭️ skipped | 0 | 0 |
+| PROC-006: Supplier Management > DELETE /api/v1/suppliers/:id > should deactivate supplier (soft delete) | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > DELETE /api/v1/suppliers/:id > should require authentication | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > DELETE /api/v1/suppliers/:id > should return 404 for non-existent supplier | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > GET /api/v1/suppliers > should filter suppliers by code | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > GET /api/v1/suppliers > should filter suppliers by email | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > GET /api/v1/suppliers > should filter suppliers by isActive status | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > GET /api/v1/suppliers > should filter suppliers by minimum rating | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > GET /api/v1/suppliers > should filter suppliers by name | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > GET /api/v1/suppliers > should require authentication | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > GET /api/v1/suppliers > should return paginated list of suppliers | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > GET /api/v1/suppliers/:id > should require authentication | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > GET /api/v1/suppliers/:id > should return 404 for non-existent supplier | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > GET /api/v1/suppliers/:id > should return supplier details | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should require authentication | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should return 404 for non-existent supplier | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should update supplier active status | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should update supplier contact information | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should update supplier name | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should update supplier payment terms and lead time | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > PATCH /api/v1/suppliers/:id > should update supplier rating | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > POST /api/v1/suppliers > should auto-generate supplier code if not provided | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > POST /api/v1/suppliers > should create a new supplier with all fields | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > POST /api/v1/suppliers > should reject duplicate supplier code | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > POST /api/v1/suppliers > should require authentication | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > POST /api/v1/suppliers > should require email field | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > POST /api/v1/suppliers > should require name field | ✅ passed | 0 | 0 |
+| PROC-006: Supplier Management > POST /api/v1/suppliers > should use default payment terms (30 days) if not provided | ✅ passed | 0 | 0 |
 
 ### tests/integration/transfers.test.ts
 
 | Test Name | Status | Duration (ms) | Retries |
 | --- | --- | ---: | ---: |
-| Transfers > should create a new transfer | ⏭️ skipped | 0 | 0 |
-| Transfers > should filter transfers by from location | ⏭️ skipped | 0 | 0 |
-| Transfers > should filter transfers by status | ⏭️ skipped | 0 | 0 |
-| Transfers > should get transfer by ID with items | ⏭️ skipped | 0 | 0 |
-| Transfers > should list transfers | ⏭️ skipped | 0 | 0 |
-| Transfers > should post a completed transfer | ⏭️ skipped | 0 | 0 |
-| Transfers > should receive a transfer | ⏭️ skipped | 0 | 0 |
-| Transfers > should return 404 for non-existent transfer | ⏭️ skipped | 0 | 0 |
-| Transfers > should send a transfer | ⏭️ skipped | 0 | 0 |
-| Transfers > should update a draft transfer | ⏭️ skipped | 0 | 0 |
-| Transfers > should validate items are required | ⏭️ skipped | 0 | 0 |
-| Transfers > should validate required fields | ⏭️ skipped | 0 | 0 |
+| Transfers > should create a new transfer | ✅ passed | 0 | 0 |
+| Transfers > should filter transfers by from location | ✅ passed | 0 | 0 |
+| Transfers > should filter transfers by status | ✅ passed | 0 | 0 |
+| Transfers > should get transfer by ID with items | ✅ passed | 0 | 0 |
+| Transfers > should list transfers | ✅ passed | 0 | 0 |
+| Transfers > should post a completed transfer | ✅ passed | 0 | 0 |
+| Transfers > should receive a transfer | ✅ passed | 0 | 0 |
+| Transfers > should return 404 for non-existent transfer | ✅ passed | 0 | 0 |
+| Transfers > should send a transfer | ✅ passed | 0 | 0 |
+| Transfers > should update a draft transfer | ✅ passed | 0 | 0 |
+| Transfers > should validate items are required | ✅ passed | 0 | 0 |
+| Transfers > should validate required fields | ✅ passed | 0 | 0 |
 
 ### tests/integration/uoms.test.ts
 
 | Test Name | Status | Duration (ms) | Retries |
 | --- | --- | ---: | ---: |
-| UOM Management (ADM-003) > Authentication and Authorization > should reject unauthenticated requests to create UOM | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > Authentication and Authorization > should reject unauthenticated requests to list UOMs | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > DELETE /api/v1/uoms/:id - Delete (Deactivate) UOM > should return 404 when deleting non-existent UOM | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > DELETE /api/v1/uoms/:id - Delete (Deactivate) UOM > should soft delete (deactivate) UOM | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > GET /api/v1/uoms - List UOMs > should filter UOMs by active status | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > GET /api/v1/uoms - List UOMs > should filter UOMs by type | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > GET /api/v1/uoms - List UOMs > should list all UOMs with pagination | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > GET /api/v1/uoms - List UOMs > should search UOMs by code | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > GET /api/v1/uoms - List UOMs > should search UOMs by name | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > GET /api/v1/uoms - List UOMs > should search UOMs with general search query | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > GET /api/v1/uoms/:id - Get UOM by ID > should get UOM details by ID | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > GET /api/v1/uoms/:id - Get UOM by ID > should return 400 for invalid UUID format | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > GET /api/v1/uoms/:id - Get UOM by ID > should return 404 for non-existent UOM ID | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > PATCH /api/v1/uoms/:id - Update UOM > should deactivate UOM via PATCH | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > PATCH /api/v1/uoms/:id - Update UOM > should return 404 for updating non-existent UOM | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > PATCH /api/v1/uoms/:id - Update UOM > should update UOM name and description | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > PATCH /api/v1/uoms/:id - Update UOM > should update UOM type | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > POST /api/v1/uoms - Create UOM > should automatically uppercase the UOM code | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > POST /api/v1/uoms - Create UOM > should create a new UOM with all fields | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > POST /api/v1/uoms - Create UOM > should create UOM with minimal fields (defaults applied) | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > POST /api/v1/uoms - Create UOM > should fail to create UOM with duplicate code | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > POST /api/v1/uoms - Create UOM > should reject invalid UOM type | ⏭️ skipped | 0 | 0 |
-| UOM Management (ADM-003) > Tenant Isolation > should only return UOMs belonging to current tenant | ⏭️ skipped | 0 | 0 |
+| UOM Management (ADM-003) > Authentication and Authorization > should reject unauthenticated requests to create UOM | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > Authentication and Authorization > should reject unauthenticated requests to list UOMs | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > DELETE /api/v1/uoms/:id - Delete (Deactivate) UOM > should return 404 when deleting non-existent UOM | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > DELETE /api/v1/uoms/:id - Delete (Deactivate) UOM > should soft delete (deactivate) UOM | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > GET /api/v1/uoms - List UOMs > should filter UOMs by active status | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > GET /api/v1/uoms - List UOMs > should filter UOMs by type | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > GET /api/v1/uoms - List UOMs > should list all UOMs with pagination | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > GET /api/v1/uoms - List UOMs > should search UOMs by code | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > GET /api/v1/uoms - List UOMs > should search UOMs by name | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > GET /api/v1/uoms - List UOMs > should search UOMs with general search query | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > GET /api/v1/uoms/:id - Get UOM by ID > should get UOM details by ID | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > GET /api/v1/uoms/:id - Get UOM by ID > should return 400 for invalid UUID format | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > GET /api/v1/uoms/:id - Get UOM by ID > should return 404 for non-existent UOM ID | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > PATCH /api/v1/uoms/:id - Update UOM > should deactivate UOM via PATCH | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > PATCH /api/v1/uoms/:id - Update UOM > should return 404 for updating non-existent UOM | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > PATCH /api/v1/uoms/:id - Update UOM > should update UOM name and description | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > PATCH /api/v1/uoms/:id - Update UOM > should update UOM type | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > POST /api/v1/uoms - Create UOM > should automatically uppercase the UOM code | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > POST /api/v1/uoms - Create UOM > should create a new UOM with all fields | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > POST /api/v1/uoms - Create UOM > should create UOM with minimal fields (defaults applied) | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > POST /api/v1/uoms - Create UOM > should fail to create UOM with duplicate code | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > POST /api/v1/uoms - Create UOM > should reject invalid UOM type | ✅ passed | 0 | 0 |
+| UOM Management (ADM-003) > Tenant Isolation > should only return UOMs belonging to current tenant | ✅ passed | 0 | 0 |
 
 ### tests/integration/waste.test.ts
 
 | Test Name | Status | Duration (ms) | Retries |
 | --- | --- | ---: | ---: |
-| Waste Management > Waste Analysis > should get waste analysis | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Analysis > should get waste analysis filtered by date range | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Analysis > should get waste analysis filtered by location | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Analysis > should get waste analysis filtered by product | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Analysis > should get waste analysis filtered by reason | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should approve and post waste record | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should create a new waste record | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should create waste record for damage | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should create waste record for expiry | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should filter waste records by date range | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should filter waste records by location | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should filter waste records by reason | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should filter waste records by status | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should get waste record by ID | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should list all waste records | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should require at least one item in waste record | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should return 400 when creating waste record with non-existent product | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should return 404 for non-existent waste record | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should return 404 when creating waste record for non-existent location | ⏭️ skipped | 0 | 0 |
-| Waste Management > Waste Records Management > should validate required waste record fields | ⏭️ skipped | 0 | 0 |
+| Waste Management > Waste Analysis > should get waste analysis filtered by reason | ❌ failed | 0 | 0 |
+| Waste Management > Waste Analysis > should get waste analysis | ✅ passed | 0 | 0 |
+| Waste Management > Waste Analysis > should get waste analysis filtered by date range | ✅ passed | 0 | 0 |
+| Waste Management > Waste Analysis > should get waste analysis filtered by location | ✅ passed | 0 | 0 |
+| Waste Management > Waste Analysis > should get waste analysis filtered by product | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should approve and post waste record | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should create a new waste record | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should create waste record for damage | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should create waste record for expiry | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should filter waste records by date range | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should filter waste records by location | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should filter waste records by reason | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should filter waste records by status | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should get waste record by ID | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should list all waste records | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should require at least one item in waste record | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should return 400 when creating waste record with non-existent product | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should return 404 for non-existent waste record | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should return 404 when creating waste record for non-existent location | ✅ passed | 0 | 0 |
+| Waste Management > Waste Records Management > should validate required waste record fields | ✅ passed | 0 | 0 |
 
-## 🎉 Failures
+## ❌ Failure Details
 
-- No failures! All tests passed! 🚀
+### AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should assign locations to user
+**File**: `tests/integration/multi-location.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 400 to be 200 // Object.is equality
+
+### AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should add more locations without replacing
+**File**: `tests/integration/multi-location.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected [ { …(5) } ] to have a length of 3 but got 1
+
+### AUTH-002: Multi-Location Access Control > POST /api/v1/auth/users/:id/locations > should handle duplicate location assignments gracefully
+**File**: `tests/integration/multi-location.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 400 to be 200 // Object.is equality
+
+### AUTH-002: Multi-Location Access Control > POST /api/v1/auth/switch-location > should switch to assigned location
+**File**: `tests/integration/multi-location.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 403 to be 200 // Object.is equality
+
+### AUTH-002: Multi-Location Access Control > POST /api/v1/auth/switch-location > should return 403 when switching to unassigned location
+**File**: `tests/integration/multi-location.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 200 to be 403 // Object.is equality
+
+### AUTH-002: Multi-Location Access Control > POST /api/v1/auth/switch-location > should update user session context after switching
+**File**: `tests/integration/multi-location.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 'b4fb92f7-4ae5-48c9-9dd0-8a9bb1335372' to be '8a04bc4a-8743-4bd6-bbf4-6e5eb9fd4929' // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should export all active products as CSV
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 21 to be 2 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should export products filtered by kind
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 3 to be 1 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should include inactive products when specified
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 21 to be 3 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > GET /api/v1/products/bulk/export > should format CSV with proper quoting
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 'SKU,Name,Description,Kind,Base UOM,Is…' to match /"TEST-RAW-001"/
+
+### Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should import valid CSV data
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should import without skipHeader option
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should reject import with missing required fields
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should reject import with invalid product kind
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should reject import with non-existent UOM
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should reject import with duplicate SKU
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle mixed valid and invalid rows
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle quoted fields with commas and special characters
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle empty CSV
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle all product kinds
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should handle numeric values correctly
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > POST /api/v1/products/bulk/import > should return error details limited to 100 entries
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - API Endpoints > Export -> Import Roundtrip > should successfully import previously exported data
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected 401 to be 200 // Object.is equality
+
+### Product Bulk Operations (ADM-001) - Database Tests > Product creation and retrieval > should filter products by kind
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- and is not defined
+
+### Product Bulk Operations (ADM-001) - Database Tests > Product creation and retrieval > should filter products by active status
+**File**: `tests/integration/products-bulk.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- and is not defined
+
+### Waste Management > Waste Analysis > should get waste analysis filtered by reason
+**File**: `tests/integration/waste.test.ts`
+**Duration**: 0ms
+
+**Error Messages:**
+- expected [] to deeply equal ArrayContaining{…}
 
 ## ⚡ Performance Analysis
 

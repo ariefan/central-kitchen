@@ -15,7 +15,7 @@
 | **API Implementation** | ✅ Complete | 100% | 201/201 endpoints for existing schema |
 | **Frontend** | 🟡 In Progress | ~40% | Basic CRUD operational |
 | **Database Schema** | ✅ Complete | 100% | 50+ tables, migrations ready |
-| **Integration Tests** | ⚠️ Ready | 415+ cases | 28 test files, pending PostgreSQL setup |
+| **Integration Tests** | ✅ Executed | 54.3% pass rate | 326 tests: 177 passed, 26 failed, 123 skipped across 27 files |
 
 **Legend:**
 - ✅ Complete - Full CRUD + workflows implemented, 0 errors
@@ -467,13 +467,70 @@ This is tracked as an **enhancement**, not missing functionality, as the current
 
 ---
 
+## 🧪 Integration Test Results
+
+### Test Execution Summary (2025-11-20)
+- **Total Tests:** 326
+- **Passed:** 177 (54.3%)
+- **Failed:** 26 (8.0%)
+- **Skipped:** 123 (37.7%)
+- **Duration:** 25.14s
+- **Database:** PostgreSQL 16 (Local)
+
+### Test Modules - Pass Rate
+
+| Module | Tests | Passed | Failed | Skipped | Pass Rate | Status |
+|--------|------:|-------:|-------:|--------:|----------:|:------:|
+| **inventory-views.test.ts** | 15 | 15 | 0 | 0 | 100% | ✅ |
+| **inventory.test.ts** | 19 | 19 | 0 | 0 | 100% | ✅ |
+| **locations.test.ts** | 26 | 26 | 0 | 0 | 100% | ✅ |
+| **production-orders.test.ts** | 15 | 15 | 0 | 0 | 100% | ✅ |
+| **requisitions.test.ts** | 7 | 7 | 0 | 0 | 100% | ✅ |
+| **suppliers.test.ts** | 27 | 27 | 0 | 0 | 100% | ✅ |
+| **transfers.test.ts** | 12 | 12 | 0 | 0 | 100% | ✅ |
+| **uoms.test.ts** | 23 | 23 | 0 | 0 | 100% | ✅ |
+| **waste.test.ts** | 20 | 19 | 1 | 0 | 95% | ✅ |
+| products-bulk.test.ts | 28 | 9 | 19 | 0 | 32% | ⚠️ |
+| multi-location.test.ts | 11 | 5 | 6 | 0 | 45% | ⚠️ |
+| auth.test.ts | 8 | 0 | 0 | 8 | 0% | ⏭️ |
+| customers.test.ts | 4 | 0 | 0 | 4 | 0% | ⏭️ |
+| deliveries.test.ts | 14 | 0 | 0 | 14 | 0% | ⏭️ |
+| fefo-picking.test.ts | 10 | 0 | 0 | 10 | 0% | ⏭️ |
+| goods-receipts.test.ts | 3 | 0 | 0 | 3 | 0% | ⏭️ |
+| health.test.ts | 1 | 0 | 0 | 1 | 0% | ⏭️ |
+| menus.test.ts | 8 | 0 | 0 | 8 | 0% | ⏭️ |
+| product-variants.test.ts | 26 | 0 | 0 | 26 | 0% | ⏭️ |
+| products.test.ts | 35 | 0 | 0 | 35 | 0% | ⏭️ |
+| profile.test.ts | 14 | 0 | 0 | 14 | 0% | ⏭️ |
+
+**Legend:**
+- ✅ Passed (100% or 95%+)
+- ⚠️ Partial (some failures)
+- ⏭️ Skipped (test setup issues)
+
+### Key Findings
+1. **8 modules achieved 100% pass rate** - Core CRUD functionality verified
+2. **Skipped tests** - Mostly due to authentication setup complexity with Better Auth
+3. **Failed tests** - Primarily auth-related (401 errors) and missing imports
+4. **Passing modules cover:**
+   - ✅ Inventory Management (views, lots, movements, valuation)
+   - ✅ Location Management (full CRUD)
+   - ✅ Supplier Management (full CRUD)
+   - ✅ UOM Management (full CRUD)
+   - ✅ Production Orders (complete workflow)
+   - ✅ Requisitions (approval workflow)
+   - ✅ Transfers (multi-location workflow)
+   - ✅ Waste Management (tracking & analysis)
+
+---
+
 ## 📈 Summary Statistics
 
 ### API Implementation
 - **Total Implemented:** 201 endpoints (100% for existing schema)
 - **Complete:** 201 endpoints - Full CRUD with business logic
 - **TypeScript Errors:** 0
-- **Test Coverage:** 415+ integration tests ready
+- **Test Coverage:** 326 integration tests executed, 177 passed (54.3%)
 
 **Note:** All endpoints corresponding to existing database tables are 100% implemented. Additional endpoints would require schema migrations.
 
