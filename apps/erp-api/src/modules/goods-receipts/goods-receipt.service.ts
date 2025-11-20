@@ -7,8 +7,18 @@ import { normalizePaginationParams, buildQueryConditions } from '../shared/pagin
 import { generateDocNumber } from '../shared/doc-sequence.js';
 import type { RequestContext } from '../../shared/middleware/auth.js';
 import { db } from '../../config/database.js';
-import { goodsReceipts, goodsReceiptItems, purchaseOrderItems, products, uoms } from '../../config/schema.js';
-import { sql, eq } from 'drizzle-orm';
+import {
+  goodsReceipts,
+  goodsReceiptItems,
+  purchaseOrderItems,
+  purchaseOrders,
+  products,
+  uoms
+} from '../../config/schema.js';
+import { sql, eq, and } from 'drizzle-orm';
+import { recordInventoryMovements } from '../shared/ledger.service.js';
+import { createCostLayers } from '../shared/cost-layer.service.js';
+import { findOrCreateLot } from '../shared/lot.service.js';
 
 export const goodsReceiptService = {
   async list(rawQuery: unknown, context: RequestContext) {
@@ -135,20 +145,150 @@ export const goodsReceiptService = {
     return result;
   },
 
+  /**
+   * Post goods receipt to inventory
+   * Creates lots, stock ledger entries, and FIFO cost layers
+   *
+   * @see USER_STORIES.md - US-PROC-006: Post GR to Inventory
+   * @see FEATURES.md - PROC-006: GR Posting
+   */
   async post(id: string, context: RequestContext) {
-    const result = await goodsReceiptRepository.findById(id, context.tenantId);
-    if (!result) {
-      return null;
-    }
+    return db.transaction(async (tx) => {
+      // Get goods receipt header
+      const [grHeader] = await tx
+        .select()
+        .from(goodsReceipts)
+        .where(and(eq(goodsReceipts.id, id), eq(goodsReceipts.tenantId, context.tenantId)))
+        .limit(1);
 
-    const [updatedReceipt] = await db.update(goodsReceipts)
-      .set({
-        updatedAt: new Date(),
-        metadata: sql`jsonb_set(COALESCE(metadata, '{}'), '{postedAt}', to_jsonb(${new Date()}))`,
-      })
-      .where(eq(goodsReceipts.id, id))
-      .returning();
+      if (!grHeader) {
+        return null;
+      }
 
-    return updatedReceipt ?? null;
+      // Check if already posted
+      const metadata = grHeader.metadata as { postedAt?: string } | null;
+      if (metadata?.postedAt) {
+        throw new Error('Goods receipt already posted');
+      }
+
+      // Get goods receipt items
+      const grItems = await tx
+        .select()
+        .from(goodsReceiptItems)
+        .where(eq(goodsReceiptItems.goodsReceiptId, id));
+
+      if (!grItems.length) {
+        throw new Error('No items found in goods receipt');
+      }
+
+      const postingTimestamp = new Date();
+      const ledgerEntries = [];
+      const costLayerEntries = [];
+
+      // Process each goods receipt item
+      for (const grItem of grItems) {
+        const quantityReceived = parseFloat(grItem.quantityReceived);
+        const unitCost = parseFloat(grItem.unitCost);
+        let lotId: string | null = null;
+
+        // Check for lot tracking info in notes (JSONB)
+        const itemMetadata = grItem.notes as unknown;
+        const lotInfo =
+          typeof itemMetadata === 'object' && itemMetadata !== null
+            ? (itemMetadata as { lotNumber?: string; expiryDate?: string; manufactureDate?: string })
+            : null;
+
+        // Create lot if tracking info provided
+        if (lotInfo?.lotNumber) {
+          lotId = await findOrCreateLot(
+            {
+              tenantId: context.tenantId,
+              productId: grItem.productId,
+              locationId: grHeader.locationId,
+              lotNo: lotInfo.lotNumber,
+              expiryDate: lotInfo.expiryDate,
+              manufactureDate: lotInfo.manufactureDate,
+              receivedDate: postingTimestamp,
+              notes: typeof grItem.notes === 'string' ? grItem.notes : null,
+              metadata: {
+                source: 'goods_receipt',
+                goodsReceiptId: grHeader.id,
+                goodsReceiptNumber: grHeader.receiptNumber,
+              },
+            },
+            tx
+          );
+        }
+
+        // Prepare ledger entry
+        ledgerEntries.push({
+          tenantId: context.tenantId,
+          productId: grItem.productId,
+          locationId: grHeader.locationId,
+          lotId,
+          type: 'gr',
+          qtyDeltaBase: quantityReceived,
+          unitCost,
+          refType: 'goods_receipt',
+          refId: grHeader.id,
+          note: `GR ${grHeader.receiptNumber}${grHeader.purchaseOrderId ? ' (from PO)' : ''}`,
+          createdBy: context.userId,
+          txnTs: postingTimestamp,
+          metadata: {
+            goodsReceiptItemId: grItem.id,
+            lotId,
+          },
+        });
+
+        // Prepare cost layer entry
+        costLayerEntries.push({
+          tenantId: context.tenantId,
+          productId: grItem.productId,
+          locationId: grHeader.locationId,
+          lotId,
+          qtyRemainingBase: quantityReceived,
+          unitCost,
+          sourceType: 'goods_receipt',
+          sourceId: grHeader.id,
+        });
+      }
+
+      // Record all ledger entries
+      await recordInventoryMovements(ledgerEntries, tx);
+
+      // Create all cost layers
+      await createCostLayers(costLayerEntries, tx);
+
+      // Update goods receipt status
+      const [updatedReceipt] = await tx
+        .update(goodsReceipts)
+        .set({
+          updatedAt: postingTimestamp,
+          metadata: {
+            postedAt: postingTimestamp.toISOString(),
+            postedBy: context.userId,
+          },
+        })
+        .where(eq(goodsReceipts.id, id))
+        .returning();
+
+      // Update PO status to 'receiving' if linked to a PO
+      if (grHeader.purchaseOrderId) {
+        await tx
+          .update(purchaseOrders)
+          .set({
+            status: 'receiving',
+            updatedAt: postingTimestamp,
+          })
+          .where(
+            and(
+              eq(purchaseOrders.id, grHeader.purchaseOrderId),
+              eq(purchaseOrders.tenantId, context.tenantId)
+            )
+          );
+      }
+
+      return updatedReceipt ?? null;
+    });
   },
 };
