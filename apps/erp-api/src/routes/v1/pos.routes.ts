@@ -175,4 +175,67 @@ export function posRoutes(fastify: FastifyInstance) {
       return reply.send(createSuccessResponse(movements, 'Movements retrieved successfully'));
     }
   );
+
+  // GET /api/v1/pos/kds - Kitchen Display System endpoint
+  fastify.get(
+    '/kds',
+    {
+      schema: {
+        description: 'Get orders for Kitchen Display System with prep status tracking',
+        tags: ['POS', 'Kitchen', 'KDS'],
+        querystring: z.object({
+          locationId: z.string().uuid().optional(),
+          station: z.enum(['hot', 'cold', 'drinks', 'dessert', 'all']).default('all'),
+          kitchenStatus: z.enum(['confirmed', 'preparing', 'ready', 'completed']).optional(),
+          limit: z.number().int().min(1).max(100).default(50),
+        }),
+        response: {
+          200: z.object({
+            success: z.literal(true),
+            data: z.array(z.object({
+              id: z.string(),
+              orderNumber: z.string(),
+              type: z.string(),
+              tableNo: z.string().nullable(),
+              kitchenStatus: z.string(),
+              status: z.string(),
+              createdAt: z.date(),
+              totalItems: z.number(),
+              items: z.array(z.object({
+                id: z.string(),
+                productId: z.string(),
+                productName: z.string(),
+                quantity: z.string(),
+                prepStatus: z.string(),
+                station: z.string().nullable(),
+                notes: z.string().nullable(),
+              })),
+            })),
+            message: z.string(),
+          }),
+        },
+      },
+    },
+    async (request: FastifyRequest<{
+      Querystring: {
+        locationId?: string;
+        station?: string;
+        kitchenStatus?: string;
+        limit?: number;
+      };
+    }>, reply: FastifyReply) => {
+      const context = buildRequestContext(request);
+      const { locationId, station, kitchenStatus, limit } = request.query;
+
+      const orders = await posService.getKitchenOrders({
+        tenantId: context.tenantId,
+        locationId,
+        station: station || 'all',
+        kitchenStatus,
+        limit: limit || 50,
+      });
+
+      return reply.send(createSuccessResponse(orders, 'Kitchen orders retrieved successfully'));
+    }
+  );
 }

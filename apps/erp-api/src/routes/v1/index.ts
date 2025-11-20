@@ -6,6 +6,7 @@ import { categoryRoutes } from './categories.routes.js';
 import { customerRoutes } from './customers.routes.js';
 import { deliveryRoutes } from './deliveries.routes.js';
 import { loyaltyRoutes } from './loyalty.routes.js';
+import { voucherRoutes } from './vouchers.routes.js';
 import { goodsReceiptRoutes } from './goods-receipts.routes.js';
 import { inventoryRoutes } from './inventory.routes.js';
 import { locationRoutes } from './locations.routes.js';
@@ -55,6 +56,7 @@ export async function apiV1Routes(fastify: FastifyInstance) {
     await protectedRoutes.register(userRoutes, { prefix: '/users' });
     await protectedRoutes.register(customerRoutes, { prefix: '/customers' });
     await protectedRoutes.register(loyaltyRoutes, { prefix: '/loyalty' });
+    await protectedRoutes.register(voucherRoutes, { prefix: '/vouchers' });
     await protectedRoutes.register(priceBookRoutes, { prefix: '/pricebooks' });
     await protectedRoutes.register(menuRoutes, { prefix: '/menus' });
     await protectedRoutes.register(orderRoutes, { prefix: '/orders' });
