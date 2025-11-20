@@ -510,7 +510,7 @@ export function calculateTotalTime(
  */
 export function suggestNextRecipeCode(lastCode: string): string {
   const match = lastCode.match(/^([A-Z]+)(\d+)$/);
-  if (!match) return 'RC001';
+  if (!match || !match[1] || !match[2]) return 'RC001';
 
   const prefix = match[1];
   const number = parseInt(match[2], 10);

@@ -271,15 +271,15 @@ export const orderService = {
 
     if (
       order.kitchenStatus &&
-      !validTransitions[order.kitchenStatus]?.includes(body.kitchenStatus)
+      !validTransitions[order.kitchenStatus]?.includes(body.status)
     ) {
       throw new Error(
-        `Cannot transition from ${order.kitchenStatus} to ${body.kitchenStatus}`
+        `Cannot transition from ${order.kitchenStatus} to ${body.status}`
       );
     }
 
     const updateData: Record<string, unknown> = {
-      kitchenStatus: body.kitchenStatus,
+      kitchenStatus: body.status, // Contract field 'status' maps to DB's 'kitchenStatus'
       updatedAt: new Date(),
     };
 
@@ -330,7 +330,7 @@ export const orderService = {
       .set({
         prepStatus: body.prepStatus,
         station: body.station ?? record.orderItem.station,
-        notes: body.notes ?? record.orderItem.notes,
+        // Note: 'notes' field not in contract, keeping existing value
       })
       .where(eq(orderItems.id, itemId))
       .returning();

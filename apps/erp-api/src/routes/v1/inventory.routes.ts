@@ -1079,7 +1079,8 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           if (typeof row.days_to_expiry === 'number') {
             daysToExpiry = row.days_to_expiry;
           } else {
-            const parsed = parseInt(String(row.days_to_expiry).split(' ')[0]);
+            const parts = String(row.days_to_expiry).split(' ');
+            const parsed = parseInt(parts[0] || '0');
             daysToExpiry = isNaN(parsed) ? null : parsed;
           }
         }

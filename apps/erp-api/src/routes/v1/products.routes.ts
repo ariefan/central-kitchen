@@ -108,7 +108,7 @@ export function productRoutes(fastify: FastifyInstance) {
         // Find the highest numeric sequence from all SKUs
         for (const product of allProducts) {
           const match = product.sku.match(/-(\d+)$/);
-          if (match) {
+          if (match && match[1]) {
             const sequence = parseInt(match[1], 10);
             if (sequence > lastSequence) {
               lastSequence = sequence;
@@ -285,10 +285,11 @@ export function productRoutes(fastify: FastifyInstance) {
       }
 
       // Get total count
-      const [{ count }] = await db
+      const countResult = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(products)
         .where(and(...conditions));
+      const count = countResult[0]?.count || 0;
 
       // Get products with base UOM
       const productsList = await db
@@ -927,7 +928,7 @@ export function productRoutes(fastify: FastifyInstance) {
             shelfLifeDays,
             standardCost,
             isActive: true,
-            createdBy: currentUser.userId,
+            // Note: products table doesn't have createdBy field
           });
 
           imported++;

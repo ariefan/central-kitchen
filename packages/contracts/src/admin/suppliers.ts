@@ -347,7 +347,7 @@ export type SupplierProductsResponse = z.infer<typeof supplierProductsResponseSc
  */
 export function generateNextSupplierCode(lastCode: string): string {
   const match = lastCode.match(/^SUP-(\\d+)$/);
-  if (!match) return 'SUP-00001';
+  if (!match || !match[1]) return 'SUP-00001';
 
   const nextNumber = parseInt(match[1], 10) + 1;
   return `SUP-${nextNumber.toString().padStart(5, '0')}`;

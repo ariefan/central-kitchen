@@ -101,7 +101,7 @@ export function locationRoutes(fastify: FastifyInstance) {
         let lastSequence = 0;
         if (lastLocation.length > 0) {
           const parts = lastLocation[0].code.split('-');
-          const seqStr = parts[parts.length - 1];
+          const seqStr = parts[parts.length - 1] || '0';
           const parsed = parseInt(seqStr, 10);
           if (!isNaN(parsed)) {
             lastSequence = parsed;
@@ -247,10 +247,11 @@ export function locationRoutes(fastify: FastifyInstance) {
       }
 
       // Get total count
-      const [{ count }] = await db
+      const countResult = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(locations)
         .where(and(...conditions));
+      const count = countResult[0]?.count || 0;
 
       // Get locations
       const locationsList = await db

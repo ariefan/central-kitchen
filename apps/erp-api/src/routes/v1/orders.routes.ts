@@ -359,7 +359,7 @@ export function orderRoutes(fastify: FastifyInstance) {
         return reply.send(
           createSuccessResponse(
             updated,
-            `Order kitchen status updated to ${body.kitchenStatus}`
+            `Order kitchen status updated to ${body.status}`
           )
         );
       } catch (error) {

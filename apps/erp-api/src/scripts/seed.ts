@@ -680,17 +680,17 @@ async function seedDatabase() {
     await db.insert(schema.productVariants).values([
       {
         productId: productCappuccino.id,
-        code: 'LARGE',
-        name: 'Large',
-        extraPrice: toNumericString(5000),
-        isActive: true
+        variantName: 'Large',
+        priceDifferential: toNumericString(5000),
+        isActive: true,
+        displayOrder: 1
       },
       {
         productId: productCappuccino.id,
-        code: 'SMALL',
-        name: 'Small',
-        extraPrice: toNumericString(-3000),
-        isActive: true
+        variantName: 'Small',
+        priceDifferential: toNumericString(-3000),
+        isActive: true,
+        displayOrder: 2
       }
     ]);
 

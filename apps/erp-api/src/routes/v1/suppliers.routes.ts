@@ -238,10 +238,11 @@ export function supplierRoutes(fastify: FastifyInstance) {
       }
 
       // Get total count
-      const [{ count }] = await db
+      const countResult = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(suppliers)
         .where(and(...conditions));
+      const count = countResult[0]?.count || 0;
 
       // Get suppliers
       const suppliersList = await db
