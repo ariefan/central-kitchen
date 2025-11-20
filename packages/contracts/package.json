@@ -1,0 +1,147 @@
+{
+  "name": "@contracts/erp",
+  "version": "1.0.0",
+  "description": "Type-safe API contracts for Central Kitchen ERP - Single source of truth for all modules",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./common": {
+      "import": "./dist/common.js",
+      "types": "./dist/common.d.ts"
+    },
+    "./primitives": {
+      "import": "./dist/primitives.js",
+      "types": "./dist/primitives.d.ts"
+    },
+    "./enums": {
+      "import": "./dist/enums.js",
+      "types": "./dist/enums.d.ts"
+    },
+    "./procurement/purchase-orders": {
+      "import": "./dist/procurement/purchase-orders.js",
+      "types": "./dist/procurement/purchase-orders.d.ts"
+    },
+    "./procurement/goods-receipts": {
+      "import": "./dist/procurement/goods-receipts.js",
+      "types": "./dist/procurement/goods-receipts.d.ts"
+    },
+    "./inventory/transfers": {
+      "import": "./dist/inventory/transfers.js",
+      "types": "./dist/inventory/transfers.d.ts"
+    },
+    "./inventory/requisitions": {
+      "import": "./dist/inventory/requisitions.js",
+      "types": "./dist/inventory/requisitions.d.ts"
+    },
+    "./inventory/inventory": {
+      "import": "./dist/inventory/inventory.js",
+      "types": "./dist/inventory/inventory.d.ts"
+    },
+    "./inventory/adjustments": {
+      "import": "./dist/inventory/adjustments.js",
+      "types": "./dist/inventory/adjustments.d.ts"
+    },
+    "./production/recipes": {
+      "import": "./dist/production/recipes.js",
+      "types": "./dist/production/recipes.d.ts"
+    },
+    "./production/production-orders": {
+      "import": "./dist/production/production-orders.js",
+      "types": "./dist/production/production-orders.d.ts"
+    },
+    "./production/waste": {
+      "import": "./dist/production/waste.js",
+      "types": "./dist/production/waste.d.ts"
+    },
+    "./sales/orders": {
+      "import": "./dist/sales/orders.js",
+      "types": "./dist/sales/orders.d.ts"
+    },
+    "./sales/pos": {
+      "import": "./dist/sales/pos.js",
+      "types": "./dist/sales/pos.d.ts"
+    },
+    "./sales/deliveries": {
+      "import": "./dist/sales/deliveries.js",
+      "types": "./dist/sales/deliveries.d.ts"
+    },
+    "./sales/returns": {
+      "import": "./dist/sales/returns.js",
+      "types": "./dist/sales/returns.d.ts"
+    },
+    "./quality/temperature": {
+      "import": "./dist/quality/temperature.js",
+      "types": "./dist/quality/temperature.d.ts"
+    },
+    "./quality/alerts": {
+      "import": "./dist/quality/alerts.js",
+      "types": "./dist/quality/alerts.d.ts"
+    },
+    "./customers/customers": {
+      "import": "./dist/customers/customers.js",
+      "types": "./dist/customers/customers.d.ts"
+    },
+    "./customers/loyalty": {
+      "import": "./dist/customers/loyalty.js",
+      "types": "./dist/customers/loyalty.d.ts"
+    },
+    "./customers/vouchers": {
+      "import": "./dist/customers/vouchers.js",
+      "types": "./dist/customers/vouchers.d.ts"
+    },
+    "./admin/users": {
+      "import": "./dist/admin/users.js",
+      "types": "./dist/admin/users.d.ts"
+    },
+    "./admin/suppliers": {
+      "import": "./dist/admin/suppliers.js",
+      "types": "./dist/admin/suppliers.d.ts"
+    },
+    "./admin/products": {
+      "import": "./dist/admin/products.js",
+      "types": "./dist/admin/products.d.ts"
+    },
+    "./admin/uoms": {
+      "import": "./dist/admin/uoms.js",
+      "types": "./dist/admin/uoms.d.ts"
+    },
+    "./admin/locations": {
+      "import": "./dist/admin/locations.js",
+      "types": "./dist/admin/locations.d.ts"
+    },
+    "./admin/menus": {
+      "import": "./dist/admin/menus.js",
+      "types": "./dist/admin/menus.d.ts"
+    },
+    "./admin/pricebooks": {
+      "import": "./dist/admin/pricebooks.js",
+      "types": "./dist/admin/pricebooks.d.ts"
+    },
+    "./admin/categories": {
+      "import": "./dist/admin/categories.js",
+      "types": "./dist/admin/categories.d.ts"
+    },
+    "./admin/stock-counts": {
+      "import": "./dist/admin/stock-counts.js",
+      "types": "./dist/admin/stock-counts.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "prepare": "pnpm build"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.3"
+  }
+}
