@@ -34,7 +34,7 @@ Central Kitchen ERP is a comprehensive F&B management system supporting:
 | **API Implementation** | 🟡 In Progress | ~70% | Core modules functional |
 | **Frontend** | 🟡 In Progress | ~40% | Basic CRUD operational |
 | **Database Schema** | ✅ Complete | 100% | 50+ tables, migrations ready |
-| **Tests** | ⚠️ Ready | Infrastructure | Pending PostgreSQL database |
+| **Tests** | ⚠️ Ready | 415+ cases | 28 test files, pending PostgreSQL |
 
 ---
 
@@ -317,6 +317,100 @@ Central Kitchen ERP is a comprehensive F&B management system supporting:
 - ✅ `price_books` - Dynamic pricing
 
 **Database Status:** ✅ Production-ready
+
+---
+
+## 🧪 Integration Tests Status
+
+**Framework:** Vitest
+**Location:** `apps/erp-api/tests/`
+**Status:** ⚠️ **Ready but Not Run** (Pending PostgreSQL database setup)
+
+### Test Statistics
+
+- **Total Test Files:** 28
+- **Total Test Cases:** 415+
+- **Integration Tests:** 27 modules
+- **Unit Tests:** 1 module (report service)
+- **Coverage Target:** >80%
+
+### Test Files by Module
+
+| Module | Test File | Status | Test Cases |
+|--------|-----------|--------|------------|
+| **Authentication** | `auth.test.ts` | ⚠️ Ready | Multiple |
+| **Health Check** | `health.test.ts` | ⚠️ Ready | Basic |
+| **Profile** | `profile.test.ts` | ⚠️ Ready | Multiple |
+| **Locations** | `locations.test.ts` | ⚠️ Ready | CRUD tests |
+| **Products** | `products.test.ts` | ⚠️ Ready | CRUD tests |
+| **Product Bulk** | `products-bulk.test.ts` | ⚠️ Ready | Bulk ops |
+| **Product Variants** | `product-variants.test.ts` | ⚠️ Ready | Variant tests |
+| **Suppliers** | `suppliers.test.ts` | ⚠️ Ready | CRUD tests |
+| **UOMs** | `uoms.test.ts` | ⚠️ Ready | Conversion tests |
+| **Menus** | `menus.test.ts` | ⚠️ Ready | Menu tests |
+| **Purchase Orders** | `purchase-orders.test.ts` | ⚠️ Ready | PO workflow |
+| **Goods Receipts** | `goods-receipts.test.ts` | ⚠️ Ready | GR workflow |
+| **Inventory Views** | `inventory-views.test.ts` | ⚠️ Ready | On-hand/lots |
+| **Inventory** | `inventory.test.ts` | ⚠️ Ready | Stock ops |
+| **FEFO Picking** | `fefo-picking.test.ts` | ⚠️ Ready | Lot picking |
+| **Transfers** | `transfers.test.ts` | ⚠️ Ready | Transfer workflow |
+| **Requisitions** | `requisitions.test.ts` | ⚠️ Ready | Req workflow |
+| **Adjustments** | `adjustments.test.ts` | ⚠️ Ready | Adjustment tests |
+| **Stock Counts** | `stock-counts.test.ts` | ⚠️ Ready | Count tests |
+| **Recipes** | `recipes.test.ts` | ⚠️ Ready | Recipe tests |
+| **Production Orders** | `production-orders.test.ts` | ⚠️ Ready | Production tests |
+| **Waste** | `waste.test.ts` | ⚠️ Ready | Waste tracking |
+| **Orders** | `orders.test.ts` | ⚠️ Ready | Order tests |
+| **Deliveries** | `deliveries.test.ts` | ⚠️ Ready | Delivery tests |
+| **Returns** | `returns.test.ts` | ⚠️ Ready | Return tests |
+| **Customers** | `customers.test.ts` | ⚠️ Ready | Customer tests |
+| **Multi-Location** | `multi-location.test.ts` | ⚠️ Ready | Tenancy tests |
+| **Report Service** | `report.service.test.ts` | ⚠️ Ready | Unit tests |
+
+### Test Execution Requirements
+
+**Prerequisites:**
+```bash
+# PostgreSQL database must be running
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/erp-test"
+
+# Run migrations
+pnpm db:migrate
+
+# Seed test data
+pnpm db:seed
+```
+
+**Running Tests:**
+```bash
+# All integration tests
+pnpm test:integration
+
+# Specific module
+pnpm test:integration adjustments
+
+# With coverage
+pnpm test:coverage
+```
+
+### Test Coverage Areas
+
+✅ **Covered:**
+- CRUD operations for all master data
+- Multi-tenancy and row-level security
+- Request validation (Zod contracts)
+- Response schema compliance
+- Database constraints
+- Authentication and authorization
+- Workflow state transitions
+
+⚪ **Pending:**
+- End-to-end workflows (multi-step)
+- Performance testing
+- Load testing
+- Security penetration testing
+
+**Note:** All tests are written and ready. Execution pending PostgreSQL database setup for test environment.
 
 ---
 
@@ -667,14 +761,21 @@ Central Kitchen ERP is a comprehensive F&B management system supporting:
 **Status:** ⚪ **Infrastructure ready, execution pending**
 
 #### Tasks
-- [ ] Set up PostgreSQL database
-- [ ] Run database migrations
+- [ ] Set up PostgreSQL test database
+- [ ] Run database migrations on test DB
 - [ ] Seed test data
-- [ ] Execute 197 integration tests
-- [ ] Fix failing tests
-- [ ] Add end-to-end tests
+- [ ] Execute 415+ integration tests (28 test files)
+- [ ] Fix failing tests (if any)
+- [ ] Add end-to-end workflow tests
 - [ ] Performance testing
 - [ ] Security audit
+
+#### Current Test Infrastructure
+- ✅ 28 test files written (27 integration + 1 unit)
+- ✅ 415+ test cases ready
+- ✅ Vitest framework configured
+- ✅ Contract validation in all tests
+- ⚪ PostgreSQL test database pending
 
 ---
 
@@ -726,13 +827,16 @@ pnpm dev:web         # Frontend only
 
 ### Testing
 ```bash
-# Run tests (requires PostgreSQL)
-pnpm test
-pnpm test:integration
+# Run tests (requires PostgreSQL test database)
+pnpm test                    # All tests
+pnpm test:integration        # Integration tests only
+pnpm test:coverage          # With coverage report
 
 # Type checking
 pnpm typecheck
 ```
+
+**Note:** 28 test files with 415+ test cases are ready. PostgreSQL test database required.
 
 ---
 
@@ -742,7 +846,7 @@ pnpm typecheck
 - **TypeScript Errors:** 0 (down from 282) ✅
 - **Linter Warnings:** Minimal
 - **Type Coverage:** ~95%
-- **Test Coverage:** Infrastructure ready
+- **Test Coverage:** 28 files, 415+ cases (ready, not run)
 
 ### Performance
 - **API Response Time:** < 200ms (target)
