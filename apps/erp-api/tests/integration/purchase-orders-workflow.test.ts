@@ -1,14 +1,15 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { app } from '../../src/server';
-import { getTestContext } from './test-setup';
+import { getApp, getTestContext } from './test-setup';
 
 describe('Purchase Order Workflow (PROC-002)', () => {
+  let app: ReturnType<typeof getApp>;
   const ctx = getTestContext();
   let supplierId: string;
   let productId: string;
   let uomId: string;
 
   beforeAll(async () => {
+    app = getApp();
     // Setup test data
     uomId = '00000000-0000-0000-0000-000000000011'; // KG
 

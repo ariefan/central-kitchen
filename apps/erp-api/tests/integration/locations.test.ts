@@ -1,10 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { app } from '../../src/server';
-import { getTestContext, testTenantId } from './test-setup';
+import { getApp, getTestContext, testTenantId } from './test-setup';
 
 describe('Locations API (ADM-004)', () => {
+  let app: ReturnType<typeof getApp>;
   const ctx = getTestContext();
   let createdLocationId: string;
+
+  beforeEach(() => {
+    app = getApp();
+  });
 
   describe('POST /api/v1/locations - Create Location', () => {
     it('should create a new location with valid data', async () => {

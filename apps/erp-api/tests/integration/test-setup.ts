@@ -2,7 +2,9 @@ import { beforeAll, afterAll, beforeEach } from 'vitest';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import pg from 'pg';
-import * as schema from '../../src/db/schema';
+import * as schema from '../../src/config/schema';
+import { build } from '../../src/app';
+import type { FastifyInstance } from 'fastify';
 
 const { Pool } = pg;
 
@@ -11,6 +13,7 @@ const TEST_DB_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@
 
 let pool: pg.Pool;
 let db: ReturnType<typeof drizzle>;
+let app: FastifyInstance;
 
 // Test user context
 export const testTenantId = '00000000-0000-0000-0000-000000000001';
@@ -34,14 +37,21 @@ beforeAll(async () => {
   db = drizzle(pool, { schema });
 
   // Run migrations
-  await migrate(db, { migrationsFolder: './src/db/migrations' });
+  await migrate(db, { migrationsFolder: './drizzle' });
 
   // Seed test tenant, user, and location
   await seedTestData();
+
+  // Build Fastify app
+  app = await build();
+  await app.ready();
 });
 
 afterAll(async () => {
   // Clean up
+  if (app) {
+    await app.close();
+  }
   await pool.end();
 });
 
@@ -53,28 +63,29 @@ beforeEach(async () => {
 async function seedTestData() {
   // Insert test tenant
   await pool.query(`
-    INSERT INTO tenants (id, org_id, name, slug, is_active)
+    INSERT INTO erp.tenants (id, org_id, name, slug, is_active)
     VALUES ($1, 'test-org', 'Test Organization', 'test-org', true)
     ON CONFLICT (id) DO NOTHING
   `, [testTenantId]);
 
   // Insert test location
   await pool.query(`
-    INSERT INTO locations (id, tenant_id, code, name, type, is_active)
+    INSERT INTO erp.locations (id, tenant_id, code, name, type, is_active)
     VALUES ($1, $2, 'LOC-001', 'Test Location', 'central_kitchen', true)
     ON CONFLICT (id) DO NOTHING
   `, [testLocationId, testTenantId]);
 
   // Insert test user
   await pool.query(`
-    INSERT INTO users (id, tenant_id, auth_user_id, email, first_name, last_name, role, is_active)
+    INSERT INTO erp.users (id, tenant_id, auth_user_id, email, first_name, last_name, role, is_active)
     VALUES ($1, $2, 'test-auth-user', 'test@example.com', 'Test', 'User', 'admin', true)
-    ON CONFLICT (id) DO NOTHING
+    ON CONFLICT (tenant_id, email) DO UPDATE
+    SET id = $1, auth_user_id = 'test-auth-user', first_name = 'Test', last_name = 'User', role = 'admin', is_active = true
   `, [testUserId, testTenantId]);
 
   // Insert base UOMs
   await pool.query(`
-    INSERT INTO uoms (id, tenant_id, code, name, uom_type, is_active)
+    INSERT INTO erp.uoms (id, tenant_id, code, name, uom_type, is_active)
     VALUES
       ('00000000-0000-0000-0000-000000000010', $1, 'EA', 'Each', 'count', true),
       ('00000000-0000-0000-0000-000000000011', $1, 'KG', 'Kilogram', 'weight', true),
@@ -85,27 +96,38 @@ async function seedTestData() {
 
 async function cleanTransactionalData() {
   // Delete transactional data in correct order (respecting FK constraints)
-  await pool.query(`
-    DELETE FROM stock_ledger WHERE tenant_id = $1;
-    DELETE FROM cost_layer_consumptions;
-    DELETE FROM cost_layers WHERE tenant_id = $1;
-    DELETE FROM order_items WHERE order_id IN (SELECT id FROM orders WHERE tenant_id = $1);
-    DELETE FROM orders WHERE tenant_id = $1;
-    DELETE FROM goods_receipt_items WHERE goods_receipt_id IN (SELECT id FROM goods_receipts WHERE tenant_id = $1);
-    DELETE FROM goods_receipts WHERE tenant_id = $1;
-    DELETE FROM purchase_order_items WHERE purchase_order_id IN (SELECT id FROM purchase_orders WHERE tenant_id = $1);
-    DELETE FROM purchase_orders WHERE tenant_id = $1;
-    DELETE FROM transfer_items WHERE transfer_id IN (SELECT id FROM transfers WHERE tenant_id = $1);
-    DELETE FROM transfers WHERE tenant_id = $1;
-    DELETE FROM requisition_items WHERE requisition_id IN (SELECT id FROM requisitions WHERE tenant_id = $1);
-    DELETE FROM requisitions WHERE tenant_id = $1;
-    DELETE FROM stock_adjustment_items WHERE adjustment_id IN (SELECT id FROM stock_adjustments WHERE tenant_id = $1);
-    DELETE FROM stock_adjustments WHERE tenant_id = $1;
-    DELETE FROM stock_count_lines WHERE count_id IN (SELECT id FROM stock_counts WHERE tenant_id = $1);
-    DELETE FROM stock_counts WHERE tenant_id = $1;
-    DELETE FROM production_orders WHERE tenant_id = $1;
-    DELETE FROM lots WHERE tenant_id = $1;
-  `, [testTenantId]);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DELETE FROM erp.stock_ledger WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.cost_layer_consumptions');
+    await client.query('DELETE FROM erp.cost_layers WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.order_items WHERE order_id IN (SELECT id FROM erp.orders WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.orders WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.goods_receipt_items WHERE goods_receipt_id IN (SELECT id FROM erp.goods_receipts WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.goods_receipts WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.purchase_order_items WHERE purchase_order_id IN (SELECT id FROM erp.purchase_orders WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.purchase_orders WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.transfer_items WHERE transfer_id IN (SELECT id FROM erp.transfers WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.transfers WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.requisition_items WHERE requisition_id IN (SELECT id FROM erp.requisitions WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.requisitions WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.stock_adjustment_items WHERE adjustment_id IN (SELECT id FROM erp.stock_adjustments WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.stock_adjustments WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.stock_count_lines WHERE count_id IN (SELECT id FROM erp.stock_counts WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.stock_counts WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.production_orders WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.lots WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.suppliers WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.products WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.locations WHERE tenant_id = $1 AND id != $2', [testTenantId, testLocationId]);
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 export function getTestContext(): TestContext {
@@ -115,6 +137,10 @@ export function getTestContext(): TestContext {
     userId: testUserId,
     locationId: testLocationId,
   };
+}
+
+export function getApp(): FastifyInstance {
+  return app;
 }
 
 // Helper to create test API request

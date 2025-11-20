@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { app } from '../../src/server';
-import { getTestContext } from './test-setup';
+import { getApp, getTestContext } from './test-setup';
 
 describe('Suppliers API (PROC-001)', () => {
+  let app: ReturnType<typeof getApp>;
   const ctx = getTestContext();
   let testProductId: string;
 
   beforeAll(async () => {
+    app = getApp();
     // Create test product for catalog
     const productResponse = await app.inject({
       method: 'POST',
