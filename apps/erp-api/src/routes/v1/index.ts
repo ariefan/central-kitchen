@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { adjustmentRoutes } from './adjustments.routes.js';
+import { alertRoutes } from './alerts.routes.js';
 import { authRoutes } from './auth.routes.js';
 import { categoryRoutes } from './categories.routes.js';
 import { customerRoutes } from './customers.routes.js';
@@ -21,6 +22,7 @@ import { requisitionRoutes } from './requisitions.routes.js';
 import { returnRoutes } from './returns.routes.js';
 import { stockCountRoutes } from './stock-counts.routes.js';
 import { supplierRoutes } from './suppliers.routes.js';
+import { temperatureLogRoutes } from './temperature-logs.routes.js';
 import { transferRoutes } from './transfers.routes.js';
 import { uomConversionRoutes } from './uom-conversions.routes.js';
 import { uomRoutes } from './uoms.routes.js';
@@ -87,5 +89,9 @@ export async function apiV1Routes(fastify: FastifyInstance) {
 
     // P1 - Basic Reporting (completes P1)
     await protectedRoutes.register(reportRoutes, { prefix: '/reports' });
+
+    // P3 - Quality Control & Compliance
+    await protectedRoutes.register(temperatureLogRoutes, { prefix: '/temperature-logs' });
+    await protectedRoutes.register(alertRoutes, { prefix: '/alerts' });
   });
 }
