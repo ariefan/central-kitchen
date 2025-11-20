@@ -1,14 +1,14 @@
 import { beforeAll, afterAll, beforeEach } from 'vitest';
-import { drizzle, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import Database from 'better-sqlite3';
+import initSqlJs, { Database } from 'sql.js';
 import * as schema from '../../src/config/schema.test';
 import { build } from '../../src/app';
 import type { FastifyInstance } from 'fastify';
 import { randomUUID } from 'crypto';
 
 // Test database (in-memory SQLite)
-let sqlite: Database.Database;
-let db: BetterSQLite3Database<typeof schema>;
+let SQL: any;
+let sqlite: Database;
+let db: any;
 let app: FastifyInstance;
 
 // Test user context
@@ -24,9 +24,35 @@ export interface TestContext {
 }
 
 beforeAll(async () => {
-  // Create in-memory SQLite database
-  sqlite = new Database(':memory:');
-  db = drizzle(sqlite, { schema });
+  // Initialize sql.js
+  SQL = await initSqlJs();
+  sqlite = new SQL.Database();
+
+  // Create mock db object that matches expected interface
+  db = {
+    run: (sql: string, params?: any[]) => {
+      sqlite.run(sql, params);
+    },
+    exec: (sql: string) => {
+      sqlite.exec(sql);
+    },
+    prepare: (sql: string) => {
+      const stmt = sqlite.prepare(sql);
+      return {
+        run: (...params: any[]) => stmt.run(params),
+        get: (...params: any[]) => stmt.getAsObject(params),
+        all: (...params: any[]) => {
+          const results = [];
+          stmt.bind(params);
+          while (stmt.step()) {
+            results.push(stmt.getAsObject());
+          }
+          stmt.reset();
+          return results;
+        },
+      };
+    },
+  };
 
   // Create all tables
   await createTables();
@@ -527,54 +553,47 @@ async function createTables() {
 
 async function seedTestData() {
   // Insert test tenant
-  sqlite.prepare(`
+  sqlite.run(`
     INSERT OR IGNORE INTO tenants (id, org_id, name, slug, is_active)
     VALUES (?, 'test-org', 'Test Organization', 'test-org', 1)
-  `).run(testTenantId);
+  `, [testTenantId]);
 
   // Insert test location
-  sqlite.prepare(`
+  sqlite.run(`
     INSERT OR IGNORE INTO locations (id, tenant_id, code, name, type, is_active)
     VALUES (?, ?, 'LOC-001', 'Test Location', 'central_kitchen', 1)
-  `).run(testLocationId, testTenantId);
+  `, [testLocationId, testTenantId]);
 
   // Insert test user
-  sqlite.prepare(`
+  sqlite.run(`
     INSERT OR REPLACE INTO users (id, tenant_id, auth_user_id, email, first_name, last_name, role, is_active)
     VALUES (?, ?, 'test-auth-user', 'test@example.com', 'Test', 'User', 'admin', 1)
-  `).run(testUserId, testTenantId);
+  `, [testUserId, testTenantId]);
 
   // Insert base UOMs
-  sqlite.prepare(`
+  sqlite.run(`
     INSERT OR IGNORE INTO uoms (id, tenant_id, code, name, uom_type, is_active)
     VALUES
       ('00000000-0000-0000-0000-000000000010', ?, 'EA', 'Each', 'count', 1),
       ('00000000-0000-0000-0000-000000000011', ?, 'KG', 'Kilogram', 'weight', 1),
       ('00000000-0000-0000-0000-000000000012', ?, 'L', 'Liter', 'volume', 1)
-  `).run(testTenantId, testTenantId, testTenantId);
+  `, [testTenantId, testTenantId, testTenantId]);
 }
 
 async function cleanTransactionalData() {
   // Delete transactional data in correct order (respecting FK constraints)
-  // SQLite is fast enough that we can just delete everything
+  // Only delete from tables that have tenant_id directly
+  // Child tables will be cleaned via CASCADE DELETE
   const tables = [
+    'orders',           // Will cascade to order_items
     'stock_ledger',
-    'cost_layer_consumptions',
-    'cost_layers',
-    'order_items',
-    'orders',
-    'goods_receipt_items',
-    'goods_receipts',
-    'purchase_order_items',
-    'purchase_orders',
-    'transfer_items',
-    'transfers',
-    'requisition_items',
-    'requisitions',
-    'stock_adjustment_items',
-    'stock_adjustments',
-    'stock_count_lines',
-    'stock_counts',
+    'cost_layers',      // Will cascade to cost_layer_consumptions
+    'goods_receipts',   // Will cascade to goods_receipt_items
+    'purchase_orders',  // Will cascade to purchase_order_items
+    'transfers',        // Will cascade to transfer_items
+    'requisitions',     // Will cascade to requisition_items
+    'stock_adjustments', // Will cascade to stock_adjustment_items
+    'stock_counts',     // Will cascade to stock_count_lines
     'production_orders',
     'lots',
     'suppliers',
@@ -582,11 +601,11 @@ async function cleanTransactionalData() {
   ];
 
   for (const table of tables) {
-    sqlite.prepare(`DELETE FROM ${table} WHERE tenant_id = ?`).run(testTenantId);
+    sqlite.run(`DELETE FROM ${table} WHERE tenant_id = ?`, [testTenantId]);
   }
 
   // Also clean locations except test location
-  sqlite.prepare(`DELETE FROM locations WHERE tenant_id = ? AND id != ?`).run(testTenantId, testLocationId);
+  sqlite.run(`DELETE FROM locations WHERE tenant_id = ? AND id != ?`, [testTenantId, testLocationId]);
 }
 
 export function getTestContext(): TestContext {
