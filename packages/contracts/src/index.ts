@@ -94,6 +94,12 @@ export * from './admin/categories.js';
 export * from './admin/stock-counts.js';
 
 // ============================================================================
+// REPORTS MODULE EXPORTS
+// ============================================================================
+
+export * from './reports/reports.js';
+
+// ============================================================================
 // RE-EXPORT COMMON HELPERS FOR CONVENIENCE
 // ============================================================================
 
@@ -220,7 +226,7 @@ export {
 // ============================================================================
 
 export const CONTRACTS_VERSION = '1.0.0';
-export const CONTRACTS_BUILD_DATE = '2025-01-18';
+export const CONTRACTS_BUILD_DATE = '2025-11-20';
 
 /**
  * Package metadata
@@ -261,7 +267,6 @@ export const PACKAGE_INFO = {
     'admin/pricebooks',
     'admin/categories',
     'admin/stock-counts',
-    // Future modules:
-    // 'reports/reports',
+    'reports/reports',
   ],
 } as const;
