@@ -12,7 +12,7 @@ import {
   userLocationsResponseSchema,
   userProfileUpdateSchema,
   userPasswordChangeSchema,
-} from '@contracts';
+} from '@contracts/erp';
 
 // Generate schemas from database tables with proper type handling
 const userSchema = createSelectSchema(users, {

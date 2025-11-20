@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { orderDetailSchema } from "@contracts";
+import { orderDetailSchema } from "@contracts/erp";
 import { successResponseSchema } from "@/modules/shared/responses.js";
 import { createPaginatedResponseSchema } from "@/shared/utils/schemas.js";
 export {
@@ -12,7 +12,7 @@ export {
   orderUpdateSchema,
   orderPaymentSchema,
   prepStatusUpdateSchema,
-} from "@contracts";
+} from "@contracts/erp";
 
 export const orderResponseSchema = successResponseSchema(orderDetailSchema);
 export const ordersResponseSchema = createPaginatedResponseSchema(orderDetailSchema);

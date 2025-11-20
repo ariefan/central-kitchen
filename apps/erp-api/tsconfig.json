@@ -26,10 +26,7 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@contracts": ["../../packages/contracts/src"],
-      "@contracts/orders": ["../../packages/contracts/src/orders"],
-      "@contracts/*": ["../../packages/contracts/src/*"]
+      "@/*": ["src/*"]
     }
   },
   "include": ["src/**/*"],

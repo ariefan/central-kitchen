@@ -24,7 +24,7 @@ import {
   type SupplierCreate,
   type SupplierUpdate,
   type SupplierQuery,
-} from '@contracts';
+} from '@contracts/erp';
 import { getCurrentUser } from '@/shared/middleware/auth.js';
 import {
   createSuccessResponse,

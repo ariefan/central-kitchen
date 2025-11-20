@@ -23,7 +23,7 @@ import {
   type ProductVariantCreate,
   type ProductVariantUpdate,
   type ProductVariantQuery,
-} from '@contracts';
+} from '@contracts/erp';
 import { getCurrentUser } from '@/shared/middleware/auth.js';
 import {
   createSuccessResponse,

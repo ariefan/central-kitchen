@@ -24,7 +24,7 @@ import {
   type ProductCreate,
   type ProductUpdate,
   type ProductQuery,
-} from '@contracts';
+} from '@contracts/erp';
 import { getCurrentUser } from '@/shared/middleware/auth.js';
 import {
   createSuccessResponse,
