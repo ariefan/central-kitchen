@@ -90,4 +90,14 @@ export const posService = {
   listDrawerMovements(shiftId: string) {
     return posRepository.listDrawerMovements(shiftId);
   },
+
+  async getKitchenOrders(params: {
+    tenantId: string;
+    locationId?: string;
+    station?: string;
+    kitchenStatus?: string;
+    limit: number;
+  }) {
+    return posRepository.getKitchenOrders(params);
+  },
 };
