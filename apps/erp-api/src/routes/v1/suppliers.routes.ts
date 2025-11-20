@@ -96,7 +96,11 @@ export function supplierRoutes(fastify: FastifyInstance) {
           .limit(1);
 
         if (lastSupplier.length > 0) {
-          supplierCode = generateNextSupplierCode(lastSupplier[0].code);
+          const lastSupplierItem = lastSupplier[0];
+          if (!lastSupplierItem) {
+            throw new Error('Failed to retrieve last supplier code');
+          }
+          supplierCode = generateNextSupplierCode(lastSupplierItem.code);
         } else {
           supplierCode = 'SUP-00001';
         }
@@ -146,6 +150,9 @@ export function supplierRoutes(fastify: FastifyInstance) {
         .returning();
 
       const supplier = newSuppliers[0];
+      if (!supplier) {
+        throw new Error('Failed to create supplier');
+      }
 
       const responseData = {
         id: supplier.id,
@@ -353,6 +360,9 @@ export function supplierRoutes(fastify: FastifyInstance) {
       }
 
       const supplierData = supplier[0];
+      if (!supplierData) {
+        return createNotFoundError('Supplier not found', reply);
+      }
 
       const responseData = {
         id: supplierData.id,
@@ -441,6 +451,10 @@ export function supplierRoutes(fastify: FastifyInstance) {
       }
 
       const currentSupplier = existingSupplier[0];
+      if (!currentSupplier) {
+        return createNotFoundError('Supplier not found', reply);
+      }
+
       const currentMetadata = (currentSupplier.metadata as any) || {};
 
       // Prepare update object
@@ -520,6 +534,9 @@ export function supplierRoutes(fastify: FastifyInstance) {
         .returning();
 
       const updatedSupplier = updatedSuppliers[0];
+      if (!updatedSupplier) {
+        throw new Error('Failed to update supplier');
+      }
 
       const responseData = {
         id: updatedSupplier.id,

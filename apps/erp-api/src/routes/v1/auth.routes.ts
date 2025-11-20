@@ -296,6 +296,8 @@ export function authRoutes(fastify: FastifyInstance) {
         return createNotFoundError('Location not found', reply);
       }
 
+      const locationData = location[0];
+
       // Verify user has access to this location
       const hasAccess = await db
         .select()
@@ -327,12 +329,13 @@ export function authRoutes(fastify: FastifyInstance) {
         return createNotFoundError('User not found', reply);
       }
 
+      const userWithLocation = updatedUser[0];
+      if (!userWithLocation) {
+        throw new Error('Failed to update user location');
+      }
+
       // Get tenant data
       const tenant = getCurrentTenant(request);
-
-      // Get updated user with location
-      const userWithLocation = updatedUser[0];
-      const locationData = location[0];
 
       // Return updated user info
       const responseData = {
@@ -417,6 +420,10 @@ export function authRoutes(fastify: FastifyInstance) {
       }
 
       const updatedUser = updatedUsers[0];
+      if (!updatedUser) {
+        throw new Error('Failed to update user profile');
+      }
+
       const tenant = getCurrentTenant(request);
 
       // Get user's current location
@@ -480,6 +487,10 @@ export function authRoutes(fastify: FastifyInstance) {
       }
 
       const updatedUser = updatedUsers[0];
+      if (!updatedUser) {
+        throw new Error('Failed to update user photo');
+      }
+
       const tenant = getCurrentTenant(request);
       const location = request.location ?? null;
 
@@ -542,7 +553,16 @@ export function authRoutes(fastify: FastifyInstance) {
         .where(eq(accounts.userId, currentUser.id))
         .limit(1);
 
-      if (!userAccount.length || !userAccount[0].password) {
+      if (!userAccount.length) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Invalid credentials',
+          message: 'User account not found or password not set',
+        });
+      }
+
+      const account = userAccount[0];
+      if (!account || !account.password) {
         return reply.status(400).send({
           success: false,
           error: 'Invalid credentials',
@@ -552,7 +572,7 @@ export function authRoutes(fastify: FastifyInstance) {
 
       // Verify current password
       const bcrypt = await import('bcryptjs');
-      const isValidPassword = await bcrypt.compare(currentPassword, userAccount[0].password);
+      const isValidPassword = await bcrypt.compare(currentPassword, account.password);
 
       if (!isValidPassword) {
         return reply.status(400).send({

@@ -29,7 +29,7 @@ import {
 import { getCurrentUser } from '@/shared/middleware/auth.js';
 import {
   createSuccessResponse,
-  
+
   createNotFoundError,
   createBadRequestError,
 } from '@/shared/utils/responses.js';
@@ -100,11 +100,14 @@ export function locationRoutes(fastify: FastifyInstance) {
 
         let lastSequence = 0;
         if (lastLocation.length > 0) {
-          const parts = lastLocation[0].code.split('-');
-          const seqStr = parts[parts.length - 1] || '0';
-          const parsed = parseInt(seqStr, 10);
-          if (!isNaN(parsed)) {
-            lastSequence = parsed;
+          const lastLoc = lastLocation[0];
+          if (lastLoc) {
+            const parts = lastLoc.code.split('-');
+            const seqStr = parts[parts.length - 1] || '0';
+            const parsed = parseInt(seqStr, 10);
+            if (!isNaN(parsed)) {
+              lastSequence = parsed;
+            }
           }
         }
 
@@ -153,6 +156,9 @@ export function locationRoutes(fastify: FastifyInstance) {
         .returning();
 
       const location = newLocations[0];
+      if (!location) {
+        throw new Error('Failed to create location');
+      }
 
       const responseData = {
         id: location.id,
@@ -332,7 +338,7 @@ export function locationRoutes(fastify: FastifyInstance) {
       const currentUser = getCurrentUser(request);
       const { id } = request.params;
 
-      const location = await db
+      const locationResult = await db
         .select()
         .from(locations)
         .where(
@@ -343,11 +349,14 @@ export function locationRoutes(fastify: FastifyInstance) {
         )
         .limit(1);
 
-      if (!location.length) {
+      if (!locationResult.length) {
         return createNotFoundError('Location not found', reply);
       }
 
-      const locationData = location[0];
+      const locationData = locationResult[0];
+      if (!locationData) {
+        return createNotFoundError('Location not found', reply);
+      }
 
       const responseData = {
         id: locationData.id,
@@ -418,7 +427,7 @@ export function locationRoutes(fastify: FastifyInstance) {
       const updateData = request.body;
 
       // Check if location exists
-      const existingLocation = await db
+      const existingLocationResult = await db
         .select()
         .from(locations)
         .where(
@@ -429,11 +438,15 @@ export function locationRoutes(fastify: FastifyInstance) {
         )
         .limit(1);
 
-      if (!existingLocation.length) {
+      if (!existingLocationResult.length) {
         return createNotFoundError('Location not found', reply);
       }
 
-      const currentLocation = existingLocation[0];
+      const currentLocation = existingLocationResult[0];
+      if (!currentLocation) {
+        return createNotFoundError('Location not found', reply);
+      }
+
       const currentMetadata = (currentLocation.metadata as any) || {};
 
       // Prepare update object
@@ -499,13 +512,16 @@ export function locationRoutes(fastify: FastifyInstance) {
       }
 
       // Update location
-      const updatedLocations = await db
+      const updatedLocationsResult = await db
         .update(locations)
         .set(updates)
         .where(eq(locations.id, id))
         .returning();
 
-      const updatedLocation = updatedLocations[0];
+      const updatedLocation = updatedLocationsResult[0];
+      if (!updatedLocation) {
+        throw new Error('Failed to update location');
+      }
 
       const responseData = {
         id: updatedLocation.id,

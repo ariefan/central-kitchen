@@ -177,6 +177,14 @@ export function productRoutes(fastify: FastifyInstance) {
         .returning();
 
       const product = newProducts[0];
+      if (!product) {
+        throw new Error('Failed to create product');
+      }
+
+      const baseUomRecord = baseUom[0];
+      if (!baseUomRecord) {
+        throw new Error('Base UOM not found after validation');
+      }
 
       const responseData = {
         id: product.id,
@@ -197,9 +205,9 @@ export function productRoutes(fastify: FastifyInstance) {
         notes: null,
         metadata: product.metadata,
         baseUom: {
-          id: baseUom[0].id,
-          code: baseUom[0].code,
-          name: baseUom[0].name,
+          id: baseUomRecord.id,
+          code: baseUomRecord.code,
+          name: baseUomRecord.name,
         },
         taxCategory: null,
         categories: [],
@@ -325,9 +333,9 @@ export function productRoutes(fastify: FastifyInstance) {
         imageUrl: row.product.imageUrl,
         isActive: row.product.isActive,
         baseUom: {
-          id: row.baseUom.id || '',
-          code: row.baseUom.code || '',
-          name: row.baseUom.name || '',
+          id: row.baseUom?.id || '',
+          code: row.baseUom?.code || '',
+          name: row.baseUom?.name || '',
         },
         taxCategory: null,
         totalOnHand: '0',
@@ -409,6 +417,9 @@ export function productRoutes(fastify: FastifyInstance) {
       }
 
       const row = productResult[0];
+      if (!row) {
+        return createNotFoundError('Product not found', reply);
+      }
 
       const responseData = {
         id: row.product.id,
@@ -429,9 +440,9 @@ export function productRoutes(fastify: FastifyInstance) {
         notes: null,
         metadata: row.product.metadata,
         baseUom: {
-          id: row.baseUom.id || '',
-          code: row.baseUom.code || '',
-          name: row.baseUom.name || '',
+          id: row.baseUom?.id || '',
+          code: row.baseUom?.code || '',
+          name: row.baseUom?.name || '',
         },
         taxCategory: null,
         categories: [],
@@ -505,6 +516,9 @@ export function productRoutes(fastify: FastifyInstance) {
       }
 
       const currentProduct = existingProduct[0];
+      if (!currentProduct) {
+        return createNotFoundError('Product not found', reply);
+      }
 
       // Validate shelf life if updating perishability
       const isPerishable = updateData.isPerishable ?? currentProduct.isPerishable;
@@ -557,6 +571,9 @@ export function productRoutes(fastify: FastifyInstance) {
         .returning();
 
       const updatedProduct = updatedProducts[0];
+      if (!updatedProduct) {
+        throw new Error('Failed to update product');
+      }
 
       // Get base UOM for response
       const baseUom = await db
@@ -564,6 +581,11 @@ export function productRoutes(fastify: FastifyInstance) {
         .from(uoms)
         .where(eq(uoms.id, updatedProduct.baseUomId))
         .limit(1);
+
+      const baseUomRecord = baseUom[0];
+      if (!baseUomRecord) {
+        throw new Error('Base UOM not found after update');
+      }
 
       const responseData = {
         id: updatedProduct.id,
@@ -584,9 +606,9 @@ export function productRoutes(fastify: FastifyInstance) {
         notes: null,
         metadata: updatedProduct.metadata,
         baseUom: {
-          id: baseUom[0].id,
-          code: baseUom[0].code,
-          name: baseUom[0].name,
+          id: baseUomRecord.id,
+          code: baseUomRecord.code,
+          name: baseUomRecord.name,
         },
         taxCategory: null,
         categories: [],
