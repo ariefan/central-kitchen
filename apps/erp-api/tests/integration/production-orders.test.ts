@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getTestApp, closeTestApp } from './test-setup';
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
 
 describe('Production Orders', () => {
   let app: any;
@@ -8,11 +8,15 @@ describe('Production Orders', () => {
 
   beforeAll(async () => {
     app = await getTestApp();
+    const cookies = await getAuthCookies();
 
     // Get a recipe for testing
     const recipesResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/recipes'
+      url: '/api/v1/recipes',
+      headers: {
+        Cookie: cookies
+      }
     });
     const recipesPayload = recipesResponse.json();
 
@@ -22,7 +26,10 @@ describe('Production Orders', () => {
       // Create a test recipe first
       const productsResponse = await app.inject({
         method: 'GET',
-        url: '/api/v1/products'
+        url: '/api/v1/products',
+        headers: {
+          Cookie: cookies
+        }
       });
       const productsPayload = productsResponse.json();
 
@@ -34,6 +41,9 @@ describe('Production Orders', () => {
           const recipeResponse = await app.inject({
             method: 'POST',
             url: '/api/v1/recipes',
+            headers: {
+              Cookie: cookies
+            },
             payload: {
               code: 'PROD-RECIPE-001',
               name: 'Production Test Recipe',
@@ -58,7 +68,10 @@ describe('Production Orders', () => {
     // Get a location for testing
     const locationsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/locations'
+      url: '/api/v1/locations',
+      headers: {
+        Cookie: cookies
+      }
     });
     const locationsPayload = locationsResponse.json();
 
@@ -73,9 +86,13 @@ describe('Production Orders', () => {
 
   describe('Production Order Management', () => {
     it('should list all production orders', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/production-orders'
+        url: '/api/v1/production-orders',
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -86,7 +103,8 @@ describe('Production Orders', () => {
     });
 
     it('should create a new production order', async () => {
-      if (!recipeId || !locationId) {
+    const cookies = await getAuthCookies();
+    if (!recipeId || !locationId) {
         console.log('Skipping test - missing recipe or location ID');
         return;
       }
@@ -104,6 +122,9 @@ describe('Production Orders', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/production-orders',
+        headers: {
+          Cookie: cookies
+        },
         payload: newProductionOrder
       });
 
@@ -120,7 +141,8 @@ describe('Production Orders', () => {
     });
 
     it('should get production order by ID', async () => {
-      if (!recipeId || !locationId) {
+    const cookies = await getAuthCookies();
+    if (!recipeId || !locationId) {
         console.log('Skipping test - missing recipe or location ID');
         return;
       }
@@ -129,6 +151,9 @@ describe('Production Orders', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/production-orders',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           recipeId,
           locationId,
@@ -144,7 +169,10 @@ describe('Production Orders', () => {
       // Then get it by ID
       const getResponse = await app.inject({
         method: 'GET',
-        url: `/api/v1/production-orders/${productionOrderId}`
+        url: `/api/v1/production-orders/${productionOrderId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(getResponse.statusCode).toBe(200);
@@ -160,7 +188,8 @@ describe('Production Orders', () => {
     });
 
     it('should start production order', async () => {
-      if (!recipeId || !locationId) {
+    const cookies = await getAuthCookies();
+    if (!recipeId || !locationId) {
         console.log('Skipping test - missing recipe or location ID');
         return;
       }
@@ -169,6 +198,9 @@ describe('Production Orders', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/production-orders',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           recipeId,
           locationId,
@@ -184,7 +216,10 @@ describe('Production Orders', () => {
       // Start production
       const startResponse = await app.inject({
         method: 'POST',
-        url: `/api/v1/production-orders/${productionOrderId}/start`
+        url: `/api/v1/production-orders/${productionOrderId}/start`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(startResponse.statusCode).toBe(200);
@@ -195,7 +230,8 @@ describe('Production Orders', () => {
     });
 
     it('should complete production order', async () => {
-      if (!recipeId || !locationId) {
+    const cookies = await getAuthCookies();
+    if (!recipeId || !locationId) {
         console.log('Skipping test - missing recipe or location ID');
         return;
       }
@@ -204,6 +240,9 @@ describe('Production Orders', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/production-orders',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           recipeId,
           locationId,
@@ -219,13 +258,19 @@ describe('Production Orders', () => {
       // Start production
       await app.inject({
         method: 'POST',
-        url: `/api/v1/production-orders/${productionOrderId}/start`
+        url: `/api/v1/production-orders/${productionOrderId}/start`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       // Complete production
       const completeResponse = await app.inject({
         method: 'POST',
         url: `/api/v1/production-orders/${productionOrderId}/complete`,
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           actualQtyBase: 28,
           notes: 'Completed successfully',
@@ -242,7 +287,8 @@ describe('Production Orders', () => {
     });
 
     it('should put production order on hold', async () => {
-      if (!recipeId || !locationId) {
+    const cookies = await getAuthCookies();
+    if (!recipeId || !locationId) {
         console.log('Skipping test - missing recipe or location ID');
         return;
       }
@@ -251,6 +297,9 @@ describe('Production Orders', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/production-orders',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           recipeId,
           locationId,
@@ -267,6 +316,9 @@ describe('Production Orders', () => {
       const holdResponse = await app.inject({
         method: 'POST',
         url: `/api/v1/production-orders/${productionOrderId}/hold`,
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           reason: 'Waiting for ingredients',
         }
@@ -281,7 +333,8 @@ describe('Production Orders', () => {
     });
 
     it('should cancel production order', async () => {
-      if (!recipeId || !locationId) {
+    const cookies = await getAuthCookies();
+    if (!recipeId || !locationId) {
         console.log('Skipping test - missing recipe or location ID');
         return;
       }
@@ -290,6 +343,9 @@ describe('Production Orders', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/production-orders',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           recipeId,
           locationId,
@@ -306,6 +362,9 @@ describe('Production Orders', () => {
       const cancelResponse = await app.inject({
         method: 'POST',
         url: `/api/v1/production-orders/${productionOrderId}/cancel`,
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           reason: 'Equipment malfunction',
         }
@@ -320,7 +379,8 @@ describe('Production Orders', () => {
     });
 
     it('should update production order', async () => {
-      if (!recipeId || !locationId) {
+    const cookies = await getAuthCookies();
+    if (!recipeId || !locationId) {
         console.log('Skipping test - missing recipe or location ID');
         return;
       }
@@ -329,6 +389,9 @@ describe('Production Orders', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/production-orders',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           recipeId,
           locationId,
@@ -345,6 +408,9 @@ describe('Production Orders', () => {
       const updateResponse = await app.inject({
         method: 'PATCH',
         url: `/api/v1/production-orders/${productionOrderId}`,
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           plannedQtyBase: 22,
           notes: 'Updated production order',
@@ -359,9 +425,13 @@ describe('Production Orders', () => {
     });
 
     it('should filter production orders by status', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/production-orders?status=scheduled'
+        url: '/api/v1/production-orders?status=scheduled',
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -371,14 +441,18 @@ describe('Production Orders', () => {
     });
 
     it('should filter production orders by location', async () => {
-      if (!locationId) {
+    const cookies = await getAuthCookies();
+    if (!locationId) {
         console.log('Skipping test - missing location ID');
         return;
       }
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/production-orders?locationId=${locationId}`
+        url: `/api/v1/production-orders?locationId=${locationId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -388,12 +462,16 @@ describe('Production Orders', () => {
     });
 
     it('should filter production orders by date range', async () => {
+      const cookies = await getAuthCookies();
       const today = new Date().toISOString();
       const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/production-orders?dateFrom=${today}&dateTo=${nextWeek}`
+        url: `/api/v1/production-orders?dateFrom=${today}&dateTo=${nextWeek}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -403,10 +481,14 @@ describe('Production Orders', () => {
     });
 
     it('should return 404 for non-existent production order', async () => {
+      const cookies = await getAuthCookies();
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/production-orders/${fakeId}`
+        url: `/api/v1/production-orders/${fakeId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(404);
@@ -415,7 +497,8 @@ describe('Production Orders', () => {
     });
 
     it('should return 404 when creating production order for non-existent recipe', async () => {
-      if (!locationId) {
+    const cookies = await getAuthCookies();
+    if (!locationId) {
         console.log('Skipping test - missing location ID');
         return;
       }
@@ -424,6 +507,9 @@ describe('Production Orders', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/production-orders',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           recipeId: fakeRecipeId,
           locationId,
@@ -438,7 +524,8 @@ describe('Production Orders', () => {
     });
 
     it('should return 404 when creating production order for non-existent location', async () => {
-      if (!recipeId) {
+    const cookies = await getAuthCookies();
+    if (!recipeId) {
         console.log('Skipping test - missing recipe ID');
         return;
       }
@@ -447,6 +534,9 @@ describe('Production Orders', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/production-orders',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           recipeId,
           locationId: fakeLocationId,
@@ -461,9 +551,13 @@ describe('Production Orders', () => {
     });
 
     it('should validate required production order fields', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/production-orders',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           // Missing required fields
           plannedQtyBase: 10,

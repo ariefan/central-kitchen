@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getTestApp, closeTestApp } from './test-setup';
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
 
 describe('Inventory Adjustments', () => {
   let app: any;
@@ -11,11 +11,15 @@ describe('Inventory Adjustments', () => {
 
   beforeAll(async () => {
     app = await getTestApp();
+    const cookies = await getAuthCookies();
 
     // Get a product for testing
     const productsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/products'
+      url: '/api/v1/products',
+      headers: {
+        Cookie: cookies
+      }
     });
     const productsPayload = productsResponse.json();
 
@@ -28,7 +32,10 @@ describe('Inventory Adjustments', () => {
     // Get a location for testing
     const locationsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/locations'
+      url: '/api/v1/locations',
+      headers: {
+        Cookie: cookies
+      }
     });
     const locationsPayload = locationsResponse.json();
 
@@ -41,6 +48,9 @@ describe('Inventory Adjustments', () => {
       const lotResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/inventory/lots',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           productId,
           locationId,
@@ -59,6 +69,9 @@ describe('Inventory Adjustments', () => {
         await app.inject({
           method: 'POST',
           url: '/api/v1/inventory/movements',
+          headers: {
+            Cookie: cookies
+          },
           payload: {
             productId,
             locationId,
@@ -80,10 +93,14 @@ describe('Inventory Adjustments', () => {
 
   describe('Stock Adjustments Management', () => {
     it('should list all stock adjustments', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/adjustments'
-      });
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/adjustments',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -93,7 +110,8 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should create a damage adjustment', async () => {
-      if (!productId || !locationId || !uomId) {
+    const cookies = await getAuthCookies();
+    if (!productId || !locationId || !uomId) {
         console.log('Skipping test - missing required IDs');
         return;
       }
@@ -117,6 +135,9 @@ describe('Inventory Adjustments', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/adjustments',
+        headers: {
+          Cookie: cookies
+        },
         payload: newAdjustment
       });
 
@@ -142,7 +163,8 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should create an expiry adjustment', async () => {
-      if (!productId || !locationId || !uomId) {
+    const cookies = await getAuthCookies();
+    if (!productId || !locationId || !uomId) {
         console.log('Skipping test - missing required IDs');
         return;
       }
@@ -164,10 +186,14 @@ describe('Inventory Adjustments', () => {
       };
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: '/api/v1/adjustments',
-        payload: expiryAdjustment
-      });
+      headers: {
+        Cookie: cookies
+      },
+      payload: expiryAdjustment
+      }
+    });
 
       expect(response.statusCode).toBe(201);
       const payload = response.json();
@@ -177,7 +203,8 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should create a theft adjustment', async () => {
-      if (!productId || !locationId || !uomId) {
+    const cookies = await getAuthCookies();
+    if (!productId || !locationId || !uomId) {
         console.log('Skipping test - missing required IDs');
         return;
       }
@@ -198,10 +225,14 @@ describe('Inventory Adjustments', () => {
       };
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: '/api/v1/adjustments',
-        payload: theftAdjustment
-      });
+      headers: {
+        Cookie: cookies
+      },
+      payload: theftAdjustment
+      }
+    });
 
       expect(response.statusCode).toBe(201);
       const payload = response.json();
@@ -210,7 +241,8 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should create a found adjustment', async () => {
-      if (!productId || !locationId || !uomId) {
+    const cookies = await getAuthCookies();
+    if (!productId || !locationId || !uomId) {
         console.log('Skipping test - missing required IDs');
         return;
       }
@@ -231,10 +263,14 @@ describe('Inventory Adjustments', () => {
       };
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: '/api/v1/adjustments',
-        payload: foundAdjustment
-      });
+      headers: {
+        Cookie: cookies
+      },
+      payload: foundAdjustment
+      }
+    });
 
       expect(response.statusCode).toBe(201);
       const payload = response.json();
@@ -244,7 +280,8 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should create a correction adjustment', async () => {
-      if (!productId || !locationId || !uomId) {
+    const cookies = await getAuthCookies();
+    if (!productId || !locationId || !uomId) {
         console.log('Skipping test - missing required IDs');
         return;
       }
@@ -265,10 +302,14 @@ describe('Inventory Adjustments', () => {
       };
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: '/api/v1/adjustments',
-        payload: correctionAdjustment
-      });
+      headers: {
+        Cookie: cookies
+      },
+      payload: correctionAdjustment
+      }
+    });
 
       expect(response.statusCode).toBe(201);
       const payload = response.json();
@@ -277,15 +318,17 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should get adjustment by ID', async () => {
-      if (!adjustmentId) {
+    const cookies = await getAuthCookies();
+    if (!adjustmentId) {
         console.log('Skipping test - missing adjustment ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'GET',
+      method: 'GET',
         url: `/api/v1/adjustments/${adjustmentId}`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -297,10 +340,14 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should filter adjustments by reason', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/adjustments?reason=damage'
-      });
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/adjustments?reason=damage',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -309,10 +356,14 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should filter adjustments by status', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/adjustments?status=draft'
-      });
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/adjustments?status=draft',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -321,15 +372,17 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should filter adjustments by location', async () => {
-      if (!locationId) {
+    const cookies = await getAuthCookies();
+    if (!locationId) {
         console.log('Skipping test - missing location ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'GET',
+      method: 'GET',
         url: `/api/v1/adjustments?locationId=${locationId}`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -338,13 +391,15 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should filter adjustments by date range', async () => {
-      const today = new Date().toISOString();
+    const cookies = await getAuthCookies();
+    const today = new Date().toISOString();
       const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
       const response = await app.inject({
-        method: 'GET',
+      method: 'GET',
         url: `/api/v1/adjustments?dateFrom=${today}&dateTo=${tomorrow}`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -353,10 +408,14 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should search adjustments by text', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/adjustments?search=damaged'
-      });
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/adjustments?search=damaged',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -365,19 +424,21 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should update adjustment basic information', async () => {
-      if (!adjustmentId) {
+    const cookies = await getAuthCookies();
+    if (!adjustmentId) {
         console.log('Skipping test - missing adjustment ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'PATCH',
+      method: 'PATCH',
         url: `/api/v1/adjustments/${adjustmentId}`,
         payload: {
           reason: 'correction',
           notes: 'Updated notes for adjustment',
         }
-      });
+      }
+    });
 
       if (response.statusCode !== 200) {
         console.log('=== ADJUSTMENT UPDATE FAILED ===');
@@ -393,15 +454,17 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should approve adjustment', async () => {
-      if (!adjustmentId) {
+    const cookies = await getAuthCookies();
+    if (!adjustmentId) {
         console.log('Skipping test - missing adjustment ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: `/api/v1/adjustments/${adjustmentId}/approve`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -411,15 +474,17 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should post approved adjustment to stock ledger', async () => {
-      if (!adjustmentId) {
+    const cookies = await getAuthCookies();
+    if (!adjustmentId) {
         console.log('Skipping test - missing adjustment ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: `/api/v1/adjustments/${adjustmentId}/post`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -428,11 +493,13 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should return 404 for non-existent adjustment', async () => {
-      const fakeId = '123e4567-e89b-12d3-a456-426614174000';
+    const cookies = await getAuthCookies();
+    const fakeId = '123e4567-e89b-12d3-a456-426614174000';
       const response = await app.inject({
-        method: 'GET',
+      method: 'GET',
         url: `/api/v1/adjustments/${fakeId}`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(404);
       const payload = response.json();
@@ -440,12 +507,16 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should return 404 when creating adjustment for non-existent location', async () => {
-      if (productId && uomId) {
+    const cookies = await getAuthCookies();
+    if (productId && uomId) {
         const fakeLocationId = '123e4567-e89b-12d3-a456-426614174000';
         const response = await app.inject({
-          method: 'POST',
+      method: 'POST',
           url: '/api/v1/adjustments',
-          payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
             locationId: fakeLocationId,
             reason: 'damage',
             items: [
@@ -456,7 +527,8 @@ describe('Inventory Adjustments', () => {
               },
             ],
           }
-        });
+        }
+    });
 
         expect(response.statusCode).toBe(404);
         const payload = response.json();
@@ -465,12 +537,16 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should return 400 when creating adjustment with non-existent product', async () => {
-      if (locationId && uomId) {
+    const cookies = await getAuthCookies();
+    if (locationId && uomId) {
         const fakeProductId = '123e4567-e89b-12d3-a456-426614174000';
         const response = await app.inject({
-          method: 'POST',
+      method: 'POST',
           url: '/api/v1/adjustments',
-          payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
             locationId,
             reason: 'damage',
             items: [
@@ -481,7 +557,8 @@ describe('Inventory Adjustments', () => {
               },
             ],
           }
-        });
+        }
+    });
 
         expect(response.statusCode).toBe(400);
         const payload = response.json();
@@ -490,48 +567,54 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should validate required adjustment fields', async () => {
-      const response = await app.inject({
-        method: 'POST',
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'POST',
         url: '/api/v1/adjustments',
         payload: {
           // Missing required fields
           notes: 'Incomplete adjustment',
         }
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(400);
     });
 
     it('should require at least one item in adjustment', async () => {
-      if (locationId) {
+    const cookies = await getAuthCookies();
+    if (locationId) {
         const response = await app.inject({
-          method: 'POST',
+      method: 'POST',
           url: '/api/v1/adjustments',
           payload: {
             locationId,
             reason: 'damage',
             items: [], // Empty items array
           }
-        });
+        }
+    });
 
         expect(response.statusCode).toBe(400);
       }
     });
 
     it('should prevent updates when adjustment is posted', async () => {
-      if (!adjustmentId) {
+    const cookies = await getAuthCookies();
+    if (!adjustmentId) {
         console.log('Skipping test - missing adjustment ID');
         return;
       }
 
       // Try to update a posted adjustment
       const response = await app.inject({
-        method: 'PATCH',
+      method: 'PATCH',
         url: `/api/v1/adjustments/${adjustmentId}`,
         payload: {
           reason: 'Should not update',
         }
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(400);
       const payload = response.json();
@@ -539,15 +622,17 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should prevent approval of non-draft adjustments', async () => {
-      if (!adjustmentId) {
+    const cookies = await getAuthCookies();
+    if (!adjustmentId) {
         console.log('Skipping test - missing adjustment ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: `/api/v1/adjustments/${adjustmentId}/approve`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(400);
       const payload = response.json();
@@ -555,12 +640,16 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should prevent posting of non-approved adjustments', async () => {
-      // Create a new adjustment that won't be approved
+    const cookies = await getAuthCookies();
+    // Create a new adjustment that won't be approved
       if (productId && locationId && uomId) {
         const createResponse = await app.inject({
           method: 'POST',
           url: '/api/v1/adjustments',
-          payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
             locationId,
             reason: 'damage',
             items: [
@@ -571,15 +660,17 @@ describe('Inventory Adjustments', () => {
               },
             ],
           }
-        });
+        }
+    });
 
         const newAdjustmentId = createResponse.json().data.id;
 
         // Try to post without approval
         const response = await app.inject({
-          method: 'POST',
+      method: 'POST',
           url: `/api/v1/adjustments/${newAdjustmentId}/post`
-        });
+        }
+    });
 
         expect(response.statusCode).toBe(400);
         const payload = response.json();
@@ -590,13 +681,15 @@ describe('Inventory Adjustments', () => {
 
   describe('Adjustments Analysis', () => {
     it('should get adjustments analysis', async () => {
-      const response = await app.inject({
-        method: 'POST',
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'POST',
         url: '/api/v1/adjustments/analysis',
         payload: {
           // No filters - get all data
         }
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -620,13 +713,15 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should get adjustments analysis filtered by reason', async () => {
-      const response = await app.inject({
-        method: 'POST',
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'POST',
         url: '/api/v1/adjustments/analysis',
         payload: {
           reason: 'damage',
         }
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -641,18 +736,20 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should get adjustments analysis filtered by location', async () => {
-      if (!locationId) {
+    const cookies = await getAuthCookies();
+    if (!locationId) {
         console.log('Skipping test - missing location ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: '/api/v1/adjustments/analysis',
         payload: {
           locationId,
         }
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -660,17 +757,19 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should get adjustments analysis filtered by date range', async () => {
-      const today = new Date().toISOString();
+    const cookies = await getAuthCookies();
+    const today = new Date().toISOString();
       const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: '/api/v1/adjustments/analysis',
         payload: {
           dateFrom: today,
           dateTo: tomorrow,
         }
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -680,18 +779,20 @@ describe('Inventory Adjustments', () => {
     });
 
     it('should get adjustments analysis filtered by product', async () => {
-      if (!productId) {
+    const cookies = await getAuthCookies();
+    if (!productId) {
         console.log('Skipping test - missing product ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: '/api/v1/adjustments/analysis',
         payload: {
           productId,
         }
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();

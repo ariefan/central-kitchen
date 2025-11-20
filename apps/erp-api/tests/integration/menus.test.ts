@@ -1,22 +1,15 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { build } from '../../src/app';
-import { config as loadEnv } from 'dotenv';
-
-// Load test environment variables
-loadEnv({ path: '.env.test', override: true });
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
 
 describe('Menu Management', () => {
   let app: any;
 
   beforeAll(async () => {
-    app = await build();
-    await app.ready();
+    app = await getTestApp();
   });
 
   afterAll(async () => {
-    if (app) {
-      await app.close();
-    }
+    await closeTestApp();
   });
 
   describe('Menu CRUD Operations', () => {
@@ -24,10 +17,14 @@ describe('Menu Management', () => {
     let testProductId: string;
 
     it('should create a new menu', async () => {
+      const cookies = await getAuthCookies();
       // Get an existing product from seeded data
       const productsResponse = await app.inject({
         method: 'GET',
-        url: '/api/v1/products'
+        url: '/api/v1/products',
+        headers: {
+          Cookie: cookies
+        }
       });
 
       const productsPayload = productsResponse.json();
@@ -39,13 +36,16 @@ describe('Menu Management', () => {
         const productResponse = await app.inject({
           method: 'POST',
           url: '/api/v1/products',
+          headers: {
+            Cookie: cookies
+          },
           payload: {
             name: 'Test Menu Product',
             sku: 'MENU-001',
             kind: 'finished_good',
             defaultPrice: 10.00,
             baseUomId: '00000000-0000-0000-0000-000000000001', // This should match PCS UOM
-          },
+          }
         });
 
         expect(productResponse.statusCode).toBe(201);
@@ -57,11 +57,14 @@ describe('Menu Management', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/menus',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           name: 'Test Breakfast Menu',
           channel: 'pos',
           isActive: true,
-        },
+        }
       });
 
       expect(response.statusCode).toBe(201);
@@ -76,9 +79,13 @@ describe('Menu Management', () => {
     });
 
     it('should get all menus', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'GET',
         url: '/api/v1/menus',
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -89,9 +96,13 @@ describe('Menu Management', () => {
     });
 
     it('should get menu by ID', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'GET',
         url: `/api/v1/menus/${testMenuId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -102,15 +113,19 @@ describe('Menu Management', () => {
     });
 
       it('should add items to menu', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/api/v1/menus/${testMenuId}/items`,
-        payload: {
-          productId: testProductId,
-          isAvailable: true,
-          sortOrder: 1,
-        },
-      });
+        const cookies = await getAuthCookies();
+        const response = await app.inject({
+          method: 'POST',
+          url: `/api/v1/menus/${testMenuId}/items`,
+          headers: {
+            Cookie: cookies
+          },
+          payload: {
+            productId: testProductId,
+            isAvailable: true,
+            sortOrder: 1,
+          }
+        });
 
       expect(response.statusCode).toBe(201);
       const payload = response.json();
@@ -121,9 +136,13 @@ describe('Menu Management', () => {
     });
 
     it('should get menu items', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'GET',
         url: `/api/v1/menus/${testMenuId}/items`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -135,13 +154,17 @@ describe('Menu Management', () => {
     });
 
     it('should update menu', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'PATCH',
         url: `/api/v1/menus/${testMenuId}`,
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           name: 'Updated Breakfast Menu',
           isActive: false,
-        },
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -152,9 +175,13 @@ describe('Menu Management', () => {
     });
 
     it('should delete menu', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'DELETE',
         url: `/api/v1/menus/${testMenuId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -164,9 +191,13 @@ describe('Menu Management', () => {
     });
 
     it('should return 404 for non-existent menu', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'GET',
         url: '/api/v1/menus/00000000-0000-0000-0000-000000000000',
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(404);

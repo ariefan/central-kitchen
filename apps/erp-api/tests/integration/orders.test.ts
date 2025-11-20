@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getTestApp, closeTestApp } from './test-setup';
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
 
 describe('Orders', () => {
   let app: any;
@@ -8,11 +8,15 @@ describe('Orders', () => {
 
   beforeAll(async () => {
     app = await getTestApp();
+    const cookies = await getAuthCookies();
 
     // Get a location for testing
     const locationsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/locations'
+      url: '/api/v1/locations',
+      headers: {
+        Cookie: cookies
+      }
     });
 
     const locationsPayload = locationsResponse.json();
@@ -23,6 +27,9 @@ describe('Orders', () => {
       const locationResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/locations',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           code: 'ORDER-TEST',
           name: 'Order Test Location',
@@ -33,7 +40,8 @@ describe('Orders', () => {
           postalCode: '12345',
           country: 'Test Country',
         }
-      });
+      }
+    });
 
       if (locationResponse.statusCode !== 201) {
         console.log('Location creation failed:', locationResponse.payload);
@@ -47,7 +55,10 @@ describe('Orders', () => {
     // Get a product for testing
     const productsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/products'
+      url: '/api/v1/products',
+      headers: {
+        Cookie: cookies
+      }
     });
 
     const productsPayload = productsResponse.json();
@@ -63,9 +74,13 @@ describe('Orders', () => {
   });
 
   it('should list orders', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'GET',
-      url: '/api/v1/orders'
+      url: '/api/v1/orders',
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(response.statusCode).toBe(200);
@@ -82,6 +97,7 @@ describe('Orders', () => {
   });
 
   it('should create a new order', async () => {
+    const cookies = await getAuthCookies();
     const newOrder = {
       channel: 'pos',
       type: 'dine_in',
@@ -99,6 +115,9 @@ describe('Orders', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/orders',
+      headers: {
+        Cookie: cookies
+      },
       payload: newOrder
     });
 
@@ -117,6 +136,7 @@ describe('Orders', () => {
   });
 
   it('should post/finalize an order', async () => {
+    const cookies = await getAuthCookies();
     // First create an order
     const newOrder = {
       channel: 'pos',
@@ -134,6 +154,9 @@ describe('Orders', () => {
     const createResponse = await app.inject({
       method: 'POST',
       url: '/api/v1/orders',
+      headers: {
+        Cookie: cookies
+      },
       payload: newOrder
     });
 
@@ -147,7 +170,10 @@ describe('Orders', () => {
     // Then post the order
     const postResponse = await app.inject({
       method: 'POST',
-      url: `/api/v1/orders/${orderId}/post`
+      url: `/api/v1/orders/${orderId}/post`,
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(postResponse.statusCode).toBe(200);
@@ -159,6 +185,7 @@ describe('Orders', () => {
   });
 
   it('should void an order', async () => {
+    const cookies = await getAuthCookies();
     // First create an order
     const newOrder = {
       channel: 'online',
@@ -176,6 +203,9 @@ describe('Orders', () => {
     const createResponse = await app.inject({
       method: 'POST',
       url: '/api/v1/orders',
+      headers: {
+        Cookie: cookies
+      },
       payload: newOrder
     });
 
@@ -189,6 +219,9 @@ describe('Orders', () => {
     const voidResponse = await app.inject({
       method: 'POST',
       url: `/api/v1/orders/${orderId}/void`,
+      headers: {
+        Cookie: cookies
+      },
       payload: { reason: 'Customer cancelled' }
     });
 
@@ -201,20 +234,28 @@ describe('Orders', () => {
   });
 
   it('should return 404 for non-existent order', async () => {
+    const cookies = await getAuthCookies();
     const fakeId = '00000000-0000-0000-0000-000000000000';
 
     const response = await app.inject({
       method: 'GET',
-      url: `/api/v1/orders/${fakeId}`
+      url: `/api/v1/orders/${fakeId}`,
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(response.statusCode).toBe(404);
   });
 
   it('should validate required fields', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/orders',
+      headers: {
+        Cookie: cookies
+      },
       payload: {}
     });
 

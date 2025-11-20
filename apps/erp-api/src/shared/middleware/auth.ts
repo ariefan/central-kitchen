@@ -1,10 +1,12 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { randomUUID } from 'node:crypto';
 import { users, tenants, locations } from '../../config/schema.js';
 import { db } from '../../config/database.js';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
+import { auth } from '../../lib/auth.js';
 
-// Interface for mock user data (matches database schema)
-interface MockUser {
+// Interface for user data (matches database schema)
+interface User {
   id: string;
   authUserId: string;
   tenantId: string;
@@ -12,17 +14,21 @@ interface MockUser {
   firstName: string | null;
   lastName: string | null;
   phone: string | null;
-  role: 'admin' | 'manager' | 'cashier' | 'staff';
+  role: 'admin' | 'manager' | 'cashier' | 'staff' | null;
   locationId: string | null;
   isActive: boolean;
   lastLogin: Date | null;
+  username: string | null;
+  displayUsername: string | null;
+  emailVerified: boolean;
+  image: string | null;
   metadata: unknown;
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Interface for mock tenant data (matches database schema)
-interface MockTenant {
+// Interface for tenant data (matches database schema)
+interface Tenant {
   id: string;
   name: string;
   slug: string;
@@ -33,88 +39,275 @@ interface MockTenant {
   updatedAt: Date;
 }
 
-// Mock auth middleware that uses real database data
-export const mockAuthMiddleware = async (request: FastifyRequest, _reply: FastifyReply) => {
-  try {
-    // Get the first tenant from database
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.isActive, true)).limit(1);
+type LocationRecord = typeof locations.$inferSelect | null;
 
-    if (!tenant) {
-      throw new Error('No active tenant found in database. Please run seed script first.');
+type AuthBypassContext = {
+  user: User;
+  tenant: Tenant;
+  location: LocationRecord;
+};
+
+let cachedBypassContext: AuthBypassContext | null = null;
+
+const shouldBypassAuth = () => process.env.BYPASS_AUTH_FOR_TESTS === 'true';
+
+const loadBypassContext = async (): Promise<AuthBypassContext> => {
+  if (cachedBypassContext) {
+    return cachedBypassContext;
+  }
+
+  const preferredUsername = process.env.TEST_USER_USERNAME;
+  let userData:
+    | (typeof users.$inferSelect)
+    | undefined;
+
+  if (preferredUsername) {
+    [userData] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, preferredUsername))
+      .limit(1);
+  } else {
+    [userData] = await db.select().from(users).limit(1);
+  }
+
+  if (!userData) {
+    const tenantId = randomUUID();
+    const tenantResult = await db.insert(tenants).values({
+      id: tenantId,
+      orgId: randomUUID(),
+      name: 'Test Tenant',
+      slug: 'test-tenant',
+      isActive: true,
+    }).returning();
+
+    const tenantInsert = tenantResult[0];
+    if (!tenantInsert) {
+      throw new Error('Failed to create test tenant');
     }
 
-    // Get the first admin user for this tenant
-    const [user] = await db.select().from(users)
-      .where(and(
-        eq(users.tenantId, tenant.id),
-        eq(users.role, 'admin'),
-        eq(users.isActive, true)
-      ))
+    const locationResult = await db.insert(locations).values({
+      id: randomUUID(),
+      tenantId: tenantInsert.id,
+      code: 'TEST-LOC',
+      name: 'Test Location',
+      type: 'warehouse',
+      country: 'Testland',
+      isActive: true,
+    }).returning();
+
+    const userId = randomUUID();
+    const userResult = await db.insert(users).values({
+      id: userId,
+      authUserId: userId,
+      tenantId: tenantInsert.id,
+      email: 'test@example.com',
+      username: 'test-user',
+      displayUsername: 'Test User',
+      firstName: 'Test',
+      lastName: 'User',
+      role: 'admin',
+      locationId: locationResult[0]?.id ?? null,
+      isActive: true,
+      emailVerified: true,
+    }).returning();
+
+    const newUser = userResult[0];
+    if (!newUser) {
+      throw new Error('Failed to create test user');
+    }
+
+    userData = newUser;
+  }
+
+  // At this point userData is guaranteed to be defined
+  const tenantResult = await db
+    .select()
+    .from(tenants)
+    .where(eq(tenants.id, userData.tenantId))
+    .limit(1);
+
+  const tenantData = tenantResult[0];
+  if (!tenantData) {
+    throw new Error('Auth bypass enabled but tenant for test user was not found.');
+  }
+
+  let locationData: LocationRecord = null;
+  if (userData.locationId) {
+    const locationResult = await db
+      .select()
+      .from(locations)
+      .where(eq(locations.id, userData.locationId))
+      .limit(1);
+    locationData = locationResult[0] ?? null;
+  }
+
+  cachedBypassContext = {
+    user: userData as User,
+    tenant: tenantData as Tenant,
+    location: locationData,
+  };
+
+  return cachedBypassContext;
+};
+
+const applyRequestContext = (request: FastifyRequest, context: AuthBypassContext) => {
+  request.user = context.user;
+  request.tenant = context.tenant;
+  request.location = context.location;
+  request.tenantId = context.tenant.id;
+  request.userId = context.user.id;
+};
+
+/**
+ * Better Auth middleware for Fastify
+ * Verifies session and attaches user, tenant, and location to request
+ */
+export const authMiddleware = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+) => {
+  if (shouldBypassAuth()) {
+    const context = await loadBypassContext();
+    applyRequestContext(request, context);
+    return;
+  }
+
+  try {
+    // Get session from Better Auth
+    const session = await auth.api.getSession({
+      headers: request.headers as Record<string, string>,
+    });
+
+    if (!session?.session || !session?.user) {
+      return reply.status(401).send({
+        success: false,
+        error: 'Unauthorized',
+        code: 'UNAUTHORIZED',
+      });
+    }
+
+    // Fetch full user data from database with tenant and location
+    const [userData] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, session.user.id))
       .limit(1);
 
-    if (!user) {
-      throw new Error('No active admin user found in database. Please run seed script first.');
+    if (!userData) {
+      return reply.status(401).send({
+        success: false,
+        error: 'User not found',
+        code: 'USER_NOT_FOUND',
+      });
     }
 
-    // Get user's location if assigned
-    let location = null;
-    if (user.locationId) {
-      const [locationData] = await db.select().from(locations)
-        .where(eq(locations.id, user.locationId))
+    // Fetch tenant
+    const [tenantData] = await db
+      .select()
+      .from(tenants)
+      .where(eq(tenants.id, userData.tenantId))
+      .limit(1);
+
+    if (!tenantData) {
+      return reply.status(403).send({
+        success: false,
+        error: 'Tenant not found',
+        code: 'TENANT_NOT_FOUND',
+      });
+    }
+
+    // Fetch location if assigned
+    let locationData = null;
+    if (userData.locationId) {
+      const [loc] = await db
+        .select()
+        .from(locations)
+        .where(eq(locations.id, userData.locationId))
         .limit(1);
-      location = locationData ?? null;
+      locationData = loc ?? null;
     }
 
     // Attach data to request
-    request.user = user as MockUser;
-    request.tenant = tenant as MockTenant;
-    request.location = location;
+    request.user = userData as User;
+    request.tenant = tenantData as Tenant;
+    request.location = locationData;
 
     // Set tenant context for database operations
-    request.tenantId = tenant.id;
-    request.userId = user.id;
+    request.tenantId = tenantData.id;
+    request.userId = userData.id;
 
   } catch (error) {
-    console.error('Mock auth middleware error:', error);
-    // For development, continue with fallback mock data
-    const MOCK_USER = {
-      id: '00000000-0000-0000-0000-000000000001',
-      authUserId: 'mock_auth_001',
-      tenantId: '00000000-0000-0000-0000-000000000001',
-      email: 'admin@cafe.com',
-      firstName: 'Admin',
-      lastName: 'User',
-      phone: '+62812345678',
-      role: 'admin' as const,
-      locationId: null,
-      isActive: true,
-      lastLogin: null,
-      metadata: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    request.log.error({ err: error }, 'Auth middleware error');
+    return reply.status(401).send({
+      success: false,
+      error: 'Invalid session',
+      code: 'INVALID_SESSION',
+    });
+  }
+};
 
-    const MOCK_TENANT = {
-      id: '00000000-0000-0000-0000-000000000001',
-      name: 'Mock Tenant',
-      slug: 'mock-tenant',
-      orgId: 'mock_org_001',
-      isActive: true,
-      metadata: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+/**
+ * Optional middleware for public routes
+ * Attaches user if authenticated, but doesn't block if not
+ */
+export const optionalAuthMiddleware = async (
+  request: FastifyRequest,
+  _reply: FastifyReply
+) => {
+  if (shouldBypassAuth()) {
+    const context = await loadBypassContext();
+    applyRequestContext(request, context);
+    return;
+  }
 
-    request.user = MOCK_USER;
-    request.tenant = MOCK_TENANT;
-    request.location = null;
-    request.tenantId = MOCK_TENANT.id;
-    request.userId = MOCK_USER.id;
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers as Record<string, string>,
+    });
+
+    if (session?.user) {
+      // Fetch full user data
+      const [userData] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, session.user.id))
+        .limit(1);
+
+      if (userData) {
+        // Fetch tenant
+        const [tenantData] = await db
+          .select()
+          .from(tenants)
+          .where(eq(tenants.id, userData.tenantId))
+          .limit(1);
+
+        // Fetch location if assigned
+        let locationData = null;
+        if (userData.locationId) {
+          const [loc] = await db
+            .select()
+            .from(locations)
+            .where(eq(locations.id, userData.locationId))
+            .limit(1);
+          locationData = loc ?? null;
+        }
+
+        request.user = userData as User;
+        request.tenant = tenantData as Tenant;
+        request.location = locationData;
+        request.tenantId = tenantData?.id;
+        request.userId = userData.id;
+      }
+    }
+  } catch (error) {
+    // Silently fail for optional auth
+    request.log.debug({ err: error }, 'Optional auth failed');
   }
 };
 
 // Helper to get current user from request
-export const getCurrentUser = (request: FastifyRequest): MockUser => {
+export const getCurrentUser = (request: FastifyRequest): User => {
   if (!request.user) {
     throw new Error('User not found in request context');
   }
@@ -122,7 +315,7 @@ export const getCurrentUser = (request: FastifyRequest): MockUser => {
 };
 
 // Helper to get current tenant from request
-export const getCurrentTenant = (request: FastifyRequest): MockTenant => {
+export const getCurrentTenant = (request: FastifyRequest): Tenant => {
   if (!request.tenant) {
     throw new Error('Tenant not found in request context');
   }
@@ -145,11 +338,25 @@ export const getUserId = (request: FastifyRequest): string => {
   return request.userId;
 };
 
+export const buildRequestContext = (request: FastifyRequest): RequestContext => {
+  if (!request.user || !request.tenant || !request.tenantId || !request.userId) {
+    throw new Error('Request context is missing authentication data');
+  }
+
+  return {
+    tenantId: request.tenantId,
+    userId: request.userId,
+    user: request.user,
+    tenant: request.tenant,
+    location: request.location,
+  };
+};
+
 // Type augmentation for Fastify request
 declare module 'fastify' {
   export interface FastifyRequest {
-    user?: MockUser;
-    tenant?: MockTenant;
+    user?: User;
+    tenant?: Tenant;
     location?: {
       id: string;
       tenantId: string;
@@ -171,4 +378,11 @@ declare module 'fastify' {
     tenantId?: string;
     userId?: string;
   }
+}
+export interface RequestContext {
+  tenantId: string;
+  userId: string;
+  user: User;
+  tenant: Tenant;
+  location: FastifyRequest['location'] | null | undefined;
 }

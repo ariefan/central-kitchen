@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getTestApp, closeTestApp } from './test-setup';
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
 
 describe('Purchase Orders', () => {
   let app: any;
@@ -10,11 +10,15 @@ describe('Purchase Orders', () => {
 
   beforeAll(async () => {
     app = await getTestApp();
+    const cookies = await getAuthCookies();
 
     // Get a supplier for testing
     const suppliersResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/suppliers'
+      url: '/api/v1/suppliers',
+      headers: {
+        Cookie: cookies
+      }
     });
     const suppliersPayload = suppliersResponse.json();
     if (suppliersPayload.data.items && suppliersPayload.data.items.length > 0) {
@@ -24,13 +28,17 @@ describe('Purchase Orders', () => {
       const supplierResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/suppliers',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           code: 'PO-TEST-SUPPLIER',
           name: 'PO Test Supplier',
           email: 'potest@supplier.com',
           paymentTerms: 30,
         }
-      });
+      }
+    });
       const supplierPayload = supplierResponse.json();
       supplierId = supplierPayload.data.id;
     }
@@ -38,7 +46,10 @@ describe('Purchase Orders', () => {
     // Get a location for testing
     const locationsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/locations'
+      url: '/api/v1/locations',
+      headers: {
+        Cookie: cookies
+      }
     });
     const locationsPayload = locationsResponse.json();
     if (locationsPayload.data.length > 0) {
@@ -48,7 +59,10 @@ describe('Purchase Orders', () => {
     // Get a product for testing
     const productsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/products'
+      url: '/api/v1/products',
+      headers: {
+        Cookie: cookies
+      }
     });
     const productsPayload = productsResponse.json();
     if (productsPayload.data && productsPayload.data.length > 0) {
@@ -62,9 +76,13 @@ describe('Purchase Orders', () => {
   });
 
   it('should list purchase orders', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'GET',
-      url: '/api/v1/purchase-orders'
+      url: '/api/v1/purchase-orders',
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(response.statusCode).toBe(200);
@@ -81,6 +99,7 @@ describe('Purchase Orders', () => {
   });
 
   it('should create a new purchase order', async () => {
+    const cookies = await getAuthCookies();
     if (!supplierId || !locationId || !productId || !uomId) {
       console.log('Skipping test - missing required data');
       return;
@@ -108,6 +127,9 @@ describe('Purchase Orders', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/purchase-orders',
+      headers: {
+        Cookie: cookies
+      },
       payload: newPurchaseOrder
     });
 
@@ -121,9 +143,13 @@ describe('Purchase Orders', () => {
   });
 
   it('should validate required fields', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/purchase-orders',
+      headers: {
+        Cookie: cookies
+      },
       payload: {}
     });
 
@@ -131,9 +157,13 @@ describe('Purchase Orders', () => {
   });
 
   it('should validate items are required', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/purchase-orders',
+      headers: {
+        Cookie: cookies
+      },
       payload: {
         supplierId,
         locationId,

@@ -7,16 +7,6 @@ function toPosix(value) {
   return value.replace(/\\/g, '/');
 }
 
-function formatTimestamp(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-  return `${year}${month}${day}-${hours}${minutes}${seconds}`;
-}
-
 function formatDuration(ms) {
   return (ms / 1000).toFixed(2);
 }
@@ -119,9 +109,8 @@ export default class MarkdownReporter {
 
     const timestamp = new Date();
     const timestampLabel = timestamp.toISOString();
-    const fileTimestamp = formatTimestamp(timestamp);
     const docsDir = path.resolve(this.rootDir, 'docs');
-    const reportPath = path.join(docsDir, `test-report-${fileTimestamp}.md`);
+    const reportPath = path.join(docsDir, 'test-report.md');
 
     const lines = [];
     lines.push(`# 🧪 ERP API Test Report`);

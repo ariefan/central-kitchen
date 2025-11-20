@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getTestApp, closeTestApp } from './test-setup';
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
 
 describe('Waste Management', () => {
   let app: any;
@@ -11,11 +11,15 @@ describe('Waste Management', () => {
 
   beforeAll(async () => {
     app = await getTestApp();
+    const cookies = await getAuthCookies();
 
     // Get a product for testing
     const productsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/products'
+      url: '/api/v1/products',
+      headers: {
+        Cookie: cookies
+      }
     });
     const productsPayload = productsResponse.json();
 
@@ -28,7 +32,10 @@ describe('Waste Management', () => {
     // Get a location for testing
     const locationsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/locations'
+      url: '/api/v1/locations',
+      headers: {
+        Cookie: cookies
+      }
     });
     const locationsPayload = locationsResponse.json();
 
@@ -41,6 +48,9 @@ describe('Waste Management', () => {
       const lotResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/inventory/lots',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           productId,
           locationId,
@@ -61,6 +71,9 @@ describe('Waste Management', () => {
         await app.inject({
           method: 'POST',
           url: '/api/v1/inventory/movements',
+          headers: {
+            Cookie: cookies
+          },
           payload: {
             productId,
             locationId,
@@ -82,9 +95,13 @@ describe('Waste Management', () => {
 
   describe('Waste Records Management', () => {
     it('should list all waste records', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/waste/records'
+        url: '/api/v1/waste/records',
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -95,7 +112,8 @@ describe('Waste Management', () => {
     });
 
     it('should create a new waste record', async () => {
-      if (!productId || !locationId || !uomId) {
+    const cookies = await getAuthCookies();
+    if (!productId || !locationId || !uomId) {
         console.log('Skipping test - missing required IDs');
         return;
       }
@@ -120,6 +138,9 @@ describe('Waste Management', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/waste/records',
+        headers: {
+          Cookie: cookies
+        },
         payload: newWasteRecord
       });
 
@@ -143,14 +164,18 @@ describe('Waste Management', () => {
     });
 
     it('should get waste record by ID', async () => {
-      if (!wasteRecordId) {
+    const cookies = await getAuthCookies();
+    if (!wasteRecordId) {
         console.log('Skipping test - missing waste record ID');
         return;
       }
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/waste/records/${wasteRecordId}`
+        url: `/api/v1/waste/records/${wasteRecordId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -163,14 +188,18 @@ describe('Waste Management', () => {
     });
 
     it('should approve and post waste record', async () => {
-      if (!wasteRecordId) {
+    const cookies = await getAuthCookies();
+    if (!wasteRecordId) {
         console.log('Skipping test - missing waste record ID');
         return;
       }
 
       const response = await app.inject({
         method: 'POST',
-        url: `/api/v1/waste/records/${wasteRecordId}/approve`
+        url: `/api/v1/waste/records/${wasteRecordId}/approve`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -181,9 +210,13 @@ describe('Waste Management', () => {
     });
 
     it('should filter waste records by reason', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/waste/records?reason=spoilage'
+        url: '/api/v1/waste/records?reason=spoilage',
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -193,9 +226,13 @@ describe('Waste Management', () => {
     });
 
     it('should filter waste records by status', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/waste/records?status=posted'
+        url: '/api/v1/waste/records?status=posted',
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -205,14 +242,18 @@ describe('Waste Management', () => {
     });
 
     it('should filter waste records by location', async () => {
-      if (!locationId) {
+    const cookies = await getAuthCookies();
+    if (!locationId) {
         console.log('Skipping test - missing location ID');
         return;
       }
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/waste/records?locationId=${locationId}`
+        url: `/api/v1/waste/records?locationId=${locationId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -222,12 +263,16 @@ describe('Waste Management', () => {
     });
 
     it('should filter waste records by date range', async () => {
+      const cookies = await getAuthCookies();
       const today = new Date().toISOString();
       const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/waste/records?dateFrom=${today}&dateTo=${tomorrow}`
+        url: `/api/v1/waste/records?dateFrom=${today}&dateTo=${tomorrow}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -237,7 +282,8 @@ describe('Waste Management', () => {
     });
 
     it('should create waste record for damage', async () => {
-      if (!productId || !locationId || !uomId) {
+    const cookies = await getAuthCookies();
+    if (!productId || !locationId || !uomId) {
         console.log('Skipping test - missing required IDs');
         return;
       }
@@ -261,6 +307,9 @@ describe('Waste Management', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/waste/records',
+        headers: {
+          Cookie: cookies
+        },
         payload: damageRecord
       });
 
@@ -271,7 +320,8 @@ describe('Waste Management', () => {
     });
 
     it('should create waste record for expiry', async () => {
-      if (!productId || !locationId || !uomId) {
+    const cookies = await getAuthCookies();
+    if (!productId || !locationId || !uomId) {
         console.log('Skipping test - missing required IDs');
         return;
       }
@@ -296,6 +346,9 @@ describe('Waste Management', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/waste/records',
+        headers: {
+          Cookie: cookies
+        },
         payload: expiryRecord
       });
 
@@ -306,10 +359,14 @@ describe('Waste Management', () => {
     });
 
     it('should return 404 for non-existent waste record', async () => {
+      const cookies = await getAuthCookies();
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/waste/records/${fakeId}`
+        url: `/api/v1/waste/records/${fakeId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(404);
@@ -318,11 +375,15 @@ describe('Waste Management', () => {
     });
 
     it('should return 404 when creating waste record for non-existent location', async () => {
+      const cookies = await getAuthCookies();
       if (productId && uomId) {
         const fakeLocationId = '123e4567-e89b-12d3-a456-426614174000';
         const response = await app.inject({
           method: 'POST',
           url: '/api/v1/waste/records',
+          headers: {
+            Cookie: cookies
+          },
           payload: {
             locationId: fakeLocationId,
             reason: 'damage',
@@ -343,11 +404,15 @@ describe('Waste Management', () => {
     });
 
     it('should return 400 when creating waste record with non-existent product', async () => {
+      const cookies = await getAuthCookies();
       if (locationId && uomId) {
         const fakeProductId = '123e4567-e89b-12d3-a456-426614174000';
         const response = await app.inject({
           method: 'POST',
           url: '/api/v1/waste/records',
+          headers: {
+            Cookie: cookies
+          },
           payload: {
             locationId,
             reason: 'damage',
@@ -368,9 +433,13 @@ describe('Waste Management', () => {
     });
 
     it('should validate required waste record fields', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/waste/records',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           // Missing required fields
           notes: 'Incomplete waste record',
@@ -381,10 +450,14 @@ describe('Waste Management', () => {
     });
 
     it('should require at least one item in waste record', async () => {
+      const cookies = await getAuthCookies();
       if (locationId) {
         const response = await app.inject({
           method: 'POST',
           url: '/api/v1/waste/records',
+          headers: {
+            Cookie: cookies
+          },
           payload: {
             locationId,
             reason: 'damage',
@@ -399,9 +472,13 @@ describe('Waste Management', () => {
 
   describe('Waste Analysis', () => {
     it('should get waste analysis', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/waste/analysis',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           // No filters - get all data
         }
@@ -429,9 +506,13 @@ describe('Waste Management', () => {
     });
 
     it('should get waste analysis filtered by reason', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/waste/analysis',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           reason: 'spoilage',
         }
@@ -450,7 +531,8 @@ describe('Waste Management', () => {
     });
 
     it('should get waste analysis filtered by location', async () => {
-      if (!locationId) {
+    const cookies = await getAuthCookies();
+    if (!locationId) {
         console.log('Skipping test - missing location ID');
         return;
       }
@@ -458,6 +540,9 @@ describe('Waste Management', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/waste/analysis',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           locationId,
         }
@@ -469,12 +554,16 @@ describe('Waste Management', () => {
     });
 
     it('should get waste analysis filtered by date range', async () => {
+      const cookies = await getAuthCookies();
       const today = new Date().toISOString();
       const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/waste/analysis',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           dateFrom: today,
           dateTo: tomorrow,
@@ -489,7 +578,8 @@ describe('Waste Management', () => {
     });
 
     it('should get waste analysis filtered by product', async () => {
-      if (!productId) {
+    const cookies = await getAuthCookies();
+    if (!productId) {
         console.log('Skipping test - missing product ID');
         return;
       }
@@ -497,6 +587,9 @@ describe('Waste Management', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/waste/analysis',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           productId,
         }
@@ -508,3 +601,6 @@ describe('Waste Management', () => {
     });
   });
 });
+
+
+

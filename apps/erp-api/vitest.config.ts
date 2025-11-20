@@ -25,6 +25,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': new URL('./src', import.meta.url).pathname,
+      '@contracts': new URL('../../packages/contracts/src', import.meta.url).pathname,
     },
   },
 });

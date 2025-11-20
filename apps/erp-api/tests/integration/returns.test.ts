@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getTestApp, closeTestApp } from './test-setup';
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
 
 describe('Returns Processing', () => {
   let app: any;
@@ -11,14 +11,19 @@ describe('Returns Processing', () => {
   let supplierId: string;
   let customerReturnId: string;
   let supplierReturnId: string;
+  let postableReturnId: string;
 
   beforeAll(async () => {
     app = await getTestApp();
+    const cookies = await getAuthCookies();
 
     // Get a product for testing
     const productsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/products'
+      url: '/api/v1/products',
+      headers: {
+        Cookie: cookies
+      }
     });
     const productsPayload = productsResponse.json();
 
@@ -31,7 +36,10 @@ describe('Returns Processing', () => {
     // Get a location for testing
     const locationsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/locations'
+      url: '/api/v1/locations',
+      headers: {
+        Cookie: cookies
+      }
     });
     const locationsPayload = locationsResponse.json();
 
@@ -42,7 +50,10 @@ describe('Returns Processing', () => {
     // Get a customer for testing
     const customersResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/customers'
+      url: '/api/v1/customers',
+      headers: {
+        Cookie: cookies
+      }
     });
     const customersPayload = customersResponse.json();
 
@@ -53,7 +64,10 @@ describe('Returns Processing', () => {
     // Get a supplier for testing
     const suppliersResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/suppliers'
+      url: '/api/v1/suppliers',
+      headers: {
+        Cookie: cookies
+      }
     });
     const suppliersPayload = suppliersResponse.json();
 
@@ -72,7 +86,8 @@ describe('Returns Processing', () => {
           lotNo: 'RETURNS-LOT-001',
           notes: 'Lot for returns testing',
         }
-      });
+      }
+    });
 
       if (lotResponse.statusCode === 201) {
         const lotPayload = lotResponse.json();
@@ -87,10 +102,14 @@ describe('Returns Processing', () => {
 
   describe('Return Orders Management', () => {
     it('should list all return orders', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/returns'
-      });
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/returns',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -100,7 +119,8 @@ describe('Returns Processing', () => {
     });
 
     it('should create a new customer return order', async () => {
-      if (!productId || !locationId || !uomId || !customerId) {
+    const cookies = await getAuthCookies();
+    if (!productId || !locationId || !uomId || !customerId) {
         console.log('Skipping test - missing required IDs');
         return;
       }
@@ -127,10 +147,14 @@ describe('Returns Processing', () => {
       };
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: '/api/v1/returns',
-        payload: newReturnOrder
-      });
+      headers: {
+        Cookie: cookies
+      },
+      payload: newReturnOrder
+      }
+    });
 
       if (response.statusCode !== 201) {
         console.log('=== RETURN CREATION FAILED ===');
@@ -147,12 +171,14 @@ describe('Returns Processing', () => {
       expect(payload.data).toHaveProperty('status', 'requested');
       expect(payload.data).toHaveProperty('items');
       expect(Array.isArray(payload.data.items)).toBe(true);
-      expect(payload.data.items[0]).toHaveProperty('quantity', '5.000000');
+      expect(payload.data.items[0]).toHaveProperty('item');
+      expect(payload.data.items[0]?.item).toHaveProperty('quantity', '5.000000');
       customerReturnId = payload.data.id;
     });
 
     it('should create a new supplier return order', async () => {
-      if (!productId || !locationId || !uomId || !supplierId) {
+    const cookies = await getAuthCookies();
+    if (!productId || !locationId || !uomId || !supplierId) {
         console.log('Skipping test - missing required IDs');
         return;
       }
@@ -178,10 +204,14 @@ describe('Returns Processing', () => {
       };
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: '/api/v1/returns',
-        payload: newReturnOrder
-      });
+      headers: {
+        Cookie: cookies
+      },
+      payload: newReturnOrder
+      }
+    });
 
       expect(response.statusCode).toBe(201);
       const payload = response.json();
@@ -195,15 +225,17 @@ describe('Returns Processing', () => {
     });
 
     it('should get return order by ID', async () => {
-      if (!customerReturnId) {
+    const cookies = await getAuthCookies();
+    if (!customerReturnId) {
         console.log('Skipping test - missing customer return ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'GET',
+      method: 'GET',
         url: `/api/v1/returns/${customerReturnId}`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -216,9 +248,12 @@ describe('Returns Processing', () => {
 
     it('should filter return orders by type (customer)', async () => {
       const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/returns?returnType=customer'
-      });
+      method: 'GET',
+        url: '/api/v1/returns?returnType=customer',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -228,9 +263,12 @@ describe('Returns Processing', () => {
 
     it('should filter return orders by type (supplier)', async () => {
       const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/returns?returnType=supplier'
-      });
+      method: 'GET',
+        url: '/api/v1/returns?returnType=supplier',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -239,10 +277,14 @@ describe('Returns Processing', () => {
     });
 
     it('should filter return orders by status', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/returns?status=requested'
-      });
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/returns?status=requested',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -251,15 +293,17 @@ describe('Returns Processing', () => {
     });
 
     it('should filter return orders by customer', async () => {
-      if (!customerId) {
+    const cookies = await getAuthCookies();
+    if (!customerId) {
         console.log('Skipping test - missing customer ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'GET',
+      method: 'GET',
         url: `/api/v1/returns?customerId=${customerId}`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -268,15 +312,17 @@ describe('Returns Processing', () => {
     });
 
     it('should filter return orders by supplier', async () => {
-      if (!supplierId) {
+    const cookies = await getAuthCookies();
+    if (!supplierId) {
         console.log('Skipping test - missing supplier ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'GET',
+      method: 'GET',
         url: `/api/v1/returns?supplierId=${supplierId}`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -285,15 +331,17 @@ describe('Returns Processing', () => {
     });
 
     it('should filter return orders by location', async () => {
-      if (!locationId) {
+    const cookies = await getAuthCookies();
+    if (!locationId) {
         console.log('Skipping test - missing location ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'GET',
+      method: 'GET',
         url: `/api/v1/returns?locationId=${locationId}`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -302,13 +350,15 @@ describe('Returns Processing', () => {
     });
 
     it('should filter return orders by date range', async () => {
-      const today = new Date().toISOString();
+    const cookies = await getAuthCookies();
+    const today = new Date().toISOString();
       const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
       const response = await app.inject({
-        method: 'GET',
+      method: 'GET',
         url: `/api/v1/returns?dateFrom=${today}&dateTo=${tomorrow}`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -317,19 +367,21 @@ describe('Returns Processing', () => {
     });
 
     it('should update return order basic information', async () => {
-      if (!customerReturnId) {
+    const cookies = await getAuthCookies();
+    if (!customerReturnId) {
         console.log('Skipping test - missing customer return ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'PATCH',
+      method: 'PATCH',
         url: `/api/v1/returns/${customerReturnId}`,
         payload: {
           reason: 'Updated reason for return',
           notes: 'Updated notes with additional details',
         }
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -338,15 +390,17 @@ describe('Returns Processing', () => {
     });
 
     it('should approve customer return order', async () => {
-      if (!customerReturnId) {
+    const cookies = await getAuthCookies();
+    if (!customerReturnId) {
         console.log('Skipping test - missing customer return ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: `/api/v1/returns/${customerReturnId}/approve`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -356,18 +410,20 @@ describe('Returns Processing', () => {
     });
 
     it('should reject supplier return order', async () => {
-      if (!supplierReturnId) {
+    const cookies = await getAuthCookies();
+    if (!supplierReturnId) {
         console.log('Skipping test - missing supplier return ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: `/api/v1/returns/${supplierReturnId}/reject`,
         payload: {
           reason: 'Return period expired',
         }
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -376,15 +432,17 @@ describe('Returns Processing', () => {
     });
 
     it('should complete approved return order', async () => {
-      if (!customerReturnId) {
+    const cookies = await getAuthCookies();
+    if (!customerReturnId) {
         console.log('Skipping test - missing customer return ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: `/api/v1/returns/${customerReturnId}/complete`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -392,11 +450,74 @@ describe('Returns Processing', () => {
       expect(payload.data).toHaveProperty('status', 'completed');
     });
 
+    it('should post an approved return order to the ledger', async () => {
+    const cookies = await getAuthCookies();
+    if (!productId || !locationId || !uomId || !customerId) {
+        console.log('Skipping test - missing required IDs for posting');
+        return;
+      }
+
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/v1/returns',
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
+          returnType: 'customer',
+          referenceType: 'ORDER',
+          referenceId: '123e4567-e89b-12d3-a456-426614174001',
+          customerId,
+          locationId,
+          reason: 'Posting workflow verification',
+          totalAmount: 30.0,
+          items: [
+            {
+              productId,
+              uomId,
+              quantity: 3,
+              unitPrice: 10,
+              notes: 'Posting test item',
+            },
+          ],
+        },
+      }
+    });
+
+      expect(createResponse.statusCode).toBe(201);
+      postableReturnId = createResponse.json().data.id;
+
+      const approveResponse = await app.inject({
+        method: 'POST',
+        url: `/api/v1/returns/${postableReturnId}/approve`,
+      }
+    });
+      expect(approveResponse.statusCode).toBe(200);
+
+      const postResponse = await app.inject({
+        method: 'POST',
+        url: `/api/v1/returns/${postableReturnId}/post`,
+      }
+    });
+
+      expect(postResponse.statusCode).toBe(200);
+      const postPayload = postResponse.json();
+      expect(postPayload).toHaveProperty('success', true);
+      expect(postPayload.data).toHaveProperty('status', 'posted');
+      expect(postPayload.data).toHaveProperty('items');
+      expect(Array.isArray(postPayload.data.items)).toBe(true);
+      expect(postPayload.data.items[0]).toHaveProperty('item');
+    });
+
     it('should search return orders by text', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/returns?search=defect'
-      });
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/returns?search=defect',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -405,11 +526,13 @@ describe('Returns Processing', () => {
     });
 
     it('should return 404 for non-existent return order', async () => {
-      const fakeId = '123e4567-e89b-12d3-a456-426614174000';
+    const cookies = await getAuthCookies();
+    const fakeId = '123e4567-e89b-12d3-a456-426614174000';
       const response = await app.inject({
-        method: 'GET',
+      method: 'GET',
         url: `/api/v1/returns/${fakeId}`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(404);
       const payload = response.json();
@@ -417,12 +540,16 @@ describe('Returns Processing', () => {
     });
 
     it('should return 404 when creating return order for non-existent location', async () => {
-      if (productId && uomId && customerId) {
+    const cookies = await getAuthCookies();
+    if (productId && uomId && customerId) {
         const fakeLocationId = '123e4567-e89b-12d3-a456-426614174000';
         const response = await app.inject({
-          method: 'POST',
+      method: 'POST',
           url: '/api/v1/returns',
-          payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
             returnType: 'customer',
             customerId,
             locationId: fakeLocationId,
@@ -435,7 +562,8 @@ describe('Returns Processing', () => {
               },
             ],
           }
-        });
+        }
+    });
 
         expect(response.statusCode).toBe(404);
         const payload = response.json();
@@ -444,12 +572,16 @@ describe('Returns Processing', () => {
     });
 
     it('should return 404 when creating customer return for non-existent customer', async () => {
-      if (productId && uomId && locationId) {
+    const cookies = await getAuthCookies();
+    if (productId && uomId && locationId) {
         const fakeCustomerId = '123e4567-e89b-12d3-a456-426614174000';
         const response = await app.inject({
-          method: 'POST',
+      method: 'POST',
           url: '/api/v1/returns',
-          payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
             returnType: 'customer',
             customerId: fakeCustomerId,
             locationId,
@@ -462,7 +594,8 @@ describe('Returns Processing', () => {
               },
             ],
           }
-        });
+        }
+    });
 
         expect(response.statusCode).toBe(404);
         const payload = response.json();
@@ -471,12 +604,16 @@ describe('Returns Processing', () => {
     });
 
     it('should return 404 when creating supplier return for non-existent supplier', async () => {
-      if (productId && uomId && locationId) {
+    const cookies = await getAuthCookies();
+    if (productId && uomId && locationId) {
         const fakeSupplierId = '123e4567-e89b-12d3-a456-426614174000';
         const response = await app.inject({
-          method: 'POST',
+      method: 'POST',
           url: '/api/v1/returns',
-          payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
             returnType: 'supplier',
             supplierId: fakeSupplierId,
             locationId,
@@ -489,7 +626,8 @@ describe('Returns Processing', () => {
               },
             ],
           }
-        });
+        }
+    });
 
         expect(response.statusCode).toBe(404);
         const payload = response.json();
@@ -498,12 +636,16 @@ describe('Returns Processing', () => {
     });
 
     it('should return 400 when creating return order with non-existent product', async () => {
-      if (locationId && uomId && customerId) {
+    const cookies = await getAuthCookies();
+    if (locationId && uomId && customerId) {
         const fakeProductId = '123e4567-e89b-12d3-a456-426614174000';
         const response = await app.inject({
-          method: 'POST',
+      method: 'POST',
           url: '/api/v1/returns',
-          payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
             returnType: 'customer',
             customerId,
             locationId,
@@ -516,7 +658,8 @@ describe('Returns Processing', () => {
               },
             ],
           }
-        });
+        }
+    });
 
         expect(response.statusCode).toBe(400);
         const payload = response.json();
@@ -525,22 +668,25 @@ describe('Returns Processing', () => {
     });
 
     it('should validate required return order fields', async () => {
-      const response = await app.inject({
-        method: 'POST',
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'POST',
         url: '/api/v1/returns',
         payload: {
           // Missing required fields
           notes: 'Incomplete return order',
         }
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(400);
     });
 
     it('should require at least one item in return order', async () => {
-      if (locationId && customerId) {
+    const cookies = await getAuthCookies();
+    if (locationId && customerId) {
         const response = await app.inject({
-          method: 'POST',
+      method: 'POST',
           url: '/api/v1/returns',
           payload: {
             returnType: 'customer',
@@ -549,18 +695,23 @@ describe('Returns Processing', () => {
             reason: 'Test return',
             items: [], // Empty items array
           }
-        });
+        }
+    });
 
         expect(response.statusCode).toBe(400);
       }
     });
 
     it('should require customerId for customer returns', async () => {
-      if (productId && locationId && uomId) {
+    const cookies = await getAuthCookies();
+    if (productId && locationId && uomId) {
         const response = await app.inject({
-          method: 'POST',
+      method: 'POST',
           url: '/api/v1/returns',
-          payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
             returnType: 'customer',
             // Missing customerId
             locationId,
@@ -573,18 +724,23 @@ describe('Returns Processing', () => {
               },
             ],
           }
-        });
+        }
+    });
 
         expect(response.statusCode).toBe(400);
       }
     });
 
     it('should require supplierId for supplier returns', async () => {
-      if (productId && locationId && uomId) {
+    const cookies = await getAuthCookies();
+    if (productId && locationId && uomId) {
         const response = await app.inject({
-          method: 'POST',
+      method: 'POST',
           url: '/api/v1/returns',
-          payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
             returnType: 'supplier',
             // Missing supplierId
             locationId,
@@ -597,26 +753,29 @@ describe('Returns Processing', () => {
               },
             ],
           }
-        });
+        }
+    });
 
         expect(response.statusCode).toBe(400);
       }
     });
 
     it('should prevent updates when return is already processed', async () => {
-      if (!customerReturnId) {
+    const cookies = await getAuthCookies();
+    if (!customerReturnId) {
         console.log('Skipping test - missing customer return ID');
         return;
       }
 
       // Try to update a completed return order
       const response = await app.inject({
-        method: 'PATCH',
+      method: 'PATCH',
         url: `/api/v1/returns/${customerReturnId}`,
         payload: {
           reason: 'Should not update',
         }
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(400);
       const payload = response.json();
@@ -624,15 +783,17 @@ describe('Returns Processing', () => {
     });
 
     it('should prevent approval of already approved returns', async () => {
-      if (!customerReturnId) {
+    const cookies = await getAuthCookies();
+    if (!customerReturnId) {
         console.log('Skipping test - missing customer return ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: `/api/v1/returns/${customerReturnId}/approve`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(400);
       const payload = response.json();
@@ -640,18 +801,20 @@ describe('Returns Processing', () => {
     });
 
     it('should prevent rejection of already rejected returns', async () => {
-      if (!supplierReturnId) {
+    const cookies = await getAuthCookies();
+    if (!supplierReturnId) {
         console.log('Skipping test - missing supplier return ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: `/api/v1/returns/${supplierReturnId}/reject`,
         payload: {
           reason: 'Should not reject',
         }
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(400);
       const payload = response.json();
@@ -659,16 +822,18 @@ describe('Returns Processing', () => {
     });
 
     it('should prevent completion of non-approved returns', async () => {
-      if (!supplierReturnId) {
+    const cookies = await getAuthCookies();
+    if (!supplierReturnId) {
         console.log('Skipping test - missing supplier return ID');
         return;
       }
 
       // Try to complete a rejected return order
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: `/api/v1/returns/${supplierReturnId}/complete`
-      });
+      }
+    });
 
       expect(response.statusCode).toBe(400);
       const payload = response.json();
