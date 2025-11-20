@@ -9,14 +9,14 @@ import {
 } from '@/shared/utils/responses.js';
 import { buildRequestContext } from '@/shared/middleware/auth.js';
 import { db } from '@/config/database.js';
-import { alerts, locations, products, lots, users } from '@/config/schema.js';
+import { alerts, locations, products, users } from '@/config/schema.js';
 import { eq, and, desc, gte, lte, sql, type SQL } from 'drizzle-orm';
 
 // Alert schemas
 const alertQuerySchema = z.object({
   type: z.enum(['temperature_out_of_range', 'product_expiring', 'low_stock', 'other']).optional(),
   priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
-  status: z.enum(['open', 'acknowledged', 'resolved', 'dismissed']).optional(),
+  status: z.enum(['open', 'acknowledged', 'resolved']).optional(),
   locationId: z.string().uuid().optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
@@ -71,15 +71,24 @@ export function alertRoutes(fastify: FastifyInstance) {
       const whereConditions: SQL[] = [eq(alerts.tenantId, context.tenantId)];
 
       if (query.type) {
-        whereConditions.push(eq(alerts.type, query.type));
+        whereConditions.push(eq(alerts.alertType, query.type));
       }
 
       if (query.priority) {
         whereConditions.push(eq(alerts.priority, query.priority));
       }
 
+      // Map status to DB fields: isRead, isResolved
       if (query.status) {
-        whereConditions.push(eq(alerts.status, query.status));
+        if (query.status === 'open') {
+          whereConditions.push(eq(alerts.isRead, false));
+          whereConditions.push(eq(alerts.isResolved, false));
+        } else if (query.status === 'acknowledged') {
+          whereConditions.push(eq(alerts.isRead, true));
+          whereConditions.push(eq(alerts.isResolved, false));
+        } else if (query.status === 'resolved') {
+          whereConditions.push(eq(alerts.isResolved, true));
+        }
       }
 
       if (query.locationId) {
@@ -119,34 +128,42 @@ export function alertRoutes(fastify: FastifyInstance) {
             name: products.name,
             sku: products.sku,
           },
-          lot: {
-            id: lots.id,
-            lotNo: lots.lotNo,
-            expiryDate: lots.expiryDate,
-          },
-          createdByUser: {
-            id: users.id,
-            name: users.name,
-            email: users.email,
-          },
         })
         .from(alerts)
         .leftJoin(locations, eq(alerts.locationId, locations.id))
         .leftJoin(products, eq(alerts.productId, products.id))
-        .leftJoin(lots, eq(alerts.lotId, lots.id))
-        .leftJoin(users, eq(alerts.createdBy, users.id))
         .where(and(...whereConditions))
         .orderBy(desc(alerts.createdAt))
         .limit(limit)
         .offset(offset);
 
-      const items = results.map((r) => ({
-        ...r.alert,
-        location: r.location,
-        product: r.product,
-        lot: r.lot,
-        createdByUser: r.createdByUser,
-      }));
+      const items = results.map((r) => {
+        const metadata = (typeof r.alert.metadata === 'object' && r.alert.metadata !== null ? r.alert.metadata : {}) as any;
+        // Determine status from DB flags
+        let status: 'open' | 'acknowledged' | 'resolved' = 'open';
+        if (r.alert.isResolved) {
+          status = 'resolved';
+        } else if (r.alert.isRead) {
+          status = 'acknowledged';
+        }
+
+        return {
+          ...r.alert,
+          // Map DB fields to contract expectations
+          type: r.alert.alertType,
+          status,
+          triggeredAt: r.alert.createdAt,
+          notes: metadata.notes ?? null,
+          correctiveAction: metadata.correctiveAction ?? null,
+          emailSent: metadata.emailSent ?? false,
+          smsSent: metadata.smsSent ?? false,
+          acknowledgedBy: metadata.acknowledgedBy ?? null,
+          acknowledgedAt: metadata.acknowledgedAt ? new Date(metadata.acknowledgedAt) : null,
+          // Relations
+          location: r.location,
+          product: r.product,
+        };
+      });
 
       return reply.send(createPaginatedResponse(items, total, limit, offset));
     }
@@ -186,22 +203,10 @@ export function alertRoutes(fastify: FastifyInstance) {
             name: products.name,
             sku: products.sku,
           },
-          lot: {
-            id: lots.id,
-            lotNo: lots.lotNo,
-            expiryDate: lots.expiryDate,
-          },
-          createdByUser: {
-            id: users.id,
-            name: users.name,
-            email: users.email,
-          },
         })
         .from(alerts)
         .leftJoin(locations, eq(alerts.locationId, locations.id))
         .leftJoin(products, eq(alerts.productId, products.id))
-        .leftJoin(lots, eq(alerts.lotId, lots.id))
-        .leftJoin(users, eq(alerts.createdBy, users.id))
         .where(and(eq(alerts.id, request.params.id), eq(alerts.tenantId, context.tenantId)))
         .limit(1);
 
@@ -210,12 +215,31 @@ export function alertRoutes(fastify: FastifyInstance) {
       }
 
       const result = results[0]!;
+      const metadata = (typeof result.alert.metadata === 'object' && result.alert.metadata !== null ? result.alert.metadata : {}) as any;
+
+      // Determine status from DB flags
+      let status: 'open' | 'acknowledged' | 'resolved' = 'open';
+      if (result.alert.isResolved) {
+        status = 'resolved';
+      } else if (result.alert.isRead) {
+        status = 'acknowledged';
+      }
+
       const responseData = {
         ...result.alert,
+        // Map DB fields to contract expectations
+        type: result.alert.alertType,
+        status,
+        triggeredAt: result.alert.createdAt,
+        notes: metadata.notes ?? null,
+        correctiveAction: metadata.correctiveAction ?? null,
+        emailSent: metadata.emailSent ?? false,
+        smsSent: metadata.smsSent ?? false,
+        acknowledgedBy: metadata.acknowledgedBy ?? null,
+        acknowledgedAt: metadata.acknowledgedAt ? new Date(metadata.acknowledgedAt) : null,
+        // Relations
         location: result.location,
         product: result.product,
-        lot: result.lot,
-        createdByUser: result.createdByUser,
       };
 
       return reply.send(createSuccessResponse(responseData, 'Alert retrieved successfully'));
@@ -257,19 +281,24 @@ export function alertRoutes(fastify: FastifyInstance) {
         return createNotFoundError('Alert not found', reply);
       }
 
-      if (alert.status !== 'open') {
-        return createBadRequestError('Alert can only be acknowledged when status is open', reply);
+      // Check status - can only acknowledge if not already resolved
+      if (alert.isResolved) {
+        return createBadRequestError('Alert is already resolved', reply);
+      }
+
+      if (alert.isRead) {
+        return createBadRequestError('Alert is already acknowledged', reply);
       }
 
       const [updated] = await db
         .update(alerts)
         .set({
-          status: 'acknowledged',
-          acknowledgedBy: context.userId,
-          acknowledgedAt: new Date(),
+          isRead: true,
           metadata: {
             ...(typeof alert.metadata === 'object' && alert.metadata !== null ? alert.metadata : {}),
-            acknowledgeNotes: request.body.notes,
+            acknowledgedBy: context.userId,
+            acknowledgedAt: new Date().toISOString(),
+            notes: request.body.notes,
           },
           updatedAt: new Date(),
         })
@@ -315,20 +344,20 @@ export function alertRoutes(fastify: FastifyInstance) {
         return createNotFoundError('Alert not found', reply);
       }
 
-      if (alert.status === 'resolved' || alert.status === 'dismissed') {
-        return createBadRequestError('Alert is already resolved or dismissed', reply);
+      if (alert.isResolved) {
+        return createBadRequestError('Alert is already resolved', reply);
       }
 
       const [updated] = await db
         .update(alerts)
         .set({
-          status: 'resolved',
+          isResolved: true,
           resolvedBy: context.userId,
           resolvedAt: new Date(),
-          resolution: request.body.resolution,
+          resolutionNotes: request.body.resolution,
           metadata: {
             ...(typeof alert.metadata === 'object' && alert.metadata !== null ? alert.metadata : {}),
-            resolveNotes: request.body.notes,
+            correctiveAction: request.body.notes,
           },
           updatedAt: new Date(),
         })
@@ -379,10 +408,14 @@ export function alertRoutes(fastify: FastifyInstance) {
       const [updated] = await db
         .update(alerts)
         .set({
-          status: 'dismissed',
+          isResolved: true,
           resolvedBy: context.userId,
           resolvedAt: new Date(),
-          resolution: `Dismissed: ${request.body.reason}`,
+          resolutionNotes: `Dismissed: ${request.body.reason}`,
+          metadata: {
+            ...(typeof alert.metadata === 'object' && alert.metadata !== null ? alert.metadata : {}),
+            dismissed: true,
+          },
           updatedAt: new Date(),
         })
         .where(eq(alerts.id, request.params.id))
@@ -427,8 +460,8 @@ export function alertRoutes(fastify: FastifyInstance) {
         return createNotFoundError('Alert not found', reply);
       }
 
-      if (alert.status !== 'open' && alert.status !== 'acknowledged') {
-        return createBadRequestError('Can only snooze open or acknowledged alerts', reply);
+      if (alert.isResolved) {
+        return createBadRequestError('Cannot snooze resolved alerts', reply);
       }
 
       const [updated] = await db
@@ -467,9 +500,9 @@ export function alertRoutes(fastify: FastifyInstance) {
             success: z.literal(true),
             data: z.object({
               total: z.number(),
-              byStatus: z.record(z.number()),
-              byPriority: z.record(z.number()),
-              byType: z.record(z.number()),
+              byStatus: z.record(z.string(), z.number()),
+              byPriority: z.record(z.string(), z.number()),
+              byType: z.record(z.string(), z.number()),
               openCritical: z.number(),
               openHigh: z.number(),
               averageResolutionTimeHours: z.number().nullable(),
@@ -515,16 +548,24 @@ export function alertRoutes(fastify: FastifyInstance) {
       let resolvedCount = 0;
 
       allAlerts.forEach((alert) => {
-        byStatus[alert.status] = (byStatus[alert.status] || 0) + 1;
-        byPriority[alert.priority] = (byPriority[alert.priority] || 0) + 1;
-        byType[alert.type] = (byType[alert.type] || 0) + 1;
+        // Determine status from DB flags
+        let status: string = 'open';
+        if (alert.isResolved) {
+          status = 'resolved';
+        } else if (alert.isRead) {
+          status = 'acknowledged';
+        }
 
-        if (alert.status === 'open') {
+        byStatus[status] = (byStatus[status] || 0) + 1;
+        byPriority[alert.priority] = (byPriority[alert.priority] || 0) + 1;
+        byType[alert.alertType] = (byType[alert.alertType] || 0) + 1;
+
+        if (status === 'open') {
           if (alert.priority === 'critical') openCritical++;
           if (alert.priority === 'high') openHigh++;
         }
 
-        if (alert.status === 'resolved' && alert.resolvedAt) {
+        if (alert.isResolved && alert.resolvedAt) {
           const resolutionTimeMs = alert.resolvedAt.getTime() - alert.createdAt.getTime();
           totalResolutionTime += resolutionTimeMs / (1000 * 60 * 60); // Convert to hours
           resolvedCount++;
