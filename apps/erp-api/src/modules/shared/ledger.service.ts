@@ -20,7 +20,7 @@ export type LedgerMovementInput = {
   txnTs?: Date;
 };
 
-type LedgerClient = typeof db;
+type LedgerClient = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 const normalizeDecimal = (value: string | number | null | undefined) => {
   if (value === undefined || value === null) {
