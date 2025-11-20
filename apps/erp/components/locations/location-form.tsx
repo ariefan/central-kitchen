@@ -1,0 +1,272 @@
+"use client";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { locationCreateSchema, type LocationCreate } from "@contracts/erp";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+
+interface LocationFormProps {
+  initialData?: Partial<LocationCreate>;
+  onSubmit: (data: LocationCreate) => void;
+  isLoading?: boolean;
+  onCancel?: () => void;
+}
+
+export function LocationForm({
+  initialData,
+  onSubmit,
+  isLoading = false,
+  onCancel,
+}: LocationFormProps) {
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<LocationCreate>({
+    resolver: zodResolver(locationCreateSchema),
+    defaultValues: {
+      isActive: true,
+      country: "Indonesia",
+      ...initialData,
+    },
+  });
+
+  const locationType = watch("locationType");
+  const isActive = watch("isActive");
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Basic Information</CardTitle>
+          <CardDescription>
+            Enter the basic details for this location
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="code">
+                Location Code <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="code"
+                {...register("code")}
+                placeholder="LOC-CK01"
+                disabled={isLoading}
+              />
+              {errors.code && (
+                <p className="text-sm text-destructive">{errors.code.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Uppercase letters, numbers, and hyphens only
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="name">
+                Location Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="name"
+                {...register("name")}
+                placeholder="Central Kitchen - Main"
+                disabled={isLoading}
+              />
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="locationType">
+              Location Type <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={locationType}
+              onValueChange={(value) => setValue("locationType", value as any)}
+              disabled={isLoading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select location type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="central_kitchen">Central Kitchen</SelectItem>
+                <SelectItem value="outlet">Outlet</SelectItem>
+                <SelectItem value="warehouse">Warehouse</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.locationType && (
+              <p className="text-sm text-destructive">
+                {errors.locationType.message}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Address Details</CardTitle>
+          <CardDescription>Location address information</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="address">Street Address</Label>
+            <Input
+              id="address"
+              {...register("address")}
+              placeholder="123 Industrial Road"
+              disabled={isLoading}
+            />
+            {errors.address && (
+              <p className="text-sm text-destructive">{errors.address.message}</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                {...register("city")}
+                placeholder="Jakarta"
+                disabled={isLoading}
+              />
+              {errors.city && (
+                <p className="text-sm text-destructive">{errors.city.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="postalCode">Postal Code</Label>
+              <Input
+                id="postalCode"
+                {...register("postalCode")}
+                placeholder="12345"
+                disabled={isLoading}
+              />
+              {errors.postalCode && (
+                <p className="text-sm text-destructive">
+                  {errors.postalCode.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                {...register("country")}
+                placeholder="Indonesia"
+                disabled={isLoading}
+              />
+              {errors.country && (
+                <p className="text-sm text-destructive">{errors.country.message}</p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Contact Information</CardTitle>
+          <CardDescription>Location contact details</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                {...register("phone")}
+                placeholder="+62 21 1234567"
+                disabled={isLoading}
+              />
+              {errors.phone && (
+                <p className="text-sm text-destructive">{errors.phone.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                {...register("email")}
+                placeholder="location@example.com"
+                disabled={isLoading}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Status</CardTitle>
+          <CardDescription>Location operational status</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="isActive"
+              checked={isActive}
+              onCheckedChange={(checked) =>
+                setValue("isActive", checked === true)
+              }
+              disabled={isLoading}
+            />
+            <Label htmlFor="isActive" className="cursor-pointer font-normal">
+              Location is active and available for transactions
+            </Label>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end gap-4">
+        {onCancel && (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isLoading}
+            onClick={onCancel}
+          >
+            Cancel
+          </Button>
+        )}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading
+            ? "Saving..."
+            : initialData
+            ? "Update Location"
+            : "Create Location"}
+        </Button>
+      </div>
+    </form>
+  );
+}

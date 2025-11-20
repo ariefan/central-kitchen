@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getTestApp, closeTestApp } from './test-setup';
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
 
 describe('Deliveries', () => {
   let app: any;
@@ -8,11 +8,15 @@ describe('Deliveries', () => {
 
   beforeAll(async () => {
     app = await getTestApp();
+    const cookies = await getAuthCookies();
 
     // Get a customer for testing
     const customersResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/customers'
+      url: '/api/v1/customers',
+      headers: {
+        Cookie: cookies
+      }
     });
     const customersPayload = customersResponse.json();
     if (customersPayload.data.items && customersPayload.data.items.length > 0) {
@@ -35,7 +39,10 @@ describe('Deliveries', () => {
     // Get an order for testing
     const ordersResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/orders'
+      url: '/api/v1/orders',
+      headers: {
+        Cookie: cookies
+      }
     });
     const ordersPayload = ordersResponse.json();
     if (ordersPayload.data && ordersPayload.data.length > 0) {
@@ -49,10 +56,14 @@ describe('Deliveries', () => {
 
   describe('Delivery Management', () => {
     it('should list all deliveries', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/deliveries'
-      });
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/deliveries',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -62,7 +73,8 @@ describe('Deliveries', () => {
     });
 
     it('should create a new delivery', async () => {
-      if (!orderId) {
+    const cookies = await getAuthCookies();
+    if (!orderId) {
         console.log('Skipping test - missing order ID');
         return;
       }
@@ -78,6 +90,9 @@ describe('Deliveries', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/deliveries',
+        headers: {
+          Cookie: cookies
+        },
         payload: newDelivery
       });
 
@@ -93,7 +108,8 @@ describe('Deliveries', () => {
     });
 
     it('should get delivery by ID', async () => {
-      if (!orderId) {
+    const cookies = await getAuthCookies();
+    if (!orderId) {
         console.log('Skipping test - missing order ID');
         return;
       }
@@ -102,6 +118,9 @@ describe('Deliveries', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/deliveries',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           orderId,
           provider: 'Get Test Delivery',
@@ -116,7 +135,10 @@ describe('Deliveries', () => {
       // Then get it by ID
       const getResponse = await app.inject({
         method: 'GET',
-        url: `/api/v1/deliveries/${deliveryId}`
+        url: `/api/v1/deliveries/${deliveryId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(getResponse.statusCode).toBe(200);
@@ -128,7 +150,8 @@ describe('Deliveries', () => {
     });
 
     it('should update delivery status', async () => {
-      if (!orderId) {
+    const cookies = await getAuthCookies();
+    if (!orderId) {
         console.log('Skipping test - missing order ID');
         return;
       }
@@ -137,6 +160,9 @@ describe('Deliveries', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/deliveries',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           orderId,
           provider: 'Update Test Delivery',
@@ -150,6 +176,9 @@ describe('Deliveries', () => {
       const updateResponse = await app.inject({
         method: 'PATCH',
         url: `/api/v1/deliveries/${deliveryId}`,
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           status: 'assigned',
           provider: 'Updated Provider',
@@ -166,7 +195,8 @@ describe('Deliveries', () => {
     });
 
     it('should mark delivery as delivered', async () => {
-      if (!orderId) {
+    const cookies = await getAuthCookies();
+    if (!orderId) {
         console.log('Skipping test - missing order ID');
         return;
       }
@@ -175,6 +205,9 @@ describe('Deliveries', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/deliveries',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           orderId,
           provider: 'Final Delivery Test',
@@ -189,6 +222,9 @@ describe('Deliveries', () => {
       const updateResponse = await app.inject({
         method: 'PATCH',
         url: `/api/v1/deliveries/${deliveryId}`,
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           status: 'delivered',
         }
@@ -201,10 +237,14 @@ describe('Deliveries', () => {
     });
 
     it('should filter deliveries by status', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/deliveries?status=requested'
-      });
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/deliveries?status=requested',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -213,10 +253,14 @@ describe('Deliveries', () => {
     });
 
     it('should filter deliveries by provider', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/deliveries?provider=Test%20Delivery%20Service'
-      });
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/deliveries?provider=Test%20Delivery%20Service',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -225,10 +269,14 @@ describe('Deliveries', () => {
     });
 
     it('should return 404 for non-existent delivery', async () => {
+      const cookies = await getAuthCookies();
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/deliveries/${fakeId}`
+        url: `/api/v1/deliveries/${fakeId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(404);
@@ -237,10 +285,14 @@ describe('Deliveries', () => {
     });
 
     it('should return 404 when creating delivery for non-existent order', async () => {
+      const cookies = await getAuthCookies();
       const fakeOrderId = '123e4567-e89b-12d3-a456-426614174000';
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/deliveries',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           orderId: fakeOrderId,
           provider: 'Test Provider',
@@ -255,10 +307,14 @@ describe('Deliveries', () => {
 
   describe('Customer Addresses', () => {
     it('should list all addresses', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/deliveries/addresses'
-      });
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/deliveries/addresses',
+      headers: {
+        Cookie: cookies
+      }
+    });
 
       expect(response.statusCode).toBe(200);
       const payload = response.json();
@@ -268,7 +324,8 @@ describe('Deliveries', () => {
     });
 
     it('should create a new customer address', async () => {
-      if (!customerId) {
+    const cookies = await getAuthCookies();
+    if (!customerId) {
         console.log('Skipping test - missing customer ID');
         return;
       }
@@ -291,6 +348,9 @@ describe('Deliveries', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/deliveries/addresses',
+        headers: {
+          Cookie: cookies
+        },
         payload: newAddress
       });
 
@@ -304,14 +364,18 @@ describe('Deliveries', () => {
     });
 
     it('should filter addresses by customer', async () => {
-      if (!customerId) {
+    const cookies = await getAuthCookies();
+    if (!customerId) {
         console.log('Skipping test - missing customer ID');
         return;
       }
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/deliveries/addresses?customerId=${customerId}`
+        url: `/api/v1/deliveries/addresses?customerId=${customerId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -321,10 +385,14 @@ describe('Deliveries', () => {
     });
 
     it('should return 404 when creating address for non-existent customer', async () => {
+      const cookies = await getAuthCookies();
       const fakeCustomerId = '123e4567-e89b-12d3-a456-426614174000';
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/deliveries/addresses',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           customerId: fakeCustomerId,
           line1: 'Test Street',
@@ -337,9 +405,13 @@ describe('Deliveries', () => {
     });
 
     it('should validate required address fields', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/deliveries/addresses',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           // Missing required fields
           city: 'Test City',

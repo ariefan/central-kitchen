@@ -2,6 +2,8 @@ import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import cors from '@fastify/cors';
+import middie from '@fastify/middie';
+import cookie from '@fastify/cookie';
 import { serializerCompiler, validatorCompiler, jsonSchemaTransform, jsonSchemaTransformObject, ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 
@@ -9,6 +11,7 @@ import { env } from './config/env.js';
 import { db } from './config/database.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { apiV1Routes } from './routes/v1/index.js';
+import { auth } from './lib/auth.js';
 
 export async function build() {
   const server = Fastify({
@@ -20,6 +23,12 @@ export async function build() {
   // Set compilers for schema validation and serialization
   server.setValidatorCompiler(validatorCompiler);
   server.setSerializerCompiler(serializerCompiler);
+
+  // Register middie for Express-style middleware
+  await server.register(middie);
+
+  // Register cookie parser for Better Auth session cookies
+  await server.register(cookie);
 
   // Register CORS
   const allowedOrigins = env.NODE_ENV === 'production'
@@ -76,11 +85,31 @@ export async function build() {
       },
       tags: [
         { name: 'Health', description: 'Health check endpoints' },
+        { name: 'Auth', description: 'Authentication endpoints' },
         { name: 'Customers', description: 'Customer management endpoints' },
         { name: 'Products', description: 'Product management endpoints' },
+        { name: 'Categories', description: 'Product category management endpoints' },
         { name: 'Orders', description: 'Order management endpoints' },
+        { name: 'POS', description: 'Point of Sale endpoints' },
+        { name: 'Suppliers', description: 'Supplier management endpoints' },
+        { name: 'Purchase Orders', description: 'Purchase order management endpoints' },
+        { name: 'Goods Receipts', description: 'Goods receipt processing endpoints' },
+        { name: 'Requisitions', description: 'Stock requisition endpoints' },
+        { name: 'Transfers', description: 'Stock transfer endpoints' },
+        { name: 'Deliveries', description: 'Delivery management endpoints' },
+        { name: 'Recipes', description: 'Recipe management endpoints' },
+        { name: 'Production Orders', description: 'Production order management endpoints' },
+        { name: 'Inventory', description: 'Inventory management endpoints' },
+        { name: 'Stock Counts', description: 'Stock count and cycle count endpoints' },
+        { name: 'Waste', description: 'Waste tracking endpoints' },
         { name: 'Returns', description: 'Returns processing endpoints' },
         { name: 'Adjustments', description: 'Inventory adjustments endpoints' },
+        { name: 'Locations', description: 'Location management endpoints' },
+        { name: 'Menus', description: 'Menu management endpoints' },
+        { name: 'Pricebooks', description: 'Price book management endpoints' },
+        { name: 'UOM Conversions', description: 'Unit of measure conversion endpoints' },
+        { name: 'Users', description: 'User management endpoints' },
+        { name: 'Reports', description: 'Reporting and analytics endpoints' },
       ],
     },
     transform: jsonSchemaTransform,
@@ -151,10 +180,57 @@ export async function build() {
     }
   );
 
+  // Register Better Auth handler as all-method handler
+  server.all('/api/auth/*', async (request, reply) => {
+    try {
+      // Convert Fastify request to Web Request
+      const url = new URL(request.url, `http://${request.headers.host}`);
+
+      const headers = new Headers();
+      Object.entries(request.headers).forEach(([key, value]) => {
+        if (typeof value === 'string') {
+          headers.set(key, value);
+        } else if (Array.isArray(value)) {
+          value.forEach(v => headers.append(key, v));
+        }
+      });
+
+      // Get raw body
+      let body: string | undefined;
+      if (request.body) {
+        body = typeof request.body === 'string' ? request.body : JSON.stringify(request.body);
+      }
+
+      const webRequest = new Request(url, {
+        method: request.method,
+        headers: headers,
+        body: body && request.method !== 'GET' && request.method !== 'HEAD' ? body : undefined,
+      });
+
+      // Handle auth request
+      const response = await auth.handler(webRequest);
+
+      // Send response
+      reply.status(response.status);
+      response.headers.forEach((value, key) => {
+        reply.header(key, value);
+      });
+
+      const responseBody = await response.text();
+      return responseBody || null;
+    } catch (error) {
+      server.log.error({ err: error }, 'Better Auth Error');
+      return reply.status(500).send({
+        success: false,
+        error: 'Authentication error',
+      });
+    }
+  });
+
   // Register API routes
   await server.register(apiV1Routes, { prefix: '/api/v1' });
 
-  
+
   // DON'T start server here - let tests handle that
   return server;
 }

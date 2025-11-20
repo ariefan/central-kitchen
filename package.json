@@ -19,8 +19,10 @@
     "db:seed": "turbo run db:seed",
     "dev:api": "turbo run dev --filter=erp-api",
     "dev:web": "turbo run dev --filter=inventory",
+    "dev:erp": "turbo run dev --filter=erp",
     "build:api": "turbo run build --filter=erp-api",
     "build:web": "turbo run build --filter=inventory",
+    "build:erp": "turbo run build --filter=erp",
     "start:api": "pnpm build:api && node erp-api/dist/index.js",
     "start:web": "pnpm build:web && npx serve inventory/dist",
     "kill-port": "tsx scripts/kill-port.ts"

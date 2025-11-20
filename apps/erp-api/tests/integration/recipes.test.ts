@@ -1,5 +1,15 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getTestApp, closeTestApp } from './test-setup';
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
+
+const extractList = (payload: any) => {
+  if (Array.isArray(payload?.data)) {
+    return payload.data;
+  }
+  if (Array.isArray(payload?.data?.items)) {
+    return payload.data.items;
+  }
+  return [];
+};
 
 describe('Recipes', () => {
   let app: any;
@@ -8,26 +18,34 @@ describe('Recipes', () => {
 
   beforeAll(async () => {
     app = await getTestApp();
-
+    const cookies = await getAuthCookies();
+    
     // Get products for testing
     const productsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/products'
+      url: '/api/v1/products',
+      headers: {
+        Cookie: cookies
+      }
     });
     const productsPayload = productsResponse.json();
 
-    if (productsPayload.data.items && productsPayload.data.items.length >= 2) {
+    const productList = extractList(productsPayload);
+    if (productList.length >= 2) {
       // Look for suitable products (raw material and finished good)
-      const rawMaterial = productsPayload.data.items.find((p: any) => p.kind === 'raw_material');
-      const finishedGood = productsPayload.data.items.find((p: any) => p.kind === 'finished_good');
+      const rawMaterial = productList.find((p: any) => p.kind === 'raw_material');
+      const finishedGood = productList.find((p: any) => p.kind === 'finished_good');
 
-      ingredientProductId = rawMaterial?.id || productsPayload.data.items[0].id;
-      finishedProductId = finishedGood?.id || productsPayload.data.items[1].id;
+      ingredientProductId = rawMaterial?.id || productList[0].id;
+      finishedProductId = finishedGood?.id || productList[1].id;
     } else {
       // Create test products if needed
       const ingredientResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/products',
+      headers: {
+          Cookie: cookies
+        },
         payload: {
           name: 'Test Recipe Ingredient',
           sku: 'ING-001',
@@ -41,6 +59,9 @@ describe('Recipes', () => {
       const finishedResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/products',
+      headers: {
+          Cookie: cookies
+        },
         payload: {
           name: 'Test Finished Product',
           sku: 'FIN-001',
@@ -59,9 +80,12 @@ describe('Recipes', () => {
 
   describe('Recipe Management', () => {
     it('should list all recipes', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/recipes'
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/recipes',
+      headers: {
+        Cookie: cookies
       });
 
       expect(response.statusCode).toBe(200);
@@ -72,7 +96,8 @@ describe('Recipes', () => {
     });
 
     it('should create a new recipe', async () => {
-      if (!finishedProductId || !ingredientProductId) {
+    const cookies = await getAuthCookies();
+    if (!finishedProductId || !ingredientProductId) {
         console.log('Skipping test - missing product IDs');
         return;
       }
@@ -95,9 +120,12 @@ describe('Recipes', () => {
       };
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: '/api/v1/recipes',
-        payload: newRecipe
+      headers: {
+        Cookie: cookies
+      },
+      payload: newRecipe
       });
 
       expect(response.statusCode).toBe(201);
@@ -111,7 +139,8 @@ describe('Recipes', () => {
     });
 
     it('should get recipe by ID', async () => {
-      if (!finishedProductId || !ingredientProductId) {
+    const cookies = await getAuthCookies();
+    if (!finishedProductId || !ingredientProductId) {
         console.log('Skipping test - missing product IDs');
         return;
       }
@@ -120,7 +149,10 @@ describe('Recipes', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/recipes',
-        payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
           code: 'GET-RECIPE-123',
           name: 'Get Test Recipe',
           finishedProductId,
@@ -154,7 +186,8 @@ describe('Recipes', () => {
     });
 
     it('should calculate recipe cost', async () => {
-      if (!finishedProductId || !ingredientProductId) {
+    const cookies = await getAuthCookies();
+    if (!finishedProductId || !ingredientProductId) {
         console.log('Skipping test - missing product IDs');
         return;
       }
@@ -163,7 +196,10 @@ describe('Recipes', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/recipes',
-        payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
           code: 'COST-RECIPE-123',
           name: 'Cost Test Recipe',
           finishedProductId,
@@ -201,7 +237,8 @@ describe('Recipes', () => {
     });
 
     it('should scale recipe', async () => {
-      if (!finishedProductId || !ingredientProductId) {
+    const cookies = await getAuthCookies();
+    if (!finishedProductId || !ingredientProductId) {
         console.log('Skipping test - missing product IDs');
         return;
       }
@@ -210,7 +247,10 @@ describe('Recipes', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/recipes',
-        payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
           code: 'SCALE-RECIPE-123',
           name: 'Scale Test Recipe',
           finishedProductId,
@@ -245,11 +285,12 @@ describe('Recipes', () => {
       expect(scalePayload.data).toHaveProperty('scaledYield', 20);
       expect(scalePayload.data).toHaveProperty('scaledIngredients');
       expect(Array.isArray(scalePayload.data.scaledIngredients)).toBe(true);
-      expect(scalePayload.data.scaledIngredients[0]).toHaveProperty('qtyBase', 10); // 5 * 2
+      expect(scalePayload.data.scaledIngredients[0]).toHaveProperty('quantity', 10);
     });
 
     it('should scale recipe by target yield', async () => {
-      if (!finishedProductId || !ingredientProductId) {
+    const cookies = await getAuthCookies();
+    if (!finishedProductId || !ingredientProductId) {
         console.log('Skipping test - missing product IDs');
         return;
       }
@@ -258,7 +299,10 @@ describe('Recipes', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/recipes',
-        payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
           code: 'SCALE-YIELD-RECIPE-123',
           name: 'Scale Yield Test Recipe',
           finishedProductId,
@@ -291,11 +335,12 @@ describe('Recipes', () => {
       expect(scalePayload.data).toHaveProperty('scaleFactor', 2.5);
       expect(scalePayload.data).toHaveProperty('originalYield', 10);
       expect(scalePayload.data).toHaveProperty('scaledYield', 25);
-      expect(scalePayload.data.scaledIngredients[0]).toHaveProperty('qtyBase', 12.5); // 5 * 2.5
+      expect(scalePayload.data.scaledIngredients[0]).toHaveProperty('quantity', 12.5);
     });
 
     it('should update recipe', async () => {
-      if (!finishedProductId || !ingredientProductId) {
+    const cookies = await getAuthCookies();
+    if (!finishedProductId || !ingredientProductId) {
         console.log('Skipping test - missing product IDs');
         return;
       }
@@ -304,7 +349,10 @@ describe('Recipes', () => {
       const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/recipes',
-        payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
           code: 'UPDATE-RECIPE-123',
           name: 'Update Test Recipe',
           finishedProductId,
@@ -342,9 +390,12 @@ describe('Recipes', () => {
     });
 
     it('should filter recipes by status', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/recipes?isActive=true'
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/recipes?isActive=true',
+      headers: {
+        Cookie: cookies
       });
 
       expect(response.statusCode).toBe(200);
@@ -354,9 +405,12 @@ describe('Recipes', () => {
     });
 
     it('should search recipes', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/api/v1/recipes?search=Test'
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'GET',
+        url: '/api/v1/recipes?search=Test',
+      headers: {
+        Cookie: cookies
       });
 
       expect(response.statusCode).toBe(200);
@@ -366,10 +420,14 @@ describe('Recipes', () => {
     });
 
     it('should return 404 for non-existent recipe', async () => {
-      const fakeId = '123e4567-e89b-12d3-a456-426614174000';
+    const cookies = await getAuthCookies();
+    const fakeId = '123e4567-e89b-12d3-a456-426614174000';
       const response = await app.inject({
-        method: 'GET',
-        url: `/api/v1/recipes/${fakeId}`
+      method: 'GET',
+        url: `/api/v1/recipes/${fakeId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(404);
@@ -378,11 +436,15 @@ describe('Recipes', () => {
     });
 
     it('should return 404 when creating recipe for non-existent finished product', async () => {
-      const fakeProductId = '123e4567-e89b-12d3-a456-426614174000';
+    const cookies = await getAuthCookies();
+    const fakeProductId = '123e4567-e89b-12d3-a456-426614174000';
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: '/api/v1/recipes',
-        payload: {
+      headers: {
+        Cookie: cookies
+      },
+      payload: {
           code: 'FAKE-RECIPE-123',
           name: 'Fake Recipe',
           finishedProductId: fakeProductId,
@@ -403,9 +465,13 @@ describe('Recipes', () => {
     });
 
     it('should validate required recipe fields', async () => {
-      const response = await app.inject({
-        method: 'POST',
+    const cookies = await getAuthCookies();
+    const response = await app.inject({
+      method: 'POST',
         url: '/api/v1/recipes',
+          headers: {
+            Cookie: cookies
+          },
         payload: {
           // Missing required fields
           name: 'Incomplete Recipe',
@@ -416,14 +482,18 @@ describe('Recipes', () => {
     });
 
     it('should require at least one ingredient', async () => {
-      if (!finishedProductId) {
+    const cookies = await getAuthCookies();
+    if (!finishedProductId) {
         console.log('Skipping test - missing product ID');
         return;
       }
 
       const response = await app.inject({
-        method: 'POST',
+      method: 'POST',
         url: '/api/v1/recipes',
+            headers: {
+              Cookie: cookies
+            },
         payload: {
           code: 'NO-INGREDIENTS-123',
           name: 'Recipe Without Ingredients',

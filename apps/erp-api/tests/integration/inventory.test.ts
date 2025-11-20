@@ -1,5 +1,15 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getTestApp, closeTestApp } from './test-setup';
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
+
+const extractList = (payload: any) => {
+  if (Array.isArray(payload?.data)) {
+    return payload.data;
+  }
+  if (Array.isArray(payload?.data?.items)) {
+    return payload.data.items;
+  }
+  return [];
+};
 
 describe('Inventory', () => {
   let app: any;
@@ -9,27 +19,36 @@ describe('Inventory', () => {
 
   beforeAll(async () => {
     app = await getTestApp();
+    const cookies = await getAuthCookies();
 
     // Get a product for testing
     const productsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/products'
+      url: '/api/v1/products',
+      headers: {
+        Cookie: cookies
+      }
     });
     const productsPayload = productsResponse.json();
 
-    if (productsPayload.data && productsPayload.data.length > 0) {
-      productId = productsPayload.data[0].id;
+    const productList = extractList(productsPayload);
+    if (productList.length > 0) {
+      productId = productList[0].id;
     }
 
     // Get a location for testing
     const locationsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/locations'
+      url: '/api/v1/locations',
+      headers: {
+        Cookie: cookies
+      }
     });
     const locationsPayload = locationsResponse.json();
 
-    if (locationsPayload.data && locationsPayload.data.length > 0) {
-      locationId = locationsPayload.data[0].id;
+    const locationList = extractList(locationsPayload);
+    if (locationList.length > 0) {
+      locationId = locationList[0].id;
     }
   });
 
@@ -39,9 +58,13 @@ describe('Inventory', () => {
 
   describe('Lot Management', () => {
     it('should list all inventory lots', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/inventory/lots'
+        url: '/api/v1/inventory/lots',
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -52,6 +75,7 @@ describe('Inventory', () => {
     });
 
     it('should create a new lot', async () => {
+      const cookies = await getAuthCookies();
       if (!productId || !locationId) {
         console.log('Skipping test - missing product or location ID');
         return;
@@ -73,6 +97,9 @@ describe('Inventory', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/inventory/lots',
+        headers: {
+          Cookie: cookies
+        },
         payload: newLot
       });
 
@@ -87,6 +114,7 @@ describe('Inventory', () => {
     });
 
     it('should get lot by ID', async () => {
+      const cookies = await getAuthCookies();
       if (!lotId) {
         console.log('Skipping test - missing lot ID');
         return;
@@ -94,7 +122,10 @@ describe('Inventory', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/inventory/lots/${lotId}`
+        url: `/api/v1/inventory/lots/${lotId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -109,6 +140,7 @@ describe('Inventory', () => {
     });
 
     it('should filter lots by location', async () => {
+      const cookies = await getAuthCookies();
       if (!locationId) {
         console.log('Skipping test - missing location ID');
         return;
@@ -116,7 +148,10 @@ describe('Inventory', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/inventory/lots?locationId=${locationId}`
+        url: `/api/v1/inventory/lots?locationId=${locationId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -126,6 +161,7 @@ describe('Inventory', () => {
     });
 
     it('should filter lots by product', async () => {
+      const cookies = await getAuthCookies();
       if (!productId) {
         console.log('Skipping test - missing product ID');
         return;
@@ -133,7 +169,10 @@ describe('Inventory', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/inventory/lots?productId=${productId}`
+        url: `/api/v1/inventory/lots?productId=${productId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -143,9 +182,13 @@ describe('Inventory', () => {
     });
 
     it('should search lots by lot number', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/inventory/lots?lotNo=LOT'
+        url: '/api/v1/inventory/lots?lotNo=LOT',
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -155,10 +198,14 @@ describe('Inventory', () => {
     });
 
     it('should return 404 for non-existent lot', async () => {
+      const cookies = await getAuthCookies();
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/inventory/lots/${fakeId}`
+        url: `/api/v1/inventory/lots/${fakeId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(404);
@@ -167,6 +214,7 @@ describe('Inventory', () => {
     });
 
     it('should return 404 when creating lot for non-existent product', async () => {
+      const cookies = await getAuthCookies();
       if (!locationId) {
         console.log('Skipping test - missing location ID');
         return;
@@ -176,6 +224,9 @@ describe('Inventory', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/inventory/lots',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           productId: fakeProductId,
           locationId,
@@ -189,6 +240,7 @@ describe('Inventory', () => {
     });
 
     it('should prevent duplicate lot numbers for same product/location', async () => {
+      const cookies = await getAuthCookies();
       if (!productId || !locationId) {
         console.log('Skipping test - missing product or location ID');
         return;
@@ -198,6 +250,9 @@ describe('Inventory', () => {
       await app.inject({
         method: 'POST',
         url: '/api/v1/inventory/lots',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           productId,
           locationId,
@@ -209,6 +264,9 @@ describe('Inventory', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/inventory/lots',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           productId,
           locationId,
@@ -224,6 +282,7 @@ describe('Inventory', () => {
 
   describe('Stock Movements', () => {
     it('should record stock movement (receipt)', async () => {
+      const cookies = await getAuthCookies();
       if (!productId || !locationId || !lotId) {
         console.log('Skipping test - missing IDs');
         return;
@@ -243,6 +302,9 @@ describe('Inventory', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/inventory/movements',
+        headers: {
+          Cookie: cookies
+        },
         payload: movement
       });
 
@@ -255,6 +317,7 @@ describe('Inventory', () => {
     });
 
     it('should record stock movement (issuance)', async () => {
+      const cookies = await getAuthCookies();
       if (!productId || !locationId || !lotId) {
         console.log('Skipping test - missing IDs');
         return;
@@ -273,6 +336,9 @@ describe('Inventory', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/inventory/movements',
+        headers: {
+          Cookie: cookies
+        },
         payload: movement
       });
 
@@ -284,11 +350,15 @@ describe('Inventory', () => {
     });
 
     it('should return 404 for movement with non-existent product', async () => {
+      const cookies = await getAuthCookies();
       if (locationId) {
         const fakeProductId = '123e4567-e89b-12d3-a456-426614174000';
         const response = await app.inject({
           method: 'POST',
           url: '/api/v1/inventory/movements',
+          headers: {
+            Cookie: cookies
+          },
           payload: {
             productId: fakeProductId,
             locationId,
@@ -305,11 +375,15 @@ describe('Inventory', () => {
     });
 
     it('should return 404 for movement with non-existent lot', async () => {
+      const cookies = await getAuthCookies();
       if (productId && locationId) {
         const fakeLotId = '123e4567-e89b-12d3-a456-426614174000';
         const response = await app.inject({
           method: 'POST',
           url: '/api/v1/inventory/movements',
+          headers: {
+            Cookie: cookies
+          },
           payload: {
             productId,
             locationId,
@@ -329,9 +403,13 @@ describe('Inventory', () => {
 
   describe('Inventory Valuation', () => {
     it('should calculate inventory valuation', async () => {
+      const cookies = await getAuthCookies();
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/inventory/valuation',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           costMethod: 'average',
         }
@@ -350,6 +428,7 @@ describe('Inventory', () => {
     });
 
     it('should calculate inventory valuation for specific location', async () => {
+      const cookies = await getAuthCookies();
       if (!locationId) {
         console.log('Skipping test - missing location ID');
         return;
@@ -358,6 +437,9 @@ describe('Inventory', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/inventory/valuation',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           locationId,
           costMethod: 'fifo',
@@ -371,6 +453,7 @@ describe('Inventory', () => {
     });
 
     it('should calculate inventory valuation for specific product', async () => {
+      const cookies = await getAuthCookies();
       if (!productId) {
         console.log('Skipping test - missing product ID');
         return;
@@ -379,6 +462,9 @@ describe('Inventory', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/v1/inventory/valuation',
+        headers: {
+          Cookie: cookies
+        },
         payload: {
           productId,
           costMethod: 'average',
@@ -393,6 +479,7 @@ describe('Inventory', () => {
 
   describe('Product Cost Analysis', () => {
     it('should get product cost analysis', async () => {
+      const cookies = await getAuthCookies();
       if (!productId) {
         console.log('Skipping test - missing product ID');
         return;
@@ -400,7 +487,10 @@ describe('Inventory', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/inventory/cost/${productId}`
+        url: `/api/v1/inventory/cost/${productId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -418,6 +508,7 @@ describe('Inventory', () => {
     });
 
     it('should get product cost analysis for specific location', async () => {
+      const cookies = await getAuthCookies();
       if (!productId || !locationId) {
         console.log('Skipping test - missing IDs');
         return;
@@ -425,7 +516,10 @@ describe('Inventory', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/inventory/cost/${productId}?locationId=${locationId}&costMethod=average`
+        url: `/api/v1/inventory/cost/${productId}?locationId=${locationId}&costMethod=average`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(200);
@@ -435,10 +529,14 @@ describe('Inventory', () => {
     });
 
     it('should return 404 for non-existent product cost analysis', async () => {
+      const cookies = await getAuthCookies();
       const fakeProductId = '123e4567-e89b-12d3-a456-426614174000';
       const response = await app.inject({
         method: 'GET',
-        url: `/api/v1/inventory/cost/${fakeProductId}`
+        url: `/api/v1/inventory/cost/${fakeProductId}`,
+        headers: {
+          Cookie: cookies
+        }
       });
 
       expect(response.statusCode).toBe(404);

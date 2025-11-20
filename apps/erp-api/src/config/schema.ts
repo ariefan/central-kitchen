@@ -82,9 +82,16 @@ export const locations = erp.table("locations", {
 }));
 
 export const users = erp.table("users", {
+  // Primary key
   id: uuid("id").primaryKey().defaultRandom(),
+
+  // Better Auth compatibility field
   authUserId: varchar("auth_user_id", { length: 128 }).notNull(),
+
+  // Multi-tenant fields
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+
+  // Core user fields
   email: varchar("email", { length: 255 }).notNull(),
   firstName: varchar("first_name", { length: 100 }),
   lastName: varchar("last_name", { length: 100 }),
@@ -94,11 +101,73 @@ export const users = erp.table("users", {
   isActive: boolean("is_active").notNull().default(true),
   lastLogin: timestamp("last_login"),
   metadata: jsonb("metadata"),
+
+  // Better Auth fields
+  username: varchar("username", { length: 255 }).unique(),
+  displayUsername: varchar("display_username", { length: 255 }),
+  emailVerified: boolean("email_verified").default(false).notNull(),
+  image: text("image"),
+
+  // Timestamps
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (t) => ({
   uqTenantEmail: unique("uq_user_tenant_email").on(t.tenantId, t.email),
   idxAuth: index("idx_user_auth").on(t.authUserId),
+}));
+
+// ---------------------------------------------------------------------------
+// Better Auth tables
+// ---------------------------------------------------------------------------
+export const sessions = erp.table("sessions", {
+  id: text("id").primaryKey(),
+  expiresAt: timestamp("expires_at").notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+});
+
+export const accounts = erp.table("accounts", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const verifications = erp.table("verifications", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ---------------------------------------------------------------------------
+// Multi-Location Access Control (AUTH-002)
+// ---------------------------------------------------------------------------
+export const userLocations = erp.table("user_locations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  locationId: uuid("location_id").notNull().references(() => locations.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdBy: uuid("created_by").references(() => users.id),
+}, (t) => ({
+  uqUserLocation: unique("uq_user_location").on(t.userId, t.locationId),
+  idxUser: index("idx_user_locations_user").on(t.userId),
+  idxLocation: index("idx_user_locations_location").on(t.locationId),
 }));
 
 // ---------------------------------------------------------------------------
@@ -178,22 +247,29 @@ export const addresses = erp.table("addresses", {
 // ---------------------------------------------------------------------------
 // UoM
 // ---------------------------------------------------------------------------
+// UOM Management (ADM-003)
 export const uoms = erp.table("uoms", {
   id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
   code: varchar("code", { length: 16 }).notNull(),
-  name: varchar("name", { length: 64 }).notNull(),
-  symbol: varchar("symbol", { length: 16 }),
-  kind: varchar("kind", { length: 20 }),
+  name: varchar("name", { length: 100 }).notNull(),
+  uomType: varchar("uom_type", { length: 20 }).notNull(), // weight, volume, count, length, area, time
+  symbol: varchar("symbol", { length: 20 }),
+  description: varchar("description", { length: 500 }),
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-}, (t) => ({ uqCode: unique("uq_uom_code").on(t.code) }));
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+}, (t) => ({ uqCode: unique("uq_uom_tenant_code").on(t.tenantId, t.code) }));
 
 export const uomConversions = erp.table("uom_conversions", {
   id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
   fromUomId: uuid("from_uom_id").notNull().references(() => uoms.id, { onDelete: "restrict" }),
   toUomId: uuid("to_uom_id").notNull().references(() => uoms.id, { onDelete: "restrict" }),
   factor: numeric("factor", { precision: 16, scale: 6 }).notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-}, (t) => ({ uqPair: unique("uq_conv_pair").on(t.fromUomId, t.toUomId) }));
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+}, (t) => ({ uqPair: unique("uq_conv_tenant_pair").on(t.tenantId, t.fromUomId, t.toUomId) }));
 
 // ---------------------------------------------------------------------------
 // Products, variants, packs, supplier SKUs
@@ -226,12 +302,18 @@ export const products = erp.table("products", {
 export const productVariants = erp.table("product_variants", {
   id: uuid("id").primaryKey().defaultRandom(),
   productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
-  code: varchar("code", { length: 64 }).notNull(),
-  name: varchar("name", { length: 128 }).notNull(),
-  extraPrice: numeric("extra_price", { precision: 16, scale: 2 }).notNull().default("0"),
+  variantName: varchar("variant_name", { length: 128 }).notNull(), // e.g., "Large", "Strawberry"
+  priceDifferential: varchar("price_differential", { length: 32 }).notNull().default("0"), // Money amount (can be negative)
+  barcode: varchar("barcode", { length: 255 }),
+  sku: varchar("sku", { length: 100 }),
   isActive: boolean("is_active").notNull().default(true),
+  displayOrder: integer("display_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-}, (t) => ({ uqProdCode: unique("uq_variant_prod_code").on(t.productId, t.code) }));
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdate(() => new Date()),
+}, (t) => ({
+  uqProdVariant: unique("uq_variant_prod_name").on(t.productId, t.variantName),
+  idxDisplayOrder: index("idx_variant_display_order").on(t.productId, t.displayOrder),
+}));
 
 export const productPacks = erp.table("product_packs", {
   id: uuid("id").primaryKey().defaultRandom(),

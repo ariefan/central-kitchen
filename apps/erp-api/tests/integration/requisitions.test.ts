@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getTestApp, closeTestApp } from './test-setup';
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
 
 describe('Requisitions', () => {
   let app: any;
@@ -10,11 +10,15 @@ describe('Requisitions', () => {
 
   beforeAll(async () => {
     app = await getTestApp();
+    const cookies = await getAuthCookies();
 
     // Get locations for testing (need at least 2 for inter-store transfers)
     const locationsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/locations'
+      url: '/api/v1/locations',
+      headers: {
+        Cookie: cookies
+      }
     });
     const locationsPayload = locationsResponse.json();
     if (locationsPayload.data.length >= 2) {
@@ -29,7 +33,10 @@ describe('Requisitions', () => {
     // Get a product for testing
     const productsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/products'
+      url: '/api/v1/products',
+      headers: {
+        Cookie: cookies
+      }
     });
     const productsPayload = productsResponse.json();
     if (productsPayload.data && productsPayload.data.length > 0) {
@@ -43,9 +50,13 @@ describe('Requisitions', () => {
   });
 
   it('should list requisitions', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'GET',
-      url: '/api/v1/requisitions'
+      url: '/api/v1/requisitions',
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(response.statusCode).toBe(200);
@@ -56,6 +67,7 @@ describe('Requisitions', () => {
   });
 
   it('should create a new requisition', async () => {
+    const cookies = await getAuthCookies();
     if (!fromLocationId || !toLocationId || !productId || !uomId) {
       console.log('Skipping test - missing required data');
       return;
@@ -80,6 +92,9 @@ describe('Requisitions', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/requisitions',
+      headers: {
+        Cookie: cookies
+      },
       payload: newRequisition
     });
 
@@ -95,9 +110,13 @@ describe('Requisitions', () => {
   });
 
   it('should validate required fields', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/requisitions',
+          headers: {
+            Cookie: cookies
+          },
       payload: {}
     });
 
@@ -105,9 +124,13 @@ describe('Requisitions', () => {
   });
 
   it('should validate items are required', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/requisitions',
+          headers: {
+            Cookie: cookies
+          },
       payload: {
         fromLocationId,
         toLocationId,
@@ -119,6 +142,7 @@ describe('Requisitions', () => {
   });
 
   it('should approve a requisition', async () => {
+    const cookies = await getAuthCookies();
     if (!fromLocationId || !toLocationId || !productId || !uomId) {
       console.log('Skipping test - missing required data');
       return;
@@ -128,6 +152,9 @@ describe('Requisitions', () => {
     const createResponse = await app.inject({
       method: 'POST',
       url: '/api/v1/requisitions',
+      headers: {
+        Cookie: cookies
+      },
       payload: {
         fromLocationId,
         toLocationId,
@@ -157,6 +184,7 @@ describe('Requisitions', () => {
   });
 
   it('should reject a requisition', async () => {
+    const cookies = await getAuthCookies();
     if (!fromLocationId || !toLocationId || !productId || !uomId) {
       console.log('Skipping test - missing required data');
       return;
@@ -166,6 +194,9 @@ describe('Requisitions', () => {
     const createResponse = await app.inject({
       method: 'POST',
       url: '/api/v1/requisitions',
+      headers: {
+        Cookie: cookies
+      },
       payload: {
         fromLocationId,
         toLocationId,
@@ -196,9 +227,13 @@ describe('Requisitions', () => {
   });
 
   it('should filter requisitions by status', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'GET',
-      url: '/api/v1/requisitions?status=draft'
+      url: '/api/v1/requisitions?status=draft',
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(response.statusCode).toBe(200);

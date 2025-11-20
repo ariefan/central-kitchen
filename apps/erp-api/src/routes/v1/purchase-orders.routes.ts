@@ -1,0 +1,225 @@
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { z } from 'zod';
+import {
+  createSuccessResponse,
+  createPaginatedResponse,
+  createNotFoundError,
+  notFoundResponseSchema
+} from '@/modules/shared/responses.js';
+import {
+  purchaseOrderCreateSchema,
+  purchaseOrderUpdateSchema,
+  purchaseOrderQuerySchema,
+  purchaseOrderResponseSchema,
+  purchaseOrderWithItemsResponseSchema,
+  purchaseOrdersResponseSchema,
+} from '@/modules/purchase-orders/purchase-order.schema.js';
+import { purchaseOrderService } from '@/modules/purchase-orders/purchase-order.service.js';
+import { buildRequestContext } from '@/shared/middleware/auth.js';
+
+export function purchaseOrderRoutes(fastify: FastifyInstance) {
+  // GET /api/v1/purchase-orders - List all purchase orders
+  fastify.get(
+    '/',
+    {
+      schema: {
+        description: 'Get all purchase orders with pagination, sorting, and search',
+        tags: ['Purchase Orders'],
+        querystring: purchaseOrderQuerySchema,
+        response: {
+          200: purchaseOrdersResponseSchema,
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Querystring: z.infer<typeof purchaseOrderQuerySchema> }>, reply: FastifyReply) => {
+      const context = buildRequestContext(request);
+      const result = await purchaseOrderService.list(request.query, context);
+      return reply.send(createPaginatedResponse(result.items, result.total, result.limit, result.offset));
+    }
+  );
+
+  // GET /api/v1/purchase-orders/:id - Get purchase order by ID with items
+  fastify.get(
+    '/:id',
+    {
+      schema: {
+        description: 'Get purchase order by ID with items',
+        tags: ['Purchase Orders'],
+        params: z.object({ id: z.string().uuid() }),
+        response: {
+          200: purchaseOrderWithItemsResponseSchema,
+          404: notFoundResponseSchema,
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+      const context = buildRequestContext(request);
+      const result = await purchaseOrderService.getById(request.params.id, context);
+
+      if (!result) {
+        return createNotFoundError('Purchase order not found', reply);
+      }
+
+      return reply.send(createSuccessResponse({
+        ...result.order,
+        items: result.items,
+      }, 'Purchase order retrieved successfully'));
+    }
+  );
+
+  // POST /api/v1/purchase-orders - Create new purchase order
+  fastify.post(
+    '/',
+    {
+      schema: {
+        description: 'Create a new purchase order',
+        tags: ['Purchase Orders'],
+        body: purchaseOrderCreateSchema,
+        response: {
+          201: purchaseOrderResponseSchema,
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Body: z.infer<typeof purchaseOrderCreateSchema> }>, reply: FastifyReply) => {
+      const context = buildRequestContext(request);
+      const result = await purchaseOrderService.create(request.body, context);
+      return reply.status(201).send(createSuccessResponse(result, 'Purchase order created successfully'));
+    }
+  );
+
+  // PATCH /api/v1/purchase-orders/:id - Update purchase order (draft only)
+  fastify.patch(
+    '/:id',
+    {
+      schema: {
+        description: 'Update purchase order (draft only)',
+        tags: ['Purchase Orders'],
+        params: z.object({ id: z.string().uuid() }),
+        body: purchaseOrderUpdateSchema,
+        response: {
+          200: purchaseOrderResponseSchema,
+          404: notFoundResponseSchema,
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Params: { id: string }, Body: Partial<z.infer<typeof purchaseOrderUpdateSchema>> }>, reply: FastifyReply) => {
+      const context = buildRequestContext(request);
+      const result = await purchaseOrderService.update(request.params.id, request.body, context);
+      if (!result) {
+        return createNotFoundError('Purchase order not found or cannot be edited', reply);
+      }
+
+      return reply.send(createSuccessResponse(result, 'Purchase order updated successfully'));
+    }
+  );
+
+  // POST /api/v1/purchase-orders/:id/approve - Approve purchase order
+  fastify.post(
+    '/:id/approve',
+    {
+      schema: {
+        description: 'Approve purchase order',
+        tags: ['Purchase Orders'],
+        params: z.object({ id: z.string().uuid() }),
+        response: {
+          200: purchaseOrderResponseSchema,
+          404: notFoundResponseSchema,
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+      const context = buildRequestContext(request);
+      const result = await purchaseOrderService.approve(request.params.id, context);
+      if (!result) {
+        return createNotFoundError('Purchase order not found or already processed', reply);
+      }
+
+      return reply.send(createSuccessResponse(result, 'Purchase order approved successfully'));
+    }
+  );
+
+  // POST /api/v1/purchase-orders/:id/reject - Reject purchase order
+  fastify.post(
+    '/:id/reject',
+    {
+      schema: {
+        description: 'Reject purchase order',
+        tags: ['Purchase Orders'],
+        params: z.object({ id: z.string().uuid() }),
+        body: z.object({
+          reason: z.string().min(1, 'Reason is required'),
+        }),
+        response: {
+          200: purchaseOrderResponseSchema,
+          404: notFoundResponseSchema,
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Params: { id: string }, Body: { reason: string } }>, reply: FastifyReply) => {
+      const context = buildRequestContext(request);
+      const result = await purchaseOrderService.reject(request.params.id, request.body.reason, context);
+      if (!result) {
+        return createNotFoundError('Purchase order not found or already processed', reply);
+      }
+
+      return reply.send(createSuccessResponse(result, 'Purchase order rejected successfully'));
+    }
+  );
+
+  // POST /api/v1/purchase-orders/:id/send - Mark purchase order as sent to supplier
+  fastify.post(
+    '/:id/send',
+    {
+      schema: {
+        description: 'Mark purchase order as sent to supplier',
+        tags: ['Purchase Orders'],
+        params: z.object({ id: z.string().uuid() }),
+        body: z.object({
+          notes: z.string().optional(),
+          sentVia: z.enum(['email', 'portal', 'phone', 'fax', 'other']).default('email'),
+        }),
+        response: {
+          200: purchaseOrderResponseSchema,
+          404: notFoundResponseSchema,
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Params: { id: string }, Body: { notes?: string, sentVia?: string } }>, reply: FastifyReply) => {
+      const context = buildRequestContext(request);
+      const result = await purchaseOrderService.markSent(request.params.id, request.body, context);
+      if (!result) {
+        return createNotFoundError('Purchase order not found or must be approved before sending', reply);
+      }
+
+      return reply.send(createSuccessResponse(result, 'Purchase order sent to supplier successfully'));
+    }
+  );
+
+  // POST /api/v1/purchase-orders/:id/cancel - Cancel purchase order
+  fastify.post(
+    '/:id/cancel',
+    {
+      schema: {
+        description: 'Cancel purchase order',
+        tags: ['Purchase Orders'],
+        params: z.object({ id: z.string().uuid() }),
+        body: z.object({
+          reason: z.string().min(1, 'Reason is required'),
+        }),
+        response: {
+          200: purchaseOrderResponseSchema,
+          404: notFoundResponseSchema,
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Params: { id: string }, Body: { reason: string } }>, reply: FastifyReply) => {
+      const context = buildRequestContext(request);
+      const result = await purchaseOrderService.cancel(request.params.id, request.body.reason, context);
+      if (!result) {
+        return createNotFoundError('Purchase order not found or cannot be cancelled', reply);
+      }
+
+      return reply.send(createSuccessResponse(result, 'Purchase order cancelled successfully'));
+    }
+  );
+}

@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getTestApp, closeTestApp } from './test-setup';
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
 
 describe('Customers', () => {
   let app: any;
 
   beforeAll(async () => {
     app = await getTestApp();
+    const cookies = await getAuthCookies();
   });
 
   afterAll(async () => {
@@ -13,9 +14,13 @@ describe('Customers', () => {
   });
 
   it('should list customers for the current tenant', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'GET',
-      url: '/api/v1/customers'
+      url: '/api/v1/customers',
+      headers: {
+        Cookie: cookies
+      }
     });
 
     
@@ -31,6 +36,7 @@ describe('Customers', () => {
   });
 
   it('should create a new customer', async () => {
+    const cookies = await getAuthCookies();
     const timestamp = Date.now();
     const newCustomer = {
       code: `CUST-${timestamp}`,
@@ -42,6 +48,9 @@ describe('Customers', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/customers',
+      headers: {
+        Cookie: cookies
+      },
       payload: newCustomer
     });
 
@@ -54,20 +63,28 @@ describe('Customers', () => {
   });
 
   it('should return 404 for non-existent customer', async () => {
+    const cookies = await getAuthCookies();
     const fakeId = '00000000-0000-0000-0000-000000000000';
 
     const response = await app.inject({
       method: 'GET',
-      url: `/api/v1/customers/${fakeId}`
+      url: `/api/v1/customers/${fakeId}`,
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(response.statusCode).toBe(404);
   });
 
   it('should validate required fields', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/customers',
+          headers: {
+            Cookie: cookies
+          },
       payload: {}
     });
 

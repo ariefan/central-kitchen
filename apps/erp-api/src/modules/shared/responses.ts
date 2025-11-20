@@ -1,0 +1,48 @@
+import {
+  createSuccessResponse,
+  createPaginatedResponse,
+  createDeleteResponse,
+  createErrorResponse,
+  createNotFoundError,
+  createBadRequestError,
+  createConflictError,
+  createUnauthorizedError,
+  createForbiddenError,
+  successResponseSchema,
+  errorResponseSchema,
+  notFoundResponseSchema,
+  badRequestResponseSchema,
+  conflictResponseSchema,
+  unauthorizedResponseSchema,
+  forbiddenResponseSchema,
+  validationErrorResponseSchema,
+  deleteResponseSchema,
+} from '../../shared/utils/responses.js';
+
+export {
+  createSuccessResponse,
+  createPaginatedResponse,
+  createDeleteResponse,
+  createErrorResponse,
+  createNotFoundError,
+  createBadRequestError,
+  createConflictError,
+  createUnauthorizedError,
+  createForbiddenError,
+  successResponseSchema,
+  errorResponseSchema,
+  notFoundResponseSchema,
+  badRequestResponseSchema,
+  conflictResponseSchema,
+  unauthorizedResponseSchema,
+  forbiddenResponseSchema,
+  validationErrorResponseSchema,
+  deleteResponseSchema,
+};
+
+export const responseBuilder = {
+  success: createSuccessResponse,
+  paginated: createPaginatedResponse,
+  error: createErrorResponse,
+  deleted: createDeleteResponse,
+};

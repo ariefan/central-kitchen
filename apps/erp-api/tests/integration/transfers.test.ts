@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { getTestApp, closeTestApp } from './test-setup';
+import { getTestApp, closeTestApp, getAuthCookies } from './test-setup';
 
 describe('Transfers', () => {
   let app: any;
@@ -10,11 +10,15 @@ describe('Transfers', () => {
 
   beforeAll(async () => {
     app = await getTestApp();
+    const cookies = await getAuthCookies();
 
     // Get locations for testing (need at least 2 for inter-store transfers)
     const locationsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/locations'
+      url: '/api/v1/locations',
+      headers: {
+        Cookie: cookies
+      }
     });
     const locationsPayload = locationsResponse.json();
     if (locationsPayload.data.length >= 2) {
@@ -29,7 +33,10 @@ describe('Transfers', () => {
     // Get a product for testing
     const productsResponse = await app.inject({
       method: 'GET',
-      url: '/api/v1/products'
+      url: '/api/v1/products',
+      headers: {
+        Cookie: cookies
+      }
     });
     const productsPayload = productsResponse.json();
     if (productsPayload.data && productsPayload.data.length > 0) {
@@ -43,9 +50,13 @@ describe('Transfers', () => {
   });
 
   it('should list transfers', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'GET',
-      url: '/api/v1/transfers'
+      url: '/api/v1/transfers',
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(response.statusCode).toBe(200);
@@ -56,6 +67,7 @@ describe('Transfers', () => {
   });
 
   it('should create a new transfer', async () => {
+    const cookies = await getAuthCookies();
     if (!fromLocationId || !toLocationId || !productId || !uomId) {
       console.log('Skipping test - missing required data');
       return;
@@ -80,6 +92,9 @@ describe('Transfers', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/transfers',
+      headers: {
+        Cookie: cookies
+      },
       payload: newTransfer
     });
 
@@ -95,9 +110,13 @@ describe('Transfers', () => {
   });
 
   it('should validate required fields', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/transfers',
+          headers: {
+            Cookie: cookies
+          },
       payload: {}
     });
 
@@ -105,9 +124,13 @@ describe('Transfers', () => {
   });
 
   it('should validate items are required', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'POST',
       url: '/api/v1/transfers',
+          headers: {
+            Cookie: cookies
+          },
       payload: {
         fromLocationId,
         toLocationId,
@@ -119,6 +142,7 @@ describe('Transfers', () => {
   });
 
   it('should get transfer by ID with items', async () => {
+    const cookies = await getAuthCookies();
     if (!fromLocationId || !toLocationId || !productId || !uomId) {
       console.log('Skipping test - missing required data');
       return;
@@ -128,6 +152,9 @@ describe('Transfers', () => {
     const createResponse = await app.inject({
       method: 'POST',
       url: '/api/v1/transfers',
+      headers: {
+        Cookie: cookies
+      },
       payload: {
         fromLocationId,
         toLocationId,
@@ -147,7 +174,10 @@ describe('Transfers', () => {
     // Then get it by ID
     const getResponse = await app.inject({
       method: 'GET',
-      url: `/api/v1/transfers/${transferId}`
+      url: `/api/v1/transfers/${transferId}`,
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(getResponse.statusCode).toBe(200);
@@ -160,6 +190,7 @@ describe('Transfers', () => {
   });
 
   it('should update a draft transfer', async () => {
+    const cookies = await getAuthCookies();
     if (!fromLocationId || !toLocationId || !productId || !uomId) {
       console.log('Skipping test - missing required data');
       return;
@@ -169,6 +200,9 @@ describe('Transfers', () => {
     const createResponse = await app.inject({
       method: 'POST',
       url: '/api/v1/transfers',
+      headers: {
+        Cookie: cookies
+      },
       payload: {
         fromLocationId,
         toLocationId,
@@ -189,6 +223,9 @@ describe('Transfers', () => {
     const updateResponse = await app.inject({
       method: 'PATCH',
       url: `/api/v1/transfers/${transferId}`,
+      headers: {
+        Cookie: cookies
+      },
       payload: {
         notes: 'Updated transfer notes',
         expectedDeliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
@@ -202,6 +239,7 @@ describe('Transfers', () => {
   });
 
   it('should send a transfer', async () => {
+    const cookies = await getAuthCookies();
     if (!fromLocationId || !toLocationId || !productId || !uomId) {
       console.log('Skipping test - missing required data');
       return;
@@ -211,6 +249,9 @@ describe('Transfers', () => {
     const createResponse = await app.inject({
       method: 'POST',
       url: '/api/v1/transfers',
+      headers: {
+        Cookie: cookies
+      },
       payload: {
         fromLocationId,
         toLocationId,
@@ -230,7 +271,10 @@ describe('Transfers', () => {
     // Then send it
     const sendResponse = await app.inject({
       method: 'POST',
-      url: `/api/v1/transfers/${transferId}/send`
+      url: `/api/v1/transfers/${transferId}/send`,
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(sendResponse.statusCode).toBe(200);
@@ -240,6 +284,7 @@ describe('Transfers', () => {
   });
 
   it('should receive a transfer', async () => {
+    const cookies = await getAuthCookies();
     if (!fromLocationId || !toLocationId || !productId || !uomId) {
       console.log('Skipping test - missing required data');
       return;
@@ -249,6 +294,9 @@ describe('Transfers', () => {
     const createResponse = await app.inject({
       method: 'POST',
       url: '/api/v1/transfers',
+      headers: {
+        Cookie: cookies
+      },
       payload: {
         fromLocationId,
         toLocationId,
@@ -276,6 +324,9 @@ describe('Transfers', () => {
     const receiveResponse = await app.inject({
       method: 'POST',
       url: `/api/v1/transfers/${transferId}/receive`,
+      headers: {
+        Cookie: cookies
+      },
       payload: {
         items: [
           {
@@ -294,6 +345,7 @@ describe('Transfers', () => {
   });
 
   it('should post a completed transfer', async () => {
+    const cookies = await getAuthCookies();
     if (!fromLocationId || !toLocationId || !productId || !uomId) {
       console.log('Skipping test - missing required data');
       return;
@@ -303,6 +355,9 @@ describe('Transfers', () => {
     const createResponse = await app.inject({
       method: 'POST',
       url: '/api/v1/transfers',
+      headers: {
+        Cookie: cookies
+      },
       payload: {
         fromLocationId,
         toLocationId,
@@ -347,7 +402,10 @@ describe('Transfers', () => {
     // Then post it
     const postResponse = await app.inject({
       method: 'POST',
-      url: `/api/v1/transfers/${transferId}/post`
+      url: `/api/v1/transfers/${transferId}/post`,
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(postResponse.statusCode).toBe(200);
@@ -356,9 +414,13 @@ describe('Transfers', () => {
   });
 
   it('should filter transfers by status', async () => {
+    const cookies = await getAuthCookies();
     const response = await app.inject({
       method: 'GET',
-      url: '/api/v1/transfers?status=draft'
+      url: '/api/v1/transfers?status=draft',
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(response.statusCode).toBe(200);
@@ -368,6 +430,7 @@ describe('Transfers', () => {
   });
 
   it('should filter transfers by from location', async () => {
+    const cookies = await getAuthCookies();
     if (!fromLocationId) {
       console.log('Skipping test - missing from location ID');
       return;
@@ -375,7 +438,10 @@ describe('Transfers', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: `/api/v1/transfers?fromLocationId=${fromLocationId}`
+      url: `/api/v1/transfers?fromLocationId=${fromLocationId}`,
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(response.statusCode).toBe(200);
@@ -385,10 +451,14 @@ describe('Transfers', () => {
   });
 
   it('should return 404 for non-existent transfer', async () => {
+    const cookies = await getAuthCookies();
     const fakeId = '123e4567-e89b-12d3-a456-426614174000';
     const response = await app.inject({
       method: 'GET',
-      url: `/api/v1/transfers/${fakeId}`
+      url: `/api/v1/transfers/${fakeId}`,
+      headers: {
+        Cookie: cookies
+      }
     });
 
     expect(response.statusCode).toBe(404);

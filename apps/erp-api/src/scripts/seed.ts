@@ -3,6 +3,7 @@ import { sql, eq } from 'drizzle-orm';
 import * as schema from '../config/schema.js';
 import { randomUUID } from 'crypto';
 import { faker } from '@faker-js/faker';
+import { auth } from '../lib/auth.js';
 
 const toNumericString = (value: number | bigint | string): string => {
   if (typeof value === 'number' || typeof value === 'bigint') {
@@ -59,6 +60,9 @@ async function seedDatabase() {
       'suppliers',
       'products',
       'uoms',
+      'accounts', // Better Auth
+      'sessions', // Better Auth
+      'verifications', // Better Auth
       'users',
       'locations',
       'tenants',
@@ -176,19 +180,49 @@ async function seedDatabase() {
       throw new Error('Failed to seed locations');
     }
 
-    // 5. Users
-    console.log('👥 Creating users...');
-    const users = await db.insert(schema.users).values([
-      {
-        authUserId: faker.string.uuid(),
-        tenantId: tenantDemo.id,
-        email: faker.internet.email(),
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
-        role: 'admin',
-        locationId: locationCentral.id,
-        isActive: true
-      },
+    // 5. Users with Better Auth
+    console.log('👥 Creating users with Better Auth...');
+
+    // Create admin user with Better Auth
+    const adminUserId = randomUUID();
+    const adminPassword = 'admin123'; // Default password for seeding
+
+    // Hash password using Better Auth's built-in hashing
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+    const [userAdmin] = await db.insert(schema.users).values({
+      id: adminUserId,
+      authUserId: adminUserId, // Use same ID for Better Auth compatibility
+      tenantId: tenantDemo.id,
+      email: 'admin@cafe.com',
+      username: 'admin',
+      displayUsername: 'Admin',
+      firstName: 'System',
+      lastName: 'Administrator',
+      role: 'admin',
+      locationId: locationCentral.id,
+      isActive: true,
+      emailVerified: true,
+    }).returning();
+
+    if (!userAdmin) {
+      throw new Error('Failed to create admin user');
+    }
+
+    // Create Better Auth account for admin
+    await db.insert(schema.accounts).values({
+      id: randomUUID(),
+      userId: userAdmin.id,
+      accountId: userAdmin.id,
+      providerId: 'credential',
+      password: hashedPassword,
+    });
+
+    console.log(`✅ Admin user created - Username: admin, Password: ${adminPassword}`);
+
+    // Create additional users
+    const [userManager, userBarista] = await db.insert(schema.users).values([
       {
         authUserId: faker.string.uuid(),
         tenantId: tenantDemo.id,
@@ -197,7 +231,8 @@ async function seedDatabase() {
         lastName: faker.person.lastName(),
         role: 'manager',
         locationId: locationOutlet1.id,
-        isActive: true
+        isActive: true,
+        emailVerified: false,
       },
       {
         authUserId: faker.string.uuid(),
@@ -207,11 +242,12 @@ async function seedDatabase() {
         lastName: faker.person.lastName(),
         role: 'barista',
         locationId: locationOutlet1.id,
-        isActive: true
+        isActive: true,
+        emailVerified: false,
       }
     ]).returning();
 
-    const [userAdmin, , userBarista] = users;
+    const users = [userAdmin, userManager, userBarista];
     if (!userAdmin || !userBarista) {
       throw new Error('Failed to seed core users');
     }
@@ -219,11 +255,11 @@ async function seedDatabase() {
     // 6. UoM & Conversions
     console.log('📏 Creating units of measure...');
     const uoms = await db.insert(schema.uoms).values([
-      { code: 'PCS', name: 'Pieces', symbol: 'pc', kind: 'count' },
-      { code: 'KG', name: 'Kilogram', symbol: 'kg', kind: 'weight' },
-      { code: 'L', name: 'Liter', symbol: 'L', kind: 'volume' },
-      { code: 'ML', name: 'Milliliter', symbol: 'ml', kind: 'volume' },
-      { code: 'G', name: 'Gram', symbol: 'g', kind: 'weight' }
+      { tenantId: tenantDemo.id, code: 'PCS', name: 'Pieces', symbol: 'pc', uomType: 'count', description: 'Individual pieces or units', isActive: true },
+      { tenantId: tenantDemo.id, code: 'KG', name: 'Kilogram', symbol: 'kg', uomType: 'weight', description: 'Weight in kilograms', isActive: true },
+      { tenantId: tenantDemo.id, code: 'L', name: 'Liter', symbol: 'L', uomType: 'volume', description: 'Volume in liters', isActive: true },
+      { tenantId: tenantDemo.id, code: 'ML', name: 'Milliliter', symbol: 'ml', uomType: 'volume', description: 'Volume in milliliters', isActive: true },
+      { tenantId: tenantDemo.id, code: 'G', name: 'Gram', symbol: 'g', uomType: 'weight', description: 'Weight in grams', isActive: true }
     ]).returning();
 
     const [uomPcs, uomKg, uomLiter, uomMl, uomGram] = uoms;
@@ -232,8 +268,8 @@ async function seedDatabase() {
     }
 
     await db.insert(schema.uomConversions).values([
-      { fromUomId: uomKg.id, toUomId: uomGram.id, factor: "1000" },
-      { fromUomId: uomLiter.id, toUomId: uomMl.id, factor: "1000" }
+      { tenantId: tenantDemo.id, fromUomId: uomKg.id, toUomId: uomGram.id, factor: "1000" },
+      { tenantId: tenantDemo.id, fromUomId: uomLiter.id, toUomId: uomMl.id, factor: "1000" }
     ]);
 
     // 7. Suppliers
