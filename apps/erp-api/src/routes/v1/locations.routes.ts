@@ -220,9 +220,8 @@ export function locationRoutes(fastify: FastifyInstance) {
       const currentUser = getCurrentUser(request);
       const query = request.query;
 
-      const page = query.page || 1;
       const limit = query.limit || 50;
-      const offset = (page - 1) * limit;
+      const offset = query.offset || 0;
 
       // Build where conditions
       const conditions = [eq(locations.tenantId, currentUser.tenantId)];

@@ -32,8 +32,7 @@ export const orderService = {
     const filters: Record<string, unknown> = { tenantId: context.tenantId };
     if (query.status) filters.status = query.status;
     if (query.channel) filters.channel = query.channel;
-    if (query.type) filters.type = query.type;
-    if (query.kitchenStatus) filters.kitchenStatus = query.kitchenStatus;
+    if (query.orderType) filters.orderType = query.orderType;
     if (query.locationId) filters.locationId = query.locationId;
     if (query.customerId) filters.customerId = query.customerId;
 
@@ -88,7 +87,7 @@ export const orderService = {
       orderNumber,
       locationId: body.locationId,
       channel: body.channel,
-      type: body.type,
+      type: body.orderType, // Map contract's orderType to DB's type field
       subtotal: subtotal.toString(),
       taxAmount: taxAmount.toString(),
       discountAmount: "0",
@@ -97,7 +96,7 @@ export const orderService = {
       voucherAmount: "0",
       totalAmount: totalAmount.toString(),
       status: "open",
-      kitchenStatus: "open",
+      kitchenStatus: "open", // Database field, not in contract
       createdBy: context.userId,
     });
 
@@ -225,12 +224,19 @@ export const orderService = {
       return null;
     }
 
+    // TODO: Implement proper multi-tender support - contract expects array of tenders
+    // For now, using first tender as a minimal fix
+    const firstTender = body.tenders[0];
+    if (!firstTender) {
+      throw new Error("At least one payment tender is required");
+    }
+
     return orderRepository.insertPayment({
       orderId,
-      tender: body.tender,
-      amount: body.amount.toString(),
-      reference: body.reference ?? null,
-      change: body.change.toString(),
+      tender: firstTender.paymentMethod,
+      amount: firstTender.amount.toString(),
+      reference: firstTender.transactionRef ?? null,
+      change: firstTender.changeGiven?.toString() ?? "0",
       createdBy: context.userId,
     });
   },
