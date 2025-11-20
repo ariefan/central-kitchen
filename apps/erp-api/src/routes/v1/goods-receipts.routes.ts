@@ -7,6 +7,7 @@ import {
 } from '@/modules/shared/responses.js';
 import {
   goodsReceiptCreateSchema,
+  goodsReceiptUpdateSchema,
   goodsReceiptResponseSchema,
   goodsReceiptsResponseSchema,
   goodsReceiptQuerySchema,
@@ -83,6 +84,47 @@ export function goodsReceiptRoutes(fastify: FastifyInstance) {
         return createNotFoundError('Failed to create goods receipt', reply);
       }
       return reply.status(201).send(createSuccessResponse(result, 'Goods receipt created successfully'));
+    }
+  );
+
+  // PUT /api/v1/goods-receipts/:id - Update goods receipt (draft only)
+  fastify.put(
+    '/:id',
+    {
+      schema: {
+        description: 'Update a goods receipt (only draft receipts can be updated)',
+        tags: ['Goods Receipts'],
+        params: z.object({ id: z.string().uuid() }),
+        body: goodsReceiptUpdateSchema,
+        response: {
+          200: goodsReceiptResponseSchema,
+          404: notFoundResponseSchema,
+        },
+      },
+    },
+    async (request: FastifyRequest<{
+      Params: { id: string };
+      Body: z.infer<typeof goodsReceiptUpdateSchema>
+    }>, reply: FastifyReply) => {
+      const context = buildRequestContext(request);
+      try {
+        const result = await goodsReceiptService.update(request.params.id, request.body, context);
+        if (!result) {
+          return createNotFoundError('Goods receipt not found', reply);
+        }
+        return reply.send(createSuccessResponse(result, 'Goods receipt updated successfully'));
+      } catch (error) {
+        if (error instanceof Error && error.message === 'Cannot update a posted goods receipt') {
+          return reply.status(400).send({
+            success: false,
+            error: {
+              message: error.message,
+              code: 'BAD_REQUEST',
+            },
+          });
+        }
+        throw error;
+      }
     }
   );
 

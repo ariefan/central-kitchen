@@ -16,6 +16,10 @@ export const goodsReceiptCreateSchema = z.object({
   items: z.array(goodsReceiptItemSchema).min(1, 'At least one item is required'),
 });
 
+export const goodsReceiptUpdateSchema = goodsReceiptCreateSchema
+  .omit({ items: true, purchaseOrderId: true })
+  .partial();
+
 export const goodsReceiptQuerySchema = baseQuerySchema.merge(z.object({
   locationId: z.string().uuid().optional(),
   purchaseOrderId: z.string().uuid().optional(),

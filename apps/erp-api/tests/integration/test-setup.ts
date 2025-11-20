@@ -7,7 +7,7 @@ loadEnv({ path: '.env', override: false });
 loadEnv({ path: '.env.test', override: true });
 
 // Force test database URL for all tests
-process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/erp-api'; // Use development database temporarily
+process.env.DATABASE_URL = 'postgresql://postgres@localhost:5432/erp_test'; // Use test database
 // Use real authentication in tests - no bypass
 process.env.BYPASS_AUTH_FOR_TESTS = 'false';
 
