@@ -20,8 +20,8 @@ import { z } from 'zod';
  * @property offset - Number of items to skip (default: 0)
  */
 export const paginationSchema = z.object({
-  limit: z.coerce.number().int().positive().max(1000).default(20),
-  offset: z.coerce.number().int().nonnegative().default(0),
+  limit: z.coerce.number().int().positive().max(1000).optional().default(20),
+  offset: z.coerce.number().int().nonnegative().optional().default(0),
 });
 
 /**
@@ -52,7 +52,7 @@ export type PaginationMeta = z.infer<typeof paginationMetaSchema>;
  */
 export const sortSchema = z.object({
   sortBy: z.string().optional(),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
 export type SortParams = z.infer<typeof sortSchema>;

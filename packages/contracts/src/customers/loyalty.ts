@@ -390,8 +390,8 @@ export function determineLoyaltyTier(
   lifetimePoints: number,
   tierConfigs: Record<string, LoyaltyTierConfig> = DEFAULT_TIER_CONFIGS
 ): string {
-  if (lifetimePoints >= tierConfigs.gold.minLifetimePoints) return 'gold';
-  if (lifetimePoints >= tierConfigs.silver.minLifetimePoints) return 'silver';
+  if (tierConfigs.gold && lifetimePoints >= tierConfigs.gold.minLifetimePoints) return 'gold';
+  if (tierConfigs.silver && lifetimePoints >= tierConfigs.silver.minLifetimePoints) return 'silver';
   return 'bronze';
 }
 
@@ -422,10 +422,10 @@ export function calculatePointsToNextTier(
 ): number | null {
   const currentTier = determineLoyaltyTier(lifetimePoints, tierConfigs);
 
-  if (currentTier === 'bronze') {
+  if (currentTier === 'bronze' && tierConfigs.silver) {
     return tierConfigs.silver.minLifetimePoints - lifetimePoints;
   }
-  if (currentTier === 'silver') {
+  if (currentTier === 'silver' && tierConfigs.gold) {
     return tierConfigs.gold.minLifetimePoints - lifetimePoints;
   }
   // Gold tier - no next tier
@@ -532,7 +532,7 @@ export function calculateTierProgress(
   const currentTier = determineLoyaltyTier(lifetimePoints, tierConfigs);
   const tierConfig = tierConfigs[currentTier];
 
-  if (!tierConfig.maxLifetimePoints) return 100; // Gold tier - 100%
+  if (!tierConfig || !tierConfig.maxLifetimePoints) return 100; // Gold tier or missing config - 100%
 
   const tierMin = tierConfig.minLifetimePoints;
   const tierMax = tierConfig.maxLifetimePoints;

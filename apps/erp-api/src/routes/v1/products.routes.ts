@@ -345,10 +345,10 @@ export function productRoutes(fastify: FastifyInstance) {
             total: count,
             limit,
             offset,
-            currentPage: page,
+            currentPage: Math.floor(offset / limit) + 1,
             totalPages: Math.ceil(count / limit),
-            hasNext: page < Math.ceil(count / limit),
-            hasPrev: page > 1,
+            hasNext: offset + limit < count,
+            hasPrev: offset > 0,
           },
         })
       );

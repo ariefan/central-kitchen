@@ -10,7 +10,7 @@ import type {
   LocationCreate,
   LocationUpdate,
   LocationQuery,
-  LocationDeleteResponse,
+  DeleteResponse,
 } from '@contracts/erp';
 
 /**
@@ -88,7 +88,7 @@ export function useDeleteLocation() {
 
   return useMutation({
     mutationFn: (id: string) =>
-      del<LocationDeleteResponse>(`/api/v1/locations/${id}`),
+      del<DeleteResponse>(`/api/v1/locations/${id}`),
     onSuccess: () => {
       // Invalidate locations list
       queryClient.invalidateQueries({ queryKey: locationKeys.lists() });
