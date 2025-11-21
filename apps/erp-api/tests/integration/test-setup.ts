@@ -1,348 +1,158 @@
-import { config as loadEnv } from 'dotenv';
-import { randomUUID } from 'crypto';
-import { eq, and } from 'drizzle-orm';
+import { beforeAll, afterAll, beforeEach } from 'vitest';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import pg from 'pg';
+import * as schema from '../../src/config/schema';
+import { build } from '../../src/app';
+import type { FastifyInstance } from 'fastify';
 
-// Load test environment variables with override FIRST
-loadEnv({ path: '.env', override: false });
-loadEnv({ path: '.env.test', override: true });
+const { Pool } = pg;
 
-// Force test database URL for all tests
-process.env.DATABASE_URL = 'postgresql://postgres@localhost:5432/erp_test'; // Use test database
-// Use real authentication in tests - no bypass
-process.env.BYPASS_AUTH_FOR_TESTS = 'false';
+// Test database connection
+const TEST_DB_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/erp-test';
 
-// Import app and database AFTER setting environment variables
-let build;
-let db;
-let schema;
-try {
-  build = (await import('../../src/app')).build;
-  db = (await import('../../src/config/database.js')).db;
-  schema = await import('../../src/config/schema.js');
-} catch (error) {
-  // Fallback for different import patterns
-  build = (await import('../../src/app.js')).build;
-  db = (await import('../../src/config/database.js')).db;
-  schema = await import('../../src/config/schema.js');
+let pool: pg.Pool;
+let db: ReturnType<typeof drizzle>;
+let app: FastifyInstance;
+
+// Test user context
+export const testTenantId = '00000000-0000-0000-0000-000000000001';
+export const testUserId = '00000000-0000-0000-0000-000000000002';
+export const testLocationId = '00000000-0000-0000-0000-000000000003';
+
+export interface TestContext {
+  db: typeof db;
+  tenantId: string;
+  userId: string;
+  locationId: string;
 }
 
-let app: any;
-let testDataCreated = false;
-let authCookies: string | null = null;
+beforeAll(async () => {
+  // Create connection pool
+  pool = new Pool({
+    connectionString: TEST_DB_URL,
+  });
 
-export async function getTestApp() {
-  if (!app) {
-    console.log('Building test app with DATABASE_URL:', process.env.DATABASE_URL);
-    app = await build();
-    await app.ready();
-    await createTestData();
+  // Initialize drizzle
+  db = drizzle(pool, { schema });
+
+  // Run migrations
+  await migrate(db, { migrationsFolder: './drizzle' });
+
+  // Seed test tenant, user, and location
+  await seedTestData();
+
+  // Build Fastify app
+  app = await build();
+  await app.ready();
+});
+
+afterAll(async () => {
+  // Clean up
+  if (app) {
+    await app.close();
   }
+  await pool.end();
+});
+
+beforeEach(async () => {
+  // Clean transactional data before each test
+  await cleanTransactionalData();
+});
+
+async function seedTestData() {
+  // Insert test tenant
+  await pool.query(`
+    INSERT INTO erp.tenants (id, org_id, name, slug, is_active)
+    VALUES ($1, 'test-org', 'Test Organization', 'test-org', true)
+    ON CONFLICT (id) DO NOTHING
+  `, [testTenantId]);
+
+  // Insert test location
+  await pool.query(`
+    INSERT INTO erp.locations (id, tenant_id, code, name, type, is_active)
+    VALUES ($1, $2, 'LOC-001', 'Test Location', 'central_kitchen', true)
+    ON CONFLICT (id) DO NOTHING
+  `, [testLocationId, testTenantId]);
+
+  // Insert test user
+  await pool.query(`
+    INSERT INTO erp.users (id, tenant_id, auth_user_id, email, first_name, last_name, role, is_active)
+    VALUES ($1, $2, 'test-auth-user', 'test@example.com', 'Test', 'User', 'admin', true)
+    ON CONFLICT (tenant_id, email) DO UPDATE
+    SET id = $1, auth_user_id = 'test-auth-user', first_name = 'Test', last_name = 'User', role = 'admin', is_active = true
+  `, [testUserId, testTenantId]);
+
+  // Insert base UOMs
+  await pool.query(`
+    INSERT INTO erp.uoms (id, tenant_id, code, name, uom_type, is_active)
+    VALUES
+      ('00000000-0000-0000-0000-000000000010', $1, 'EA', 'Each', 'count', true),
+      ('00000000-0000-0000-0000-000000000011', $1, 'KG', 'Kilogram', 'weight', true),
+      ('00000000-0000-0000-0000-000000000012', $1, 'L', 'Liter', 'volume', true)
+    ON CONFLICT (id) DO NOTHING
+  `, [testTenantId]);
+}
+
+async function cleanTransactionalData() {
+  // Delete transactional data in correct order (respecting FK constraints)
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DELETE FROM erp.stock_ledger WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.cost_layer_consumptions');
+    await client.query('DELETE FROM erp.cost_layers WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.order_items WHERE order_id IN (SELECT id FROM erp.orders WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.orders WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.goods_receipt_items WHERE goods_receipt_id IN (SELECT id FROM erp.goods_receipts WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.goods_receipts WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.purchase_order_items WHERE purchase_order_id IN (SELECT id FROM erp.purchase_orders WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.purchase_orders WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.transfer_items WHERE transfer_id IN (SELECT id FROM erp.transfers WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.transfers WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.requisition_items WHERE requisition_id IN (SELECT id FROM erp.requisitions WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.requisitions WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.stock_adjustment_items WHERE adjustment_id IN (SELECT id FROM erp.stock_adjustments WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.stock_adjustments WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.stock_count_lines WHERE count_id IN (SELECT id FROM erp.stock_counts WHERE tenant_id = $1)', [testTenantId]);
+    await client.query('DELETE FROM erp.stock_counts WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.production_orders WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.lots WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.suppliers WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.products WHERE tenant_id = $1', [testTenantId]);
+    await client.query('DELETE FROM erp.locations WHERE tenant_id = $1 AND id != $2', [testTenantId, testLocationId]);
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+export function getTestContext(): TestContext {
+  return {
+    db,
+    tenantId: testTenantId,
+    userId: testUserId,
+    locationId: testLocationId,
+  };
+}
+
+export function getApp(): FastifyInstance {
   return app;
 }
 
-/**
- * Login and get authentication cookies for testing
- */
-export async function loginTestUser(username: string = 'admin', password: string = 'admin123') {
-  if (!app) {
-    app = await getTestApp();
-  }
-
-  const response = await app.inject({
-    method: 'POST',
-    url: '/api/auth/sign-in/username',
+// Helper to create test API request
+export function createTestRequest(method: string, path: string, body?: any) {
+  return {
+    method,
+    url: path,
     headers: {
-      'Content-Type': 'application/json'
+      'content-type': 'application/json',
+      'x-tenant-id': testTenantId,
+      'x-user-id': testUserId,
     },
-    payload: {
-      username,
-      password
-    }
-  });
-
-  if (response.statusCode !== 200) {
-    throw new Error(`Login failed: ${response.statusCode} - ${response.body}`);
-  }
-
-  // Extract cookies from response
-  const setCookieHeader = response.headers['set-cookie'];
-  if (setCookieHeader) {
-    const cookies = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
-    const cookieStrings = cookies.map((c: string) => c.split(';')[0]);
-    authCookies = cookieStrings.join('; ');
-    return authCookies;
-  }
-
-  throw new Error('No authentication cookies received from login');
-}
-
-/**
- * Get cached auth cookies (login if not already done)
- */
-export async function getAuthCookies() {
-  if (!authCookies) {
-    authCookies = await loginTestUser();
-  }
-  return authCookies;
-}
-
-/**
- * Clear cached auth cookies (force re-login)
- */
-export function clearAuthCookies() {
-  authCookies = null;
-}
-
-export async function createTestData() {
-  if (testDataCreated) {
-    return;
-  }
-
-  try {
-    // Import bcryptjs for password hashing
-    const bcrypt = await import('bcryptjs');
-
-    // Check if test tenant exists
-    const existingTenant = await db.query.tenants.findFirst({
-      where: eq(schema.tenants.name, 'Test Tenant')
-    });
-
-    let tenant;
-    if (existingTenant) {
-      tenant = existingTenant;
-    } else {
-      // Create test tenant
-      [tenant] = await db.insert(schema.tenants).values({
-        id: randomUUID(),
-        name: 'Test Tenant',
-        slug: 'test-tenant',
-        orgId: randomUUID(),
-        isActive: true,
-      }).returning();
-    }
-
-    // Check if test location exists
-    const existingLocation = await db.query.locations.findFirst({
-      where: eq(schema.locations.code, 'TEST-LOC')
-    });
-
-    let location;
-    if (existingLocation) {
-      location = existingLocation;
-    } else {
-      // Create test location
-      [location] = await db.insert(schema.locations).values({
-        id: randomUUID(),
-        tenantId: tenant.id,
-        code: 'TEST-LOC',
-        name: 'Test Location',
-        type: 'warehouse',
-        isActive: true,
-      }).returning();
-    }
-
-    // Check if admin user exists
-    const existingAdmin = await db.query.users.findFirst({
-      where: eq(schema.users.username, 'admin')
-    });
-
-    let adminUser;
-    if (existingAdmin) {
-      adminUser = existingAdmin;
-    } else {
-      // Create admin user
-      const adminUserId = randomUUID();
-      const adminPassword = 'admin123';
-      const hashedPassword = await bcrypt.hash(adminPassword, 10);
-
-      [adminUser] = await db.insert(schema.users).values({
-        id: adminUserId,
-        authUserId: adminUserId,
-        tenantId: tenant.id,
-        email: 'admin@test.com',
-        username: 'admin',
-        displayUsername: 'Admin',
-        firstName: 'Test',
-        lastName: 'Admin',
-        role: 'admin',
-        locationId: location.id,
-        isActive: true,
-        emailVerified: true,
-      }).returning();
-
-      // Create Better Auth account for admin
-      await db.insert(schema.accounts).values({
-        id: randomUUID(),
-        userId: adminUser.id,
-        accountId: adminUser.id,
-        providerId: 'credential',
-        password: hashedPassword,
-      });
-    }
-
-    await ensureCoreFixtures(tenant.id);
-
-    console.log('✅ Test data created: admin user with username="admin", password="admin123" plus domain fixtures');
-    testDataCreated = true;
-  } catch (error) {
-    console.error('Failed to create test data:', error);
-    throw error;
-  }
-}
-
-export async function closeTestApp() {
-  if (app) {
-    await app.close();
-    app = null;
-  }
-  testDataCreated = false;
-  authCookies = null;
-}
-
-async function ensureCoreFixtures(tenantId: string) {
-  const pcsUom = await ensureUom('PCS', 'Pieces', 'pc', 'count');
-  const kgUom = await ensureUom('KG', 'Kilogram', 'kg', 'weight');
-
-  await ensureProduct(tenantId, {
-    sku: 'TEST-RM-001',
-    name: 'Test Raw Material',
-    kind: 'raw_material',
-    baseUomId: kgUom.id,
-    standardCost: '50000',
-    defaultPrice: '60000',
-  });
-
-  await ensureProduct(tenantId, {
-    sku: 'TEST-FG-001',
-    name: 'Test Finished Good',
-    kind: 'finished_good',
-    baseUomId: pcsUom.id,
-    standardCost: '75000',
-    defaultPrice: '100000',
-  });
-
-  await ensureSupplier(tenantId);
-  const customer = await ensureCustomer(tenantId);
-  await ensureCustomerAddress(customer.id);
-}
-
-async function ensureUom(code: string, name: string, symbol: string, kind: string) {
-  const existing = await db.query.uoms.findFirst({
-    where: eq(schema.uoms.code, code),
-  });
-  if (existing) {
-    return existing;
-  }
-  const [created] = await db.insert(schema.uoms).values({
-    id: randomUUID(),
-    code,
-    name,
-    symbol,
-    kind,
-  }).returning();
-  return created;
-}
-
-type ProductSeedInput = {
-  sku: string;
-  name: string;
-  kind: string;
-  baseUomId: string;
-  standardCost?: string;
-  defaultPrice?: string;
-};
-
-async function ensureProduct(tenantId: string, input: ProductSeedInput) {
-  const existing = await db.query.products.findFirst({
-    where: and(
-      eq(schema.products.tenantId, tenantId),
-      eq(schema.products.sku, input.sku),
-    ),
-  });
-  if (existing) {
-    return existing;
-  }
-  const [product] = await db.insert(schema.products).values({
-    id: randomUUID(),
-    tenantId,
-    sku: input.sku,
-    name: input.name,
-    kind: input.kind,
-    baseUomId: input.baseUomId,
-    taxCategory: 'GENERAL',
-    standardCost: input.standardCost ?? '0',
-    defaultPrice: input.defaultPrice ?? '0',
-    isPerishable: false,
-    isActive: true,
-  }).returning();
-  return product;
-}
-
-async function ensureSupplier(tenantId: string) {
-  const existing = await db.query.suppliers.findFirst({
-    where: and(
-      eq(schema.suppliers.tenantId, tenantId),
-      eq(schema.suppliers.code, 'SUP-TEST-001'),
-    ),
-  });
-  if (existing) {
-    return existing;
-  }
-  const [supplier] = await db.insert(schema.suppliers).values({
-    id: randomUUID(),
-    tenantId,
-    code: 'SUP-TEST-001',
-    name: 'Test Supplier',
-    contactPerson: 'Test Contact',
-    email: 'supplier@test.com',
-    phone: '+62000000000',
-    paymentTerms: 30,
-    creditLimit: '10000000',
-    isActive: true,
-  }).returning();
-  return supplier;
-}
-
-async function ensureCustomer(tenantId: string) {
-  const existing = await db.query.customers.findFirst({
-    where: and(
-      eq(schema.customers.tenantId, tenantId),
-      eq(schema.customers.code, 'CUST-TEST-001'),
-    ),
-  });
-  if (existing) {
-    return existing;
-  }
-  const [customer] = await db.insert(schema.customers).values({
-    id: randomUUID(),
-    tenantId,
-    code: 'CUST-TEST-001',
-    name: 'Test Customer',
-    email: 'customer@test.com',
-    phone: '+62000000001',
-    city: 'Test City',
-    type: 'external',
-    isActive: true,
-  }).returning();
-  return customer;
-}
-
-async function ensureCustomerAddress(customerId: string) {
-  const existing = await db.query.addresses.findFirst({
-    where: eq(schema.addresses.customerId, customerId),
-  });
-  if (existing) {
-    return existing;
-  }
-  const [address] = await db.insert(schema.addresses).values({
-    id: randomUUID(),
-    customerId,
-    label: 'HQ',
-    line1: '123 Test Street',
-    city: 'Test City',
-    postalCode: '12345',
-    country: 'Testland',
-    isDefault: true,
-  }).returning();
-  return address;
+    body: body ? JSON.stringify(body) : undefined,
+  };
 }

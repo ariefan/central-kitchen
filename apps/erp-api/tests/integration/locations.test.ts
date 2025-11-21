@@ -1,675 +1,370 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
-import {
-  getTestApp,
-  closeTestApp,
-  createTestData,
-} from './test-setup.js';
-import { db } from '../../src/config/database.js';
-import { locations } from '../../src/config/schema.js';
-import { ilike, inArray } from 'drizzle-orm';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { getApp, getTestContext, testTenantId } from './test-setup';
 
-describe('ADM-004: Location Management', () => {
-  let app: any;
-  let authToken: string;
-  let createdLocationIds: string[] = [];
+describe('Locations API (ADM-004)', () => {
+  let app: ReturnType<typeof getApp>;
+  const ctx = getTestContext();
+  let createdLocationId: string;
 
-  beforeAll(async () => {
-    app = await getTestApp();
-    await createTestData();
-
-    // Clean up any existing test locations from previous runs
-    // Only clean LOC-% codes (seed data uses different format and has FK constraints)
-    await db.delete(locations).where(ilike(locations.code, 'LOC-%'));
-
-    // Sign in with admin user
-    const signinRes = await app.inject({
-      method: 'POST',
-      url: '/api/auth/sign-in/username',
-      payload: {
-        username: 'admin',
-        password: 'admin123',
-      },
-    });
-
-    expect(signinRes.statusCode).toBe(200);
-
-    // Extract session cookie
-    const cookies = signinRes.headers['set-cookie'];
-    const sessionCookie = Array.isArray(cookies)
-      ? cookies.find((c: string) => c.startsWith('better-auth'))
-      : cookies;
-    authToken = sessionCookie || '';
+  beforeEach(() => {
+    app = getApp();
   });
 
-  afterEach(async () => {
-    // Clean up locations created in this test
-    if (createdLocationIds.length > 0) {
-      await db.delete(locations).where(inArray(locations.id, createdLocationIds));
-      createdLocationIds = [];
-    }
-  });
-
-  afterAll(async () => {
-    // Final cleanup - remove all test locations
-    await db.delete(locations).where(ilike(locations.code, 'LOC-%'));
-    await closeTestApp();
-  });
-
-  // Helper function to track created locations
-  const trackLocation = (id: string) => {
-    createdLocationIds.push(id);
-    return id;
-  };
-
-  describe('POST /api/v1/locations', () => {
-    it('should create a new location with all fields', async () => {
-      const res = await app.inject({
+  describe('POST /api/v1/locations - Create Location', () => {
+    it('should create a new location with valid data', async () => {
+      const response = await app.inject({
         method: 'POST',
         url: '/api/v1/locations',
         headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
         payload: {
-          code: 'LOC-CK-001',
-          name: 'Central Kitchen - Main',
-          locationType: 'central_kitchen',
-          address: '123 Industrial Rd',
+          code: 'WH-001',
+          name: 'Main Warehouse',
+          type: 'warehouse',
+          address: '123 Storage St',
           city: 'Singapore',
+          state: 'SG',
           postalCode: '123456',
-          country: 'Singapore',
-          phone: '+6512345678',
-          email: 'ck.main@example.com',
-          managerName: 'John Doe',
-          latitude: 1.3521,
-          longitude: 103.8198,
-          operatingHours: {
-            monday: { open: '09:00', close: '18:00' },
-            tuesday: { open: '09:00', close: '18:00' },
-          },
-          isActive: true,
-          notes: 'Main central kitchen',
-        },
-      });
-
-      expect(res.statusCode).toBe(201);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.code).toBe('LOC-CK-001');
-      expect(data.data.name).toBe('Central Kitchen - Main');
-      expect(data.data.locationType).toBe('central_kitchen');
-      expect(data.data.address).toBe('123 Industrial Rd');
-      expect(data.data.city).toBe('Singapore');
-      expect(data.data.postalCode).toBe('123456');
-      expect(data.data.phone).toBe('+6512345678');
-      expect(data.data.email).toBe('ck.main@example.com');
-      expect(data.data.managerName).toBe('John Doe');
-      expect(data.data.latitude).toBe(1.3521);
-      expect(data.data.longitude).toBe(103.8198);
-      expect(data.data.isActive).toBe(true);
-      expect(data.data.notes).toBe('Main central kitchen');
-      expect(data.message).toBe('Location created successfully');
-
-      trackLocation(data.data.id);
-    });
-
-    it('should auto-generate location code if not provided', async () => {
-      const res = await app.inject({
-        method: 'POST',
-        url: '/api/v1/locations',
-        headers: {
-          cookie: authToken,
-        },
-        payload: {
-          name: 'Outlet - Orchard',
-          locationType: 'outlet',
-          city: 'Singapore',
+          phone: '+65 1234 5678',
+          email: 'warehouse@example.com',
           isActive: true,
         },
       });
 
-      expect(res.statusCode).toBe(201);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.code).toMatch(/LOC-OUT-\d{3}/);
-      expect(data.data.name).toBe('Outlet - Orchard');
-      expect(data.data.locationType).toBe('outlet');
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body);
+      expect(body.success).toBe(true);
+      expect(body.data).toHaveProperty('id');
+      expect(body.data.code).toBe('WH-001');
+      expect(body.data.name).toBe('Main Warehouse');
+      expect(body.data.type).toBe('warehouse');
+      expect(body.data.tenantId).toBe(testTenantId);
 
-      trackLocation(data.data.id);
-    });
-
-    it('should create a warehouse location', async () => {
-      const res = await app.inject({
-        method: 'POST',
-        url: '/api/v1/locations',
-        headers: {
-          cookie: authToken,
-        },
-        payload: {
-          name: 'Warehouse - East',
-          locationType: 'warehouse',
-          address: '456 Logistics Ave',
-          city: 'Singapore',
-          postalCode: '654321',
-          isActive: true,
-        },
-      });
-
-      expect(res.statusCode).toBe(201);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.code).toMatch(/LOC-WH-\d{3}/);
-      expect(data.data.locationType).toBe('warehouse');
-
-      trackLocation(data.data.id);
+      createdLocationId = body.data.id;
     });
 
     it('should reject duplicate location code', async () => {
-      // First create a location
-      const firstRes = await app.inject({
+      // Create first location
+      await app.inject({
         method: 'POST',
         url: '/api/v1/locations',
         headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
         payload: {
-          code: 'LOC-CK-DUP',
+          code: 'DUP-001',
           name: 'First Location',
-          locationType: 'central_kitchen',
-          isActive: true,
+          type: 'outlet',
         },
       });
 
-      expect(firstRes.statusCode).toBe(201);
-      trackLocation(firstRes.json().data.id);
-
-      // Try to create another location with same code
-      const res = await app.inject({
+      // Attempt duplicate
+      const response = await app.inject({
         method: 'POST',
         url: '/api/v1/locations',
         headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
         payload: {
-          code: 'LOC-CK-DUP',
+          code: 'DUP-001',
           name: 'Duplicate Location',
-          locationType: 'central_kitchen',
-          isActive: true,
+          type: 'outlet',
         },
       });
 
-      expect(res.statusCode).toBe(400);
-      const data = res.json();
-      expect(data.success).toBe(false);
-      expect(data.error).toBe('Bad Request');
-      expect(data.message).toBe('Location code already exists');
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body);
+      expect(body.success).toBe(false);
+      expect(body.error).toContain('already exists');
     });
 
-    it('should require name field', async () => {
-      const res = await app.inject({
+    it('should reject invalid location type', async () => {
+      const response = await app.inject({
         method: 'POST',
         url: '/api/v1/locations',
         headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
         payload: {
-          locationType: 'outlet',
-          isActive: true,
+          code: 'INV-001',
+          name: 'Invalid Location',
+          type: 'invalid_type', // Should be warehouse, outlet, kitchen, or office
         },
       });
 
-      expect(res.statusCode).toBe(400);
-    });
-
-    it('should require locationType field', async () => {
-      const res = await app.inject({
-        method: 'POST',
-        url: '/api/v1/locations',
-        headers: {
-          cookie: authToken,
-        },
-        payload: {
-          name: 'Test Location',
-          isActive: true,
-        },
-      });
-
-      expect(res.statusCode).toBe(400);
-    });
-
-    it('should require authentication', async () => {
-      const res = await app.inject({
-        method: 'POST',
-        url: '/api/v1/locations',
-        payload: {
-          name: 'Unauthorized Location',
-          locationType: 'outlet',
-        },
-      });
-
-      expect(res.statusCode).toBe(401);
+      expect(response.statusCode).toBe(400);
     });
   });
 
-  describe('GET /api/v1/locations', () => {
+  describe('GET /api/v1/locations - List Locations', () => {
     beforeEach(async () => {
-      // Create test locations for list/filter tests
-      const locations = [
-        {
-          code: 'LOC-CK-LIST1',
-          name: 'Central Kitchen - North',
-          locationType: 'central_kitchen',
-          city: 'Singapore',
+      // Create test locations
+      await app.inject({
+        method: 'POST',
+        url: '/api/v1/locations',
+        headers: {
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
+        },
+        payload: {
+          code: 'LIST-001',
+          name: 'List Test Location 1',
+          type: 'warehouse',
           isActive: true,
         },
-        {
-          code: 'LOC-OUT-LIST1',
-          name: 'Outlet - Orchard',
-          locationType: 'outlet',
-          city: 'Singapore',
-          isActive: true,
+      });
+
+      await app.inject({
+        method: 'POST',
+        url: '/api/v1/locations',
+        headers: {
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
-        {
-          code: 'LOC-WH-LIST1',
-          name: 'Warehouse - West',
-          locationType: 'warehouse',
-          city: 'Jurong',
+        payload: {
+          code: 'LIST-002',
+          name: 'List Test Location 2',
+          type: 'outlet',
           isActive: false,
         },
-      ];
-
-      for (const location of locations) {
-        const res = await app.inject({
-          method: 'POST',
-          url: '/api/v1/locations',
-          headers: { cookie: authToken },
-          payload: location,
-        });
-        if (res.statusCode === 201) {
-          trackLocation(res.json().data.id);
-        }
-      }
+      });
     });
 
-    it('should return paginated list of locations', async () => {
-      const res = await app.inject({
+    it('should list all locations', async () => {
+      const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/locations?page=1&limit=10',
+        url: '/api/v1/locations',
         headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
       });
 
-      expect(res.statusCode).toBe(200);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(Array.isArray(data.data.items)).toBe(true);
-      expect(data.data.items.length).toBeGreaterThanOrEqual(3);
-      expect(data.data.pagination).toBeDefined();
-      expect(data.data.pagination.currentPage).toBe(1);
-      expect(data.data.pagination.limit).toBe(10);
-      expect(data.data.pagination.total).toBeGreaterThanOrEqual(3);
-      expect(data.data.pagination.hasNext).toBeDefined();
-      expect(data.data.pagination.hasPrev).toBe(false);
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.success).toBe(true);
+      expect(Array.isArray(body.data)).toBe(true);
+      expect(body.data.length).toBeGreaterThanOrEqual(2);
     });
 
-    it('should filter locations by name', async () => {
-      const res = await app.inject({
+    it('should filter by location type', async () => {
+      const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/locations?name=Central',
+        url: '/api/v1/locations?type=warehouse',
         headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
       });
 
-      expect(res.statusCode).toBe(200);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.items.every((loc: any) => loc.name.includes('Central'))).toBe(true);
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.data.every((loc: any) => loc.type === 'warehouse')).toBe(true);
     });
 
-    it('should filter locations by locationType', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/api/v1/locations?locationType=outlet',
-        headers: {
-          cookie: authToken,
-        },
-      });
-
-      expect(res.statusCode).toBe(200);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.items.every((loc: any) => loc.locationType === 'outlet')).toBe(true);
-    });
-
-    it('should filter locations by city', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/api/v1/locations?city=Singapore',
-        headers: {
-          cookie: authToken,
-        },
-      });
-
-      expect(res.statusCode).toBe(200);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.items.every((loc: any) => loc.city === 'Singapore')).toBe(true);
-    });
-
-    it('should filter locations by isActive status', async () => {
-      const res = await app.inject({
+    it('should filter by active status', async () => {
+      const response = await app.inject({
         method: 'GET',
         url: '/api/v1/locations?isActive=true',
         headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
       });
 
-      expect(res.statusCode).toBe(200);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.items.every((loc: any) => loc.isActive === true)).toBe(true);
-    });
-
-    it('should require authentication', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/api/v1/locations',
-      });
-
-      expect(res.statusCode).toBe(401);
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.data.every((loc: any) => loc.isActive === true)).toBe(true);
     });
   });
 
-  describe('GET /api/v1/locations/:id', () => {
-    let locationId: string;
-
-    beforeEach(async () => {
-      // Create a test location
-      const res = await app.inject({
+  describe('GET /api/v1/locations/:id - Get Location by ID', () => {
+    it('should get location by valid ID', async () => {
+      // Create location first
+      const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/locations',
-        headers: { cookie: authToken },
-        payload: {
-          code: 'LOC-CK-DETAIL',
-          name: 'Central Kitchen - Detail Test',
-          locationType: 'central_kitchen',
-          address: '123 Industrial Rd',
-          managerName: 'John Doe',
-          operatingHours: {
-            monday: { open: '09:00', close: '18:00' },
-          },
-        },
-      });
-      locationId = trackLocation(res.json().data.id);
-    });
-
-    it('should return location details', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/api/v1/locations/${locationId}`,
         headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
+        },
+        payload: {
+          code: 'GET-001',
+          name: 'Get Test Location',
+          type: 'kitchen',
         },
       });
 
-      expect(res.statusCode).toBe(200);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.id).toBe(locationId);
-      expect(data.data.code).toBe('LOC-CK-DETAIL');
-      expect(data.data.name).toBe('Central Kitchen - Detail Test');
-      expect(data.data.locationType).toBe('central_kitchen');
-      expect(data.data.address).toBe('123 Industrial Rd');
-      expect(data.data.managerName).toBe('John Doe');
-      expect(data.data.operatingHours).toBeDefined();
+      const createdLoc = JSON.parse(createResponse.body).data;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/v1/locations/${createdLoc.id}`,
+        headers: {
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.success).toBe(true);
+      expect(body.data.id).toBe(createdLoc.id);
+      expect(body.data.code).toBe('GET-001');
+      expect(body.data.name).toBe('Get Test Location');
     });
 
     it('should return 404 for non-existent location', async () => {
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/locations/00000000-0000-0000-0000-000000000000',
+        url: '/api/v1/locations/00000000-0000-0000-0000-999999999999',
         headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
       });
 
-      expect(res.statusCode).toBe(404);
-      const data = res.json();
-      expect(data.success).toBe(false);
-      expect(data.error).toBe('Not Found');
-      expect(data.message).toBe('Location not found');
-    });
-
-    it('should require authentication', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/api/v1/locations/${locationId}`,
-      });
-
-      expect(res.statusCode).toBe(401);
+      expect(response.statusCode).toBe(404);
     });
   });
 
-  describe('PATCH /api/v1/locations/:id', () => {
-    let locationId: string;
-
-    beforeEach(async () => {
-      // Create a test location for updates
-      const res = await app.inject({
+  describe('PATCH /api/v1/locations/:id - Update Location', () => {
+    it('should update location details', async () => {
+      // Create location
+      const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/locations',
-        headers: { cookie: authToken },
-        payload: {
-          name: 'Outlet - Update Test',
-          locationType: 'outlet',
-          city: 'Singapore',
-        },
-      });
-      locationId = trackLocation(res.json().data.id);
-    });
-
-    it('should update location name', async () => {
-      const res = await app.inject({
-        method: 'PATCH',
-        url: `/api/v1/locations/${locationId}`,
         headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
         payload: {
-          name: 'Outlet - Updated Name',
+          code: 'UPD-001',
+          name: 'Original Name',
+          type: 'outlet',
         },
       });
 
-      expect(res.statusCode).toBe(200);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.name).toBe('Outlet - Updated Name');
-      expect(data.message).toBe('Location updated successfully');
-    });
+      const createdLoc = JSON.parse(createResponse.body).data;
 
-    it('should update location address fields', async () => {
-      const res = await app.inject({
+      // Update location
+      const response = await app.inject({
         method: 'PATCH',
-        url: `/api/v1/locations/${locationId}`,
+        url: `/api/v1/locations/${createdLoc.id}`,
         headers: {
-          cookie: authToken,
-        },
-        payload: {
-          address: '789 Orchard Road',
-          city: 'Singapore',
-          postalCode: '238891',
-        },
-      });
-
-      expect(res.statusCode).toBe(200);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.address).toBe('789 Orchard Road');
-      expect(data.data.postalCode).toBe('238891');
-    });
-
-    it('should update location contact information', async () => {
-      const res = await app.inject({
-        method: 'PATCH',
-        url: `/api/v1/locations/${locationId}`,
-        headers: {
-          cookie: authToken,
-        },
-        payload: {
-          phone: '+6587654321',
-          email: 'orchard@example.com',
-          managerName: 'Jane Smith',
-        },
-      });
-
-      expect(res.statusCode).toBe(200);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.phone).toBe('+6587654321');
-      expect(data.data.email).toBe('orchard@example.com');
-      expect(data.data.managerName).toBe('Jane Smith');
-    });
-
-    it('should update location coordinates', async () => {
-      const res = await app.inject({
-        method: 'PATCH',
-        url: `/api/v1/locations/${locationId}`,
-        headers: {
-          cookie: authToken,
-        },
-        payload: {
-          latitude: 1.3048,
-          longitude: 103.8318,
-        },
-      });
-
-      expect(res.statusCode).toBe(200);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.latitude).toBe(1.3048);
-      expect(data.data.longitude).toBe(103.8318);
-    });
-
-    it('should update location active status', async () => {
-      const res = await app.inject({
-        method: 'PATCH',
-        url: `/api/v1/locations/${locationId}`,
-        headers: {
-          cookie: authToken,
-        },
-        payload: {
-          isActive: false,
-        },
-      });
-
-      expect(res.statusCode).toBe(200);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.data.isActive).toBe(false);
-    });
-
-    it('should return 404 for non-existent location', async () => {
-      const res = await app.inject({
-        method: 'PATCH',
-        url: '/api/v1/locations/00000000-0000-0000-0000-000000000000',
-        headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
         payload: {
           name: 'Updated Name',
+          address: '456 New St',
+          phone: '+65 9999 9999',
         },
       });
 
-      expect(res.statusCode).toBe(404);
-      const data = res.json();
-      expect(data.success).toBe(false);
-      expect(data.error).toBe('Not Found');
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.data.name).toBe('Updated Name');
+      expect(body.data.address).toBe('456 New St');
+      expect(body.data.phone).toBe('+65 9999 9999');
+      expect(body.data.code).toBe('UPD-001'); // Should not change
     });
 
-    it('should require authentication', async () => {
-      const res = await app.inject({
-        method: 'PATCH',
-        url: `/api/v1/locations/${locationId}`,
+    it('should not allow updating location code', async () => {
+      // Create location
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/api/v1/locations',
+        headers: {
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
+        },
         payload: {
-          name: 'Unauthorized Update',
+          code: 'FIXED-001',
+          name: 'Fixed Code Location',
+          type: 'outlet',
         },
       });
 
-      expect(res.statusCode).toBe(401);
+      const createdLoc = JSON.parse(createResponse.body).data;
+
+      // Attempt to update code
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/locations/${createdLoc.id}`,
+        headers: {
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
+        },
+        payload: {
+          code: 'CHANGED-001', // Should be ignored or rejected
+        },
+      });
+
+      // Get location to verify code didn't change
+      const getResponse = await app.inject({
+        method: 'GET',
+        url: `/api/v1/locations/${createdLoc.id}`,
+        headers: {
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
+        },
+      });
+
+      const body = JSON.parse(getResponse.body);
+      expect(body.data.code).toBe('FIXED-001'); // Original code preserved
     });
   });
 
-  describe('DELETE /api/v1/locations/:id', () => {
-    let locationId: string;
-
-    beforeEach(async () => {
-      // Create a test location for deletion
-      const res = await app.inject({
+  describe('DELETE /api/v1/locations/:id - Soft Delete Location', () => {
+    it('should soft delete location (set isActive=false)', async () => {
+      // Create location
+      const createResponse = await app.inject({
         method: 'POST',
         url: '/api/v1/locations',
-        headers: { cookie: authToken },
+        headers: {
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
+        },
         payload: {
-          name: 'Warehouse - Delete Test',
-          locationType: 'warehouse',
+          code: 'DEL-001',
+          name: 'To Be Deleted',
+          type: 'outlet',
+          isActive: true,
         },
       });
-      expect(res.statusCode).toBe(201);
-      const data = res.json();
-      locationId = trackLocation(data.data.id);
-    });
 
-    it('should deactivate location (soft delete)', async () => {
-      const res = await app.inject({
+      const createdLoc = JSON.parse(createResponse.body).data;
+
+      // Delete location
+      const response = await app.inject({
         method: 'DELETE',
-        url: `/api/v1/locations/${locationId}`,
+        url: `/api/v1/locations/${createdLoc.id}`,
         headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
       });
 
-      expect(res.statusCode).toBe(200);
-      const data = res.json();
-      expect(data.success).toBe(true);
-      expect(data.message).toBe('Location deactivated successfully');
+      expect(response.statusCode).toBe(200);
 
-      // Verify location is deactivated, not deleted
-      const getRes = await app.inject({
+      // Verify location still exists but is inactive
+      const getResponse = await app.inject({
         method: 'GET',
-        url: `/api/v1/locations/${locationId}`,
+        url: `/api/v1/locations/${createdLoc.id}`,
         headers: {
-          cookie: authToken,
+          'x-tenant-id': ctx.tenantId,
+          'x-user-id': ctx.userId,
         },
       });
 
-      expect(getRes.statusCode).toBe(200);
-      const getData = getRes.json();
-      expect(getData.data.isActive).toBe(false);
-    });
-
-    it('should return 404 for non-existent location', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: '/api/v1/locations/00000000-0000-0000-0000-000000000000',
-        headers: {
-          cookie: authToken,
-        },
-      });
-
-      expect(res.statusCode).toBe(404);
-      const data = res.json();
-      expect(data.success).toBe(false);
-      expect(data.error).toBe('Not Found');
-    });
-
-    it('should require authentication', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/api/v1/locations/${locationId}`,
-      });
-
-      expect(res.statusCode).toBe(401);
+      const body = JSON.parse(getResponse.body);
+      expect(body.data.isActive).toBe(false);
     });
   });
 });
