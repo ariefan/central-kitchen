@@ -22,10 +22,9 @@ describe('Locations API (ADM-004)', () => {
         payload: {
           code: 'WH-001',
           name: 'Main Warehouse',
-          type: 'warehouse',
+          locationType: 'warehouse',
           address: '123 Storage St',
           city: 'Singapore',
-          state: 'SG',
           postalCode: '123456',
           phone: '+65 1234 5678',
           email: 'warehouse@example.com',
@@ -39,7 +38,7 @@ describe('Locations API (ADM-004)', () => {
       expect(body.data).toHaveProperty('id');
       expect(body.data.code).toBe('WH-001');
       expect(body.data.name).toBe('Main Warehouse');
-      expect(body.data.type).toBe('warehouse');
+      expect(body.data.locationType).toBe('warehouse');
       expect(body.data.tenantId).toBe(testTenantId);
 
       createdLocationId = body.data.id;
@@ -57,7 +56,7 @@ describe('Locations API (ADM-004)', () => {
         payload: {
           code: 'DUP-001',
           name: 'First Location',
-          type: 'outlet',
+          locationType: 'outlet',
         },
       });
 
@@ -72,7 +71,7 @@ describe('Locations API (ADM-004)', () => {
         payload: {
           code: 'DUP-001',
           name: 'Duplicate Location',
-          type: 'outlet',
+          locationType: 'outlet',
         },
       });
 
@@ -93,7 +92,7 @@ describe('Locations API (ADM-004)', () => {
         payload: {
           code: 'INV-001',
           name: 'Invalid Location',
-          type: 'invalid_type', // Should be warehouse, outlet, kitchen, or office
+          locationType: 'invalid_type', // Should be central_kitchen, outlet, or warehouse
         },
       });
 
@@ -114,7 +113,7 @@ describe('Locations API (ADM-004)', () => {
         payload: {
           code: 'LIST-001',
           name: 'List Test Location 1',
-          type: 'warehouse',
+          locationType: 'warehouse',
           isActive: true,
         },
       });
@@ -129,7 +128,7 @@ describe('Locations API (ADM-004)', () => {
         payload: {
           code: 'LIST-002',
           name: 'List Test Location 2',
-          type: 'outlet',
+          locationType: 'outlet',
           isActive: false,
         },
       });
@@ -155,7 +154,7 @@ describe('Locations API (ADM-004)', () => {
     it('should filter by location type', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/locations?type=warehouse',
+        url: '/api/v1/locations?locationType=warehouse',
         headers: {
           'x-tenant-id': ctx.tenantId,
           'x-user-id': ctx.userId,
@@ -164,7 +163,7 @@ describe('Locations API (ADM-004)', () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
-      expect(body.data.every((loc: any) => loc.type === 'warehouse')).toBe(true);
+      expect(body.data.every((loc: any) => loc.locationType === 'warehouse')).toBe(true);
     });
 
     it('should filter by active status', async () => {
@@ -196,7 +195,7 @@ describe('Locations API (ADM-004)', () => {
         payload: {
           code: 'GET-001',
           name: 'Get Test Location',
-          type: 'kitchen',
+          locationType: 'central_kitchen',
         },
       });
 
@@ -246,7 +245,7 @@ describe('Locations API (ADM-004)', () => {
         payload: {
           code: 'UPD-001',
           name: 'Original Name',
-          type: 'outlet',
+          locationType: 'outlet',
         },
       });
 
@@ -287,7 +286,7 @@ describe('Locations API (ADM-004)', () => {
         payload: {
           code: 'FIXED-001',
           name: 'Fixed Code Location',
-          type: 'outlet',
+          locationType: 'outlet',
         },
       });
 
@@ -334,7 +333,7 @@ describe('Locations API (ADM-004)', () => {
         payload: {
           code: 'DEL-001',
           name: 'To Be Deleted',
-          type: 'outlet',
+          locationType: 'outlet',
           isActive: true,
         },
       });
