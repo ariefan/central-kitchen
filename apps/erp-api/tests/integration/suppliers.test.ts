@@ -19,7 +19,7 @@ describe('Suppliers API (PROC-001)', () => {
       payload: {
         sku: 'TEST-RAW-001',
         name: 'Test Raw Material',
-        kind: 'raw_material',
+        productKind: 'raw_material',
         baseUomId: '10000000-0000-4000-8000-000000000011', // KG
         isPerishable: false,
         isActive: true,

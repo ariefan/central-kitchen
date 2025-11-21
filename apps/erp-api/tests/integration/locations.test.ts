@@ -147,8 +147,8 @@ describe('Locations API (ADM-004)', () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
       expect(body.success).toBe(true);
-      expect(Array.isArray(body.data)).toBe(true);
-      expect(body.data.length).toBeGreaterThanOrEqual(2);
+      expect(Array.isArray(body.data.items)).toBe(true);
+      expect(body.data.items.length).toBeGreaterThanOrEqual(2);
     });
 
     it('should filter by location type', async () => {
@@ -163,7 +163,7 @@ describe('Locations API (ADM-004)', () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
-      expect(body.data.every((loc: any) => loc.locationType === 'warehouse')).toBe(true);
+      expect(body.data.items.every((loc: any) => loc.locationType === 'warehouse')).toBe(true);
     });
 
     it('should filter by active status', async () => {
@@ -178,7 +178,7 @@ describe('Locations API (ADM-004)', () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
-      expect(body.data.every((loc: any) => loc.isActive === true)).toBe(true);
+      expect(body.data.items.every((loc: any) => loc.isActive === true)).toBe(true);
     });
   });
 
@@ -221,7 +221,7 @@ describe('Locations API (ADM-004)', () => {
     it('should return 404 for non-existent location', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/api/v1/locations/00000000-0000-0000-0000-999999999999',
+        url: '/api/v1/locations/10000000-0000-4000-8000-000000000099',
         headers: {
           'x-tenant-id': ctx.tenantId,
           'x-user-id': ctx.userId,

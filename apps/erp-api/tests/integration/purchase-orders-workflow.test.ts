@@ -24,6 +24,7 @@ describe('Purchase Order Workflow (PROC-002)', () => {
       payload: {
         code: 'PO-SUP-001',
         name: 'PO Test Supplier',
+        email: 'po-supplier@test.com',
         paymentTerms: 30,
       },
     });
@@ -40,7 +41,7 @@ describe('Purchase Order Workflow (PROC-002)', () => {
       payload: {
         sku: 'PO-PROD-001',
         name: 'PO Test Product',
-        kind: 'raw_material',
+        productKind: 'raw_material',
         baseUomId: uomId,
         standardCost: 10.00,
         isPerishable: false,
