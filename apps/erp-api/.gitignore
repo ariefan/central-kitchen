@@ -11,6 +11,12 @@ build/
 .env.local
 .env.*.local
 .env.test
+.env.production
+
+# But keep example files (for documentation)
+!.env.example
+!.env.test.example
+!.env.production.example
 
 # Database
 data.db
