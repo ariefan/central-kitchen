@@ -70,7 +70,7 @@ async function seedTestData() {
 
   // Insert test location
   await pool.query(`
-    INSERT INTO erp.locations (id, tenant_id, code, name, location_type, is_active)
+    INSERT INTO erp.locations (id, tenant_id, code, name, type, is_active)
     VALUES ($1, $2, 'LOC-001', 'Test Location', 'central_kitchen', true)
     ON CONFLICT (id) DO NOTHING
   `, [testLocationId, testTenantId]);
