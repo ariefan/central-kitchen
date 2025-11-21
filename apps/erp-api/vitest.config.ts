@@ -11,6 +11,10 @@ export default defineConfig({
     env: {
       NODE_ENV: 'test',
       DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/erp-test',
+      BYPASS_AUTH_FOR_TESTS: 'true',
+      JWT_SECRET: 'test-jwt-secret-min-32-chars-for-testing',
+      JWT_EXPIRES_IN: '24h',
+      LOG_LEVEL: 'error',
     },
     reporter: ['default', 'json', 'verbose'],
     outputFile: {
