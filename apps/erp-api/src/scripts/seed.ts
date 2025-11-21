@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { db } from '../config/database.js';
 import { sql, eq } from 'drizzle-orm';
 import * as schema from '../config/schema.js';
@@ -683,14 +684,16 @@ async function seedDatabase() {
         variantName: 'Large',
         priceDifferential: toNumericString(5000),
         isActive: true,
-        displayOrder: 1
+        displayOrder: 1,
+        updatedAt: new Date()
       },
       {
         productId: productCappuccino.id,
         variantName: 'Small',
         priceDifferential: toNumericString(-3000),
         isActive: true,
-        displayOrder: 2
+        displayOrder: 2,
+        updatedAt: new Date()
       }
     ]);
 
@@ -1353,6 +1356,412 @@ async function seedDatabase() {
       }
     ]);
 
+    // 19. User Locations (Multi-location Access)
+    console.log('🔐 Creating user location assignments...');
+    await db.insert(schema.userLocations).values([
+      {
+        userId: userAdmin.id,
+        locationId: locationCentral.id,
+        createdBy: userAdmin.id
+      },
+      {
+        userId: userAdmin.id,
+        locationId: locationOutlet1.id,
+        createdBy: userAdmin.id
+      },
+      {
+        userId: userAdmin.id,
+        locationId: locationOutlet2.id,
+        createdBy: userAdmin.id
+      },
+      {
+        userId: userManager.id,
+        locationId: locationOutlet1.id,
+        createdBy: userAdmin.id
+      },
+      {
+        userId: userBarista.id,
+        locationId: locationOutlet1.id,
+        createdBy: userAdmin.id
+      }
+    ]);
+
+    // 20. Goods Receipts
+    console.log('📦 Creating goods receipts...');
+    const [goodsReceipt1] = await db.insert(schema.goodsReceipts).values({
+      tenantId: tenantDemo.id,
+      receiptNumber: 'GR-' + new Date().getFullYear() + '-001',
+      purchaseOrderId: purchaseOrder1.id,
+      locationId: locationCentral.id,
+      receiptDate: new Date(),
+      receivedBy: userAdmin.id
+    }).returning();
+    if (!goodsReceipt1) {
+      throw new Error('Failed to seed goods receipt');
+    }
+
+    await db.insert(schema.goodsReceiptItems).values([
+      {
+        goodsReceiptId: goodsReceipt1.id,
+        purchaseOrderItemId: (await db.select().from(schema.purchaseOrderItems).where(eq(schema.purchaseOrderItems.purchaseOrderId, purchaseOrder1.id)).limit(1))[0]?.id,
+        productId: productCoffeeBeans.id,
+        lotId: lotCoffee.id,
+        quantityOrdered: toNumericString(10),
+        quantityReceived: toNumericString(10),
+        uomId: uomKg.id,
+        unitCost: toNumericString(productCoffeeBeans.standardCost ?? '0')
+      }
+    ]);
+
+    // 21. Recipes & Production
+    console.log('📝 Creating recipes...');
+    const [recipeCroissant] = await db.insert(schema.recipes).values({
+      tenantId: tenantDemo.id,
+      code: 'RCP-CROISSANT',
+      name: 'Butter Croissant Recipe',
+      finishedProductId: productCroissant.id,
+      yieldQtyBase: toNumericString(10),
+      instructions: 'Mix flour, butter, yeast. Laminate dough. Shape and proof. Bake at 200°C for 15 minutes.',
+      version: 1,
+      isActive: true
+    }).returning();
+    if (!recipeCroissant) {
+      throw new Error('Failed to seed recipe');
+    }
+
+    await db.insert(schema.recipeItems).values([
+      {
+        recipeId: recipeCroissant.id,
+        productId: productFlour.id,
+        qtyBase: toNumericString(5),
+        sortOrder: 1,
+        notes: 'Bread flour for structure'
+      },
+      {
+        recipeId: recipeCroissant.id,
+        productId: productMilk.id,
+        qtyBase: toNumericString(1),
+        sortOrder: 2,
+        notes: 'For dough hydration'
+      }
+    ]);
+
+    const [productionOrder1] = await db.insert(schema.productionOrders).values({
+      tenantId: tenantDemo.id,
+      orderNumber: 'PROD-' + new Date().getFullYear() + '-001',
+      recipeId: recipeCroissant.id,
+      locationId: locationCentral.id,
+      plannedQtyBase: toNumericString(50),
+      producedQtyBase: toNumericString(50),
+      status: 'completed',
+      scheduledAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      startedAt: new Date(Date.now() - 20 * 60 * 60 * 1000),
+      completedAt: new Date(Date.now() - 18 * 60 * 60 * 1000),
+      createdBy: userAdmin.id,
+      supervisedBy: userAdmin.id
+    }).returning();
+
+    // 22. Requisitions
+    console.log('📋 Creating requisitions...');
+    const [requisition1] = await db.insert(schema.requisitions).values({
+      tenantId: tenantDemo.id,
+      reqNumber: 'REQ-' + new Date().getFullYear() + '-001',
+      fromLocationId: locationCentral.id,
+      toLocationId: locationOutlet1.id,
+      status: 'completed',
+      requestedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      requiredDate: new Date(),
+      issuedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      deliveredDate: new Date(Date.now() - 12 * 60 * 60 * 1000),
+      requestedBy: userBarista.id,
+      approvedBy: userAdmin.id,
+      approvedAt: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000)
+    }).returning();
+    if (!requisition1) {
+      throw new Error('Failed to seed requisition');
+    }
+
+    await db.insert(schema.requisitionItems).values([
+      {
+        requisitionId: requisition1.id,
+        productId: productCoffeeBeans.id,
+        uomId: uomKg.id,
+        qtyRequested: toNumericString(5),
+        qtyIssued: toNumericString(5)
+      },
+      {
+        requisitionId: requisition1.id,
+        productId: productMilk.id,
+        uomId: uomLiter.id,
+        qtyRequested: toNumericString(10),
+        qtyIssued: toNumericString(10)
+      }
+    ]);
+
+    // 23. Transfers
+    console.log('🚚 Creating transfers...');
+    const [transfer1] = await db.insert(schema.transfers).values({
+      tenantId: tenantDemo.id,
+      transferNumber: 'XFER-' + new Date().getFullYear() + '-001',
+      fromLocationId: locationCentral.id,
+      toLocationId: locationOutlet1.id,
+      transferDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      expectedDeliveryDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      actualDeliveryDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      status: 'completed',
+      requestedBy: userManager.id,
+      approvedBy: userAdmin.id,
+      approvedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      sentBy: userAdmin.id,
+      sentAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      receivedBy: userManager.id,
+      receivedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+    }).returning();
+    if (!transfer1) {
+      throw new Error('Failed to seed transfer');
+    }
+
+    await db.insert(schema.transferItems).values([
+      {
+        transferId: transfer1.id,
+        productId: productCroissant.id,
+        uomId: uomPcs.id,
+        quantity: toNumericString(30),
+        qtyReceived: toNumericString(30)
+      }
+    ]);
+
+    // 24. Stock Adjustments
+    console.log('📊 Creating stock adjustments...');
+    const [stockAdj1] = await db.insert(schema.stockAdjustments).values({
+      tenantId: tenantDemo.id,
+      adjNumber: 'ADJ-' + new Date().getFullYear() + '-001',
+      locationId: locationCentral.id,
+      reason: 'damage',
+      status: 'posted',
+      notes: 'Damaged flour bags during storage',
+      createdBy: userAdmin.id,
+      approvedBy: userAdmin.id,
+      approvedAt: new Date()
+    }).returning();
+    if (!stockAdj1) {
+      throw new Error('Failed to seed adjustment');
+    }
+
+    await db.insert(schema.stockAdjustmentItems).values([
+      {
+        adjustmentId: stockAdj1.id,
+        productId: productFlour.id,
+        lotId: lotFlour.id,
+        uomId: uomKg.id,
+        qtyDelta: toNumericString(-2),
+        unitCost: toNumericString(productFlour.standardCost ?? '0'),
+        reason: 'Bag torn during handling'
+      }
+    ]);
+
+    // 25. Stock Counts
+    console.log('🔢 Creating stock counts...');
+    const [stockCount1] = await db.insert(schema.stockCounts).values({
+      tenantId: tenantDemo.id,
+      countNumber: 'COUNT-' + new Date().getFullYear() + '-001',
+      locationId: locationCentral.id,
+      status: 'posted',
+      notes: 'Monthly stock count'
+    }).returning();
+    if (!stockCount1) {
+      throw new Error('Failed to seed stock count');
+    }
+
+    await db.insert(schema.stockCountLines).values([
+      {
+        countId: stockCount1.id,
+        productId: productCoffeeBeans.id,
+        lotId: lotCoffee.id,
+        systemQtyBase: toNumericString(48),
+        countedQtyBase: toNumericString(47.5),
+        varianceQtyBase: toNumericString(-0.5)
+      },
+      {
+        countId: stockCount1.id,
+        productId: productFlour.id,
+        lotId: lotFlour.id,
+        systemQtyBase: toNumericString(98),
+        countedQtyBase: toNumericString(98),
+        varianceQtyBase: toNumericString(0)
+      }
+    ]);
+
+    // 26. Return Orders
+    console.log('↩️ Creating return orders...');
+    const [returnOrder1] = await db.insert(schema.returnOrders).values({
+      tenantId: tenantDemo.id,
+      returnNumber: 'RET-' + new Date().getFullYear() + '-001',
+      returnType: 'supplier_return',
+      referenceType: 'PO',
+      referenceId: purchaseOrder1.id,
+      supplierId: supplierCoffee.id,
+      locationId: locationCentral.id,
+      returnDate: new Date(),
+      status: 'completed',
+      reason: 'Quality issue - beans not fresh',
+      totalAmount: toNumericString(120000),
+      createdBy: userAdmin.id,
+      approvedBy: userAdmin.id,
+      approvedAt: new Date()
+    }).returning();
+    if (!returnOrder1) {
+      throw new Error('Failed to seed return order');
+    }
+
+    await db.insert(schema.returnOrderItems).values([
+      {
+        returnOrderId: returnOrder1.id,
+        productId: productCoffeeBeans.id,
+        lotId: lotCoffee.id,
+        uomId: uomKg.id,
+        quantity: toNumericString(1),
+        unitPrice: toNumericString(120000),
+        reason: 'Stale coffee beans'
+      }
+    ]);
+
+    // 27. Drawer Movements
+    console.log('💵 Creating drawer movements...');
+    await db.insert(schema.drawerMovements).values([
+      {
+        shiftId: (await db.select().from(schema.posShifts).limit(1))[0]?.id,
+        kind: 'cash_in',
+        amount: toNumericString(100000),
+        reason: 'Additional change needed',
+        createdBy: userBarista.id
+      },
+      {
+        shiftId: (await db.select().from(schema.posShifts).limit(1))[0]?.id,
+        kind: 'cash_out',
+        amount: toNumericString(50000),
+        reason: 'Petty cash for supplies',
+        createdBy: userBarista.id
+      }
+    ]);
+
+    // 28. Deliveries
+    console.log('🚴 Creating deliveries...');
+    await db.insert(schema.deliveries).values([
+      {
+        orderId: order2.id,
+        provider: 'GoFood',
+        trackingCode: 'GF-' + faker.string.alphanumeric(10).toUpperCase(),
+        fee: toNumericString(5000),
+        status: 'delivered'
+      }
+    ]);
+
+    // 29. Carts & Cart Items
+    console.log('🛒 Creating shopping carts...');
+    const [cart1] = await db.insert(schema.carts).values({
+      customerId: customerJohn.id,
+      channel: 'online'
+    }).returning();
+    if (!cart1) {
+      throw new Error('Failed to seed cart');
+    }
+
+    await db.insert(schema.cartItems).values([
+      {
+        cartId: cart1.id,
+        productId: productCappuccino.id,
+        quantity: toNumericString(2)
+      },
+      {
+        cartId: cart1.id,
+        productId: productCroissant.id,
+        quantity: toNumericString(3)
+      }
+    ]);
+
+    // 30. Loyalty System
+    console.log('⭐ Creating loyalty accounts...');
+    const [loyaltyAcc1] = await db.insert(schema.loyaltyAccounts).values({
+      customerId: customerJohn.id,
+      pointsBalance: 250
+    }).returning();
+    if (!loyaltyAcc1) {
+      throw new Error('Failed to seed loyalty account');
+    }
+
+    await db.insert(schema.loyaltyLedger).values([
+      {
+        accountId: loyaltyAcc1.id,
+        refType: 'ORDER',
+        refId: order1.id,
+        pointsDelta: 59,
+        reason: 'Points earned from purchase'
+      },
+      {
+        accountId: loyaltyAcc1.id,
+        refType: 'SIGNUP',
+        refId: customerJohn.id,
+        pointsDelta: 100,
+        reason: 'Welcome bonus'
+      },
+      {
+        accountId: loyaltyAcc1.id,
+        refType: 'PROMO',
+        refId: randomUUID(),
+        pointsDelta: 50,
+        reason: 'Birthday bonus'
+      },
+      {
+        accountId: loyaltyAcc1.id,
+        refType: 'ORDER',
+        refId: randomUUID(),
+        pointsDelta: 41,
+        reason: 'Points earned from purchase'
+      }
+    ]);
+
+    // 31. Vouchers
+    console.log('🎫 Creating vouchers...');
+    const [voucher1, voucher2] = await db.insert(schema.vouchers).values([
+      {
+        tenantId: tenantDemo.id,
+        code: 'WELCOME50',
+        kind: 'fixed',
+        amount: toNumericString(50000),
+        minSpend: toNumericString(200000),
+        usageLimit: 100,
+        usagePerCustomer: 1,
+        startAt: new Date(),
+        endAt: faker.date.future({ years: 0.5 }),
+        isActive: true
+      },
+      {
+        tenantId: tenantDemo.id,
+        code: 'FREESHIP',
+        kind: 'percent',
+        amount: toNumericString(100),
+        minSpend: toNumericString(100000),
+        usageLimit: null,
+        usagePerCustomer: null,
+        startAt: new Date(),
+        endAt: faker.date.future({ years: 0.2 }),
+        isActive: true
+      }
+    ]).returning();
+    if (!voucher1 || !voucher2) {
+      throw new Error('Failed to seed vouchers');
+    }
+
+    await db.insert(schema.voucherRedemptions).values([
+      {
+        voucherId: voucher1.id,
+        orderId: order1.id,
+        customerId: customerJohn.id,
+        amountApplied: toNumericString(50000)
+      }
+    ]);
+
     console.log('✅ Comprehensive database seeding completed successfully!');
     console.log('\n📊 Summary:');
     console.log(`- Tenant: ${tenantDemo.name}`);
@@ -1361,30 +1770,62 @@ async function seedDatabase() {
     console.log(`  • Coffee & Beverages: 2 products`);
     console.log(`  • Traditional Bakery: 4 products (croissant, cake slice, cinnamon roll, choco roll)`);
     console.log(`  • Sourdough Collection: 4 products (keju, coklat, blueberry creamcheese, kacang)`);
-    console.log(`  • Cookies & Muffins: 3 products (chocolate cookies, red velvet, brownies)`);
+    console.log(`  • Cookies & Muffins: 4 products (chocolate, red velvet, brownies, muffin)`);
     console.log(`  • Specialty Breads: 4 products (caterpillar, bolo bun, garlic bread, donut mochi)`);
     console.log(`- Suppliers: ${suppliers.length}`);
     console.log(`- Customers: ${customers.length}`);
-    console.log(`- Orders: 2`);
-    console.log(`- Users: ${users.length}`);
-    console.log(`- Purchase Orders: 1`);
-    console.log(`- POS Shifts: 1`);
-    console.log(`- Temperature Logs: 3`);
-    console.log(`- Alerts: 2`);
-    console.log(`- Promotions: 2`);
-    console.log(`\n🎯 All 32 core tables have been seeded with realistic F&B data!`);
-    console.log(`\n📈 This covers all essential F&B business flows:`);
-    console.log(`   • Multi-tenant operations`);
-    console.log(`   • Inventory management (central kitchen + outlets)`);
-    console.log(`   • Complete POS operations (orders, payments, shifts)`);
-    console.log(`   • Supply chain (suppliers, purchase orders)`);
-    console.log(`   • Complete bakery product catalog with pricing`);
-    console.log(`   • Multi-channel menu management (POS + Online)`);
-    console.log(`   • Location-specific pricing strategy`);
-    console.log(`   • Temperature monitoring and alerts`);
-    console.log(`   • Promotion system`);
-    console.log(`\n🍕 Added comprehensive bakery menu with 17 new items!`);
-    console.log(`\n🎉 System is ready for testing!`);
+    console.log(`- Users: ${users.length} (admin, manager, barista)`);
+    console.log(`- User Location Assignments: 5`);
+    console.log(`\n📦 Inventory & Supply Chain:`);
+    console.log(`  • Purchase Orders: 1`);
+    console.log(`  • Goods Receipts: 1`);
+    console.log(`  • Lots: 2 (with expiry tracking)`);
+    console.log(`  • Stock Ledger Entries: 5`);
+    console.log(`  • Requisitions: 1`);
+    console.log(`  • Transfers: 1`);
+    console.log(`  • Stock Adjustments: 1`);
+    console.log(`  • Stock Counts: 1`);
+    console.log(`  • Return Orders: 1`);
+    console.log(`\n🏭 Production:`);
+    console.log(`  • Recipes: 1 (Croissant with 2 ingredients)`);
+    console.log(`  • Production Orders: 1 (completed)`);
+    console.log(`\n💰 Sales & POS:`);
+    console.log(`  • Orders: 2 (dine-in & take-away)`);
+    console.log(`  • Order Items: 3 (with modifiers)`);
+    console.log(`  • Payments: 3 (cash, card, e-wallet)`);
+    console.log(`  • POS Shifts: 1`);
+    console.log(`  • Drawer Movements: 2`);
+    console.log(`  • Deliveries: 1`);
+    console.log(`\n🛒 E-Commerce:`);
+    console.log(`  • Carts: 1 (with 2 items)`);
+    console.log(`  • Menus: 2 (POS + Online)`);
+    console.log(`  • Menu Items: 36 items across locations`);
+    console.log(`  • Price Books: 1 with location-specific pricing`);
+    console.log(`\n🎁 Marketing & Loyalty:`);
+    console.log(`  • Loyalty Accounts: 1 (250 points)`);
+    console.log(`  • Loyalty Transactions: 4`);
+    console.log(`  • Vouchers: 2 (WELCOME50, FREESHIP)`);
+    console.log(`  • Voucher Redemptions: 1`);
+    console.log(`  • Promotions: 2`);
+    console.log(`\n🌡️ Compliance & Monitoring:`);
+    console.log(`  • Temperature Logs: 3`);
+    console.log(`  • Alerts: 2 (low stock, expiry)`);
+    console.log(`\n🎯 All 48+ tables seeded with complete, realistic F&B data!`);
+    console.log(`\n📈 Complete business flows covered:`);
+    console.log(`   ✅ Multi-tenant operations with RLS`);
+    console.log(`   ✅ Multi-location inventory management (FEFO/FIFO ready)`);
+    console.log(`   ✅ Complete POS operations (orders, payments, shifts, drawer)`);
+    console.log(`   ✅ Full supply chain (suppliers, PO, GR, returns)`);
+    console.log(`   ✅ Production management (recipes, production orders)`);
+    console.log(`   ✅ Warehouse operations (requisitions, transfers, adjustments, counts)`);
+    console.log(`   ✅ E-commerce (carts, online menus, deliveries)`);
+    console.log(`   ✅ Customer loyalty program with points & rewards`);
+    console.log(`   ✅ Voucher & promotion system`);
+    console.log(`   ✅ Multi-channel menu & location-based pricing`);
+    console.log(`   ✅ Temperature monitoring & compliance alerts`);
+    console.log(`   ✅ Better Auth integration for user management`);
+    console.log(`\n🍕 Complete bakery catalog: 21 products from raw materials to finished goods!`);
+    console.log(`\n🎉 System is production-ready for comprehensive testing!`);
 
   } catch (error) {
     console.error('❌ Error during seeding:', error);

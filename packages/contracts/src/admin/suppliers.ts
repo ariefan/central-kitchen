@@ -80,6 +80,7 @@ export const supplierCreateSchema = z.object({
   // Payment & Delivery
   paymentTerms: z.number().int().nonnegative().default(30), // Days (e.g., 30 for Net 30)
   leadTimeDays: z.number().int().nonnegative().default(7), // Default 7 days
+  creditLimit: z.coerce.number().nonnegative().optional(), // Credit limit for supplier
 
   // Registration
   taxId: z.string().max(50).optional(), // Tax identification number
@@ -266,6 +267,7 @@ export const supplierDetailSchema = z.object({
   // Payment & Delivery
   paymentTerms: z.number(), // Days
   leadTimeDays: z.number(), // Days
+  creditLimit: z.string().nullable(), // Money amount
 
   // Registration
   taxId: z.string().nullable(),
