@@ -73,6 +73,7 @@ describe('Suppliers API (PROC-001)', () => {
         },
         payload: {
           name: 'Auto Code Supplier',
+          email: 'autocode@supplier.com',
           isActive: true,
         },
       });
@@ -94,6 +95,7 @@ describe('Suppliers API (PROC-001)', () => {
         payload: {
           code: 'DUP-SUP-001',
           name: 'First Supplier',
+          email: 'first@supplier.com',
         },
       });
 
@@ -108,6 +110,7 @@ describe('Suppliers API (PROC-001)', () => {
         payload: {
           code: 'DUP-SUP-001',
           name: 'Duplicate Supplier',
+          email: 'duplicate@supplier.com',
         },
       });
 
@@ -131,7 +134,7 @@ describe('Suppliers API (PROC-001)', () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
-      expect(body.error).toContain('email');
+      expect(body.message).toContain('email');
     });
   });
 
@@ -165,6 +168,7 @@ describe('Suppliers API (PROC-001)', () => {
         payload: {
           code: 'SEARCH-001',
           name: 'XYZ Unique Supplier Name',
+          email: 'xyz@supplier.com',
         },
       });
 
@@ -216,6 +220,7 @@ describe('Suppliers API (PROC-001)', () => {
         payload: {
           code: 'SUP-CAT-001',
           name: 'Supplier with Catalog',
+          email: 'catalog@supplier.com',
         },
       });
 
@@ -274,6 +279,7 @@ describe('Suppliers API (PROC-001)', () => {
         payload: {
           code: 'UPD-SUP-001',
           name: 'Original Supplier Name',
+          email: 'original@supplier.com',
           paymentTerms: 30,
         },
       });
@@ -318,6 +324,7 @@ describe('Suppliers API (PROC-001)', () => {
         payload: {
           code: 'DEL-SUP-001',
           name: 'To Be Deleted Supplier',
+          email: 'delete@supplier.com',
           isActive: true,
         },
       });
@@ -365,6 +372,7 @@ describe('Suppliers API (PROC-001)', () => {
         payload: {
           code: 'FK-SUP-001',
           name: 'Supplier with PO',
+          email: 'fk@supplier.com',
         },
       });
 
@@ -414,6 +422,7 @@ describe('Suppliers API (PROC-001)', () => {
         payload: {
           code: 'CAT-TEST-001',
           name: 'Catalog Test Supplier',
+          email: 'cattest@supplier.com',
         },
       });
 
@@ -521,7 +530,7 @@ describe('Suppliers API (PROC-001)', () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
-      expect(body.error).toContain('already exists');
+      expect(body.message).toContain('already exists');
     });
   });
 });

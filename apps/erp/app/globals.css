@@ -79,44 +79,157 @@
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.15 0.005 285.823);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.18 0.006 285.885);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.18 0.006 285.885);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.75 0.15 264.376);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.25 0.006 286.033);
+  --secondary-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.25 0.006 286.033);
+  --muted-foreground: oklch(0.65 0.015 286.067);
+  --accent: oklch(0.3 0.006 286.033);
+  --accent-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.65 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.75 0.15 264.376);
+  --chart-1: oklch(0.55 0.25 264.376);
+  --chart-2: oklch(0.7 0.18 162.48);
+  --chart-3: oklch(0.75 0.19 70.08);
+  --chart-4: oklch(0.65 0.27 303.9);
+  --chart-5: oklch(0.68 0.25 16.439);
+  --sidebar: oklch(0.16 0.006 285.885);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.55 0.25 264.376);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.25 0.006 286.033);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.552 0.016 285.938);
+  --sidebar-ring: oklch(0.75 0.15 264.376);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Smooth theme transitions */
+  html {
+    transition: background-color 200ms ease-in-out, color 200ms ease-in-out;
+  }
+
+  * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+
+  /* Prevent transitions on page load */
+  html.loading * {
+    transition: none !important;
+  }
+
+  /* Respect prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Improve scrollbar styling in dark mode */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-md;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+
+  /* Enhanced focus states for dark mode */
+  .dark *:focus-visible {
+    outline-color: oklch(0.75 0.15 264.376);
+  }
+
+  /* Better selection colors */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+
+  .dark ::selection {
+    @apply bg-primary/30 text-foreground;
+  }
+
+  /* Enhanced table styling in dark mode */
+  .dark table {
+    @apply border-border/50;
+  }
+
+  .dark th {
+    @apply bg-muted/50 border-border/50;
+  }
+
+  .dark tr:hover {
+    @apply bg-muted/30;
+  }
+
+  /* Code blocks in dark mode */
+  .dark code,
+  .dark pre {
+    @apply bg-muted/50 border-border/50;
+  }
+
+  /* Better input styling in dark mode */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    @apply placeholder:text-muted-foreground/60;
+  }
+
+  .dark input:disabled,
+  .dark textarea:disabled,
+  .dark select:disabled {
+    @apply bg-muted/50 opacity-60;
+  }
+
+  /* Card hover effects in dark mode */
+  .dark [data-slot="card"]:hover {
+    @apply bg-card/80 shadow-lg;
+  }
+
+  /* Better separator visibility in dark mode */
+  .dark hr,
+  .dark [role="separator"] {
+    @apply border-border/50;
   }
 }

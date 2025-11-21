@@ -113,8 +113,11 @@ export const purchaseOrderService = {
   async update(id: string, rawBody: unknown, context: RequestContext) {
     const body = purchaseOrderUpdateSchema.parse(rawBody);
     const existing = await purchaseOrderRepository.findById(id, context.tenantId);
-    if (existing?.status !== 'draft') {
+    if (!existing) {
       return null;
+    }
+    if (existing.status !== 'draft') {
+      throw new Error(`Cannot update ${existing.status} purchase order. Only draft purchase orders can be updated`);
     }
 
     return purchaseOrderRepository.updateById(id, context.tenantId, {
@@ -123,9 +126,20 @@ export const purchaseOrderService = {
     });
   },
 
-  async approve(id: string, context: RequestContext) {
+  async submit(id: string, context: RequestContext) {
     const existing = await purchaseOrderRepository.findById(id, context.tenantId);
     if (existing?.status !== 'draft') {
+      return null;
+    }
+
+    return purchaseOrderRepository.updateById(id, context.tenantId, {
+      status: 'pending_approval',
+    });
+  },
+
+  async approve(id: string, context: RequestContext) {
+    const existing = await purchaseOrderRepository.findById(id, context.tenantId);
+    if (existing?.status !== 'pending_approval') {
       return null;
     }
 
@@ -138,7 +152,7 @@ export const purchaseOrderService = {
 
   async reject(id: string, reason: string, context: RequestContext) {
     const existing = await purchaseOrderRepository.findById(id, context.tenantId);
-    if (existing?.status !== 'draft') {
+    if (existing?.status !== 'pending_approval') {
       return null;
     }
 

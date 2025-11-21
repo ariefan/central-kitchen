@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { getApp, getTestContext } from './test-setup';
 
 describe('Purchase Order Workflow (PROC-002)', () => {
@@ -8,12 +8,15 @@ describe('Purchase Order Workflow (PROC-002)', () => {
   let productId: string;
   let uomId: string;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     app = getApp();
-    // Setup test data
     uomId = '10000000-0000-4000-8000-000000000011'; // KG
+  });
 
-    // Create supplier
+  beforeEach(async () => {
+    // Create supplier for each test (since cleanTransactionalData deletes suppliers)
+    // Use timestamp to ensure unique codes
+    const timestamp = Date.now();
     const supplierResponse = await app.inject({
       method: 'POST',
       url: '/api/v1/suppliers',
@@ -22,15 +25,20 @@ describe('Purchase Order Workflow (PROC-002)', () => {
         'x-user-id': ctx.userId,
       },
       payload: {
-        code: 'PO-SUP-001',
+        code: `PO-SUP-${timestamp}`,
         name: 'PO Test Supplier',
-        email: 'po-supplier@test.com',
+        email: `po-supplier-${timestamp}@test.com`,
         paymentTerms: 30,
       },
     });
-    supplierId = JSON.parse(supplierResponse.body).data.id;
 
-    // Create product
+    const supplierBody = JSON.parse(supplierResponse.body);
+    if (!supplierBody.success || !supplierBody.data) {
+      throw new Error(`Failed to create supplier: ${supplierResponse.body}`);
+    }
+    supplierId = supplierBody.data.id;
+
+    // Create product for each test
     const productResponse = await app.inject({
       method: 'POST',
       url: '/api/v1/products',
@@ -39,15 +47,20 @@ describe('Purchase Order Workflow (PROC-002)', () => {
         'x-user-id': ctx.userId,
       },
       payload: {
-        sku: 'PO-PROD-001',
+        sku: `PO-PROD-${timestamp}`,
         name: 'PO Test Product',
         productKind: 'raw_material',
         baseUomId: uomId,
-        standardCost: 10.00,
+        standardCost: '10.00',
         isPerishable: false,
       },
     });
-    productId = JSON.parse(productResponse.body).data.id;
+
+    const productBody = JSON.parse(productResponse.body);
+    if (!productBody.success || !productBody.data) {
+      throw new Error(`Failed to create product: ${productResponse.body}`);
+    }
+    productId = productBody.data.id;
   });
 
   describe('Complete PO Workflow: Draft → Approved → Sent → Received', () => {
@@ -63,7 +76,6 @@ describe('Purchase Order Workflow (PROC-002)', () => {
         payload: {
           supplierId,
           locationId: ctx.locationId,
-          orderDate: new Date().toISOString(),
           expectedDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           paymentTerms: 30,
           notes: 'Test PO for workflow',
@@ -145,7 +157,8 @@ describe('Purchase Order Workflow (PROC-002)', () => {
       expect(sendResponse.statusCode).toBe(200);
       const sentPO = JSON.parse(sendResponse.body).data;
       expect(sentPO.status).toBe('sent');
-      expect(sentPO.sentAt).toBeTruthy();
+      expect(sentPO.metadata).toHaveProperty('sent');
+      expect(sentPO.metadata.sent.at).toBeTruthy();
 
       // STEP 5: Create Goods Receipt
       const grResponse = await app.inject({
@@ -300,7 +313,7 @@ describe('Purchase Order Workflow (PROC-002)', () => {
 
       expect(sendResponse.statusCode).toBe(400);
       const body = JSON.parse(sendResponse.body);
-      expect(body.error).toContain('rejected');
+      expect(body.message).toContain('rejected');
     });
   });
 
@@ -490,7 +503,7 @@ describe('Purchase Order Workflow (PROC-002)', () => {
           'x-user-id': ctx.userId,
         },
         payload: {
-          cancellationReason: 'Supplier cannot fulfill order',
+          reason: 'Supplier cannot fulfill order',
         },
       });
 
@@ -580,7 +593,7 @@ describe('Purchase Order Workflow (PROC-002)', () => {
 
       expect(updateResponse.statusCode).toBe(400);
       const body = JSON.parse(updateResponse.body);
-      expect(body.error).toContain('approved');
+      expect(body.message).toContain('approved');
     });
 
     it('should require future delivery date', async () => {
@@ -608,7 +621,7 @@ describe('Purchase Order Workflow (PROC-002)', () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
-      expect(body.error).toContain('future');
+      expect(body.message).toContain('future');
     });
 
     it('should require at least one item', async () => {
@@ -629,7 +642,7 @@ describe('Purchase Order Workflow (PROC-002)', () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
-      expect(body.error).toContain('item');
+      expect(body.message).toContain('item');
     });
   });
 });

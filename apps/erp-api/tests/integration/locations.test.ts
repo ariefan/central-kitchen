@@ -78,7 +78,7 @@ describe('Locations API (ADM-004)', () => {
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
       expect(body.success).toBe(false);
-      expect(body.error).toContain('already exists');
+      expect(body.message).toContain('already exists');
     });
 
     it('should reject invalid location type', async () => {

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
 import {
   MapPin,
@@ -234,14 +235,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 Settings
               </Button>
             </Link>
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={handleSignOut}
-            >
-              <LogOut className="w-4 h-4 mr-3" />
-              Sign Out
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                className="flex-1 justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={handleSignOut}
+              >
+                <LogOut className="w-4 h-4 mr-3" />
+                Sign Out
+              </Button>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </aside>
@@ -261,7 +265,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <Package className="w-6 h-6 text-primary" />
             <span className="text-lg font-bold">Central Kitchen</span>
           </Link>
-          <div className="w-10" /> {/* Spacer for centering */}
+          <ThemeToggle />
         </header>
 
         {/* Page content */}
