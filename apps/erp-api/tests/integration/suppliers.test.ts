@@ -20,7 +20,7 @@ describe('Suppliers API (PROC-001)', () => {
         sku: 'TEST-RAW-001',
         name: 'Test Raw Material',
         kind: 'raw_material',
-        baseUomId: '00000000-0000-0000-0000-000000000011', // KG
+        baseUomId: '10000000-0000-4000-8000-000000000011', // KG
         isPerishable: false,
         isActive: true,
       },
@@ -233,7 +233,7 @@ describe('Suppliers API (PROC-001)', () => {
           productId: testProductId,
           supplierSku: 'SUP-SKU-001',
           unitCost: 25.50,
-          uomId: '00000000-0000-0000-0000-000000000011', // KG
+          uomId: '10000000-0000-4000-8000-000000000011', // KG
           leadTimeDays: 7,
           moq: 100,
           isActive: true,
@@ -432,7 +432,7 @@ describe('Suppliers API (PROC-001)', () => {
           productId: testProductId,
           supplierSku: 'CAT-SKU-001',
           unitCost: 12.50,
-          uomId: '00000000-0000-0000-0000-000000000011',
+          uomId: '10000000-0000-4000-8000-000000000011',
           leadTimeDays: 5,
           moq: 50,
           isPrimary: true,
@@ -460,7 +460,7 @@ describe('Suppliers API (PROC-001)', () => {
           productId: testProductId,
           supplierSku: 'UPD-SKU-001',
           unitCost: 10.00,
-          uomId: '00000000-0000-0000-0000-000000000011',
+          uomId: '10000000-0000-4000-8000-000000000011',
         },
       });
 
@@ -499,7 +499,7 @@ describe('Suppliers API (PROC-001)', () => {
           productId: testProductId,
           supplierSku: 'DUP-SKU-001',
           unitCost: 10.00,
-          uomId: '00000000-0000-0000-0000-000000000011',
+          uomId: '10000000-0000-4000-8000-000000000011',
         },
       });
 
@@ -515,7 +515,7 @@ describe('Suppliers API (PROC-001)', () => {
           productId: testProductId, // Same product
           supplierSku: 'DUP-SKU-002',
           unitCost: 12.00,
-          uomId: '00000000-0000-0000-0000-000000000011',
+          uomId: '10000000-0000-4000-8000-000000000011',
         },
       });
 

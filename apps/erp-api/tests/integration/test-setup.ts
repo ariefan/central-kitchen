@@ -15,10 +15,10 @@ let pool: pg.Pool;
 let db: ReturnType<typeof drizzle>;
 let app: FastifyInstance;
 
-// Test user context
-export const testTenantId = '00000000-0000-0000-0000-000000000001';
-export const testUserId = '00000000-0000-0000-0000-000000000002';
-export const testLocationId = '00000000-0000-0000-0000-000000000003';
+// Test user context (using valid UUIDs v4 format)
+export const testTenantId = '10000000-0000-4000-8000-000000000001';
+export const testUserId = '10000000-0000-4000-8000-000000000002';
+export const testLocationId = '10000000-0000-4000-8000-000000000003';
 
 export interface TestContext {
   db: typeof db;
@@ -83,13 +83,13 @@ async function seedTestData() {
     SET id = $1, auth_user_id = 'test-auth-user', first_name = 'Test', last_name = 'User', role = 'admin', is_active = true
   `, [testUserId, testTenantId]);
 
-  // Insert base UOMs
+  // Insert base UOMs (using valid UUIDs v4 format)
   await pool.query(`
     INSERT INTO erp.uoms (id, tenant_id, code, name, uom_type, is_active)
     VALUES
-      ('00000000-0000-0000-0000-000000000010', $1, 'EA', 'Each', 'count', true),
-      ('00000000-0000-0000-0000-000000000011', $1, 'KG', 'Kilogram', 'weight', true),
-      ('00000000-0000-0000-0000-000000000012', $1, 'L', 'Liter', 'volume', true)
+      ('10000000-0000-4000-8000-000000000010', $1, 'EA', 'Each', 'count', true),
+      ('10000000-0000-4000-8000-000000000011', $1, 'KG', 'Kilogram', 'weight', true),
+      ('10000000-0000-4000-8000-000000000012', $1, 'L', 'Liter', 'volume', true)
     ON CONFLICT (id) DO NOTHING
   `, [testTenantId]);
 }

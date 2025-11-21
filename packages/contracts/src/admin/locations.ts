@@ -167,8 +167,8 @@ export const locationDetailSchema = z.object({
   totalProducts: z.number().int(),
 
   // System fields
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
 });
 
 /**

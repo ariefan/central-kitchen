@@ -11,7 +11,7 @@ describe('Purchase Order Workflow (PROC-002)', () => {
   beforeAll(async () => {
     app = getApp();
     // Setup test data
-    uomId = '00000000-0000-0000-0000-000000000011'; // KG
+    uomId = '10000000-0000-4000-8000-000000000011'; // KG
 
     // Create supplier
     const supplierResponse = await app.inject({

@@ -181,8 +181,8 @@ export function locationRoutes(fastify: FastifyInstance) {
         totalUsers: 0,
         totalOnHandValue: '0.00',
         totalProducts: 0,
-        createdAt: location.createdAt,
-        updatedAt: location.updatedAt,
+        createdAt: location.createdAt.toISOString(),
+        updatedAt: location.updatedAt.toISOString(),
       };
 
       return reply.status(201).send(createSuccessResponse(responseData, 'Location created successfully'));
@@ -287,8 +287,8 @@ export function locationRoutes(fastify: FastifyInstance) {
         totalUsers: 0,
         totalOnHandValue: '0.00',
         totalProducts: 0,
-        createdAt: location.createdAt,
-        updatedAt: location.updatedAt,
+        createdAt: location.createdAt.toISOString(),
+        updatedAt: location.updatedAt.toISOString(),
       }));
 
       return reply.send(
@@ -379,8 +379,8 @@ export function locationRoutes(fastify: FastifyInstance) {
         totalUsers: 0,
         totalOnHandValue: '0.00',
         totalProducts: 0,
-        createdAt: locationData.createdAt,
-        updatedAt: locationData.updatedAt,
+        createdAt: locationData.createdAt.toISOString(),
+        updatedAt: locationData.updatedAt.toISOString(),
       };
 
       return reply.send(createSuccessResponse(responseData));
@@ -544,8 +544,8 @@ export function locationRoutes(fastify: FastifyInstance) {
         totalUsers: 0,
         totalOnHandValue: '0.00',
         totalProducts: 0,
-        createdAt: updatedLocation.createdAt,
-        updatedAt: updatedLocation.updatedAt,
+        createdAt: updatedLocation.createdAt.toISOString(),
+        updatedAt: updatedLocation.updatedAt.toISOString(),
       };
 
       return reply.send(createSuccessResponse(responseData, 'Location updated successfully'));

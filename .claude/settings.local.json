@@ -85,7 +85,9 @@
       "Bash(git checkout:*)",
       "Bash(mv:*)",
       "Bash(rmdir:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(BYPASS_AUTH_FOR_TESTS=true pnpm vitest:*)",
+      "Bash(pnpm test:reset:*)"
     ],
     "deny": [],
     "ask": []
