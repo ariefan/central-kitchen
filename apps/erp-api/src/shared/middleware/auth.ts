@@ -168,6 +168,59 @@ export const authMiddleware = async (
   reply: FastifyReply
 ) => {
   if (shouldBypassAuth()) {
+    // Check if test headers are provided
+    const testTenantId = request.headers['x-tenant-id'] as string | undefined;
+    const testUserId = request.headers['x-user-id'] as string | undefined;
+
+    if (testTenantId && testUserId) {
+      // Use header-based context for tests
+      const [userData] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, testUserId))
+        .limit(1);
+
+      if (!userData) {
+        return reply.status(401).send({
+          success: false,
+          error: 'Test user not found',
+          code: 'USER_NOT_FOUND',
+        });
+      }
+
+      const [tenantData] = await db
+        .select()
+        .from(tenants)
+        .where(eq(tenants.id, testTenantId))
+        .limit(1);
+
+      if (!tenantData) {
+        return reply.status(403).send({
+          success: false,
+          error: 'Test tenant not found',
+          code: 'TENANT_NOT_FOUND',
+        });
+      }
+
+      let locationData: LocationRecord = null;
+      if (userData.locationId) {
+        const [loc] = await db
+          .select()
+          .from(locations)
+          .where(eq(locations.id, userData.locationId))
+          .limit(1);
+        locationData = loc ?? null;
+      }
+
+      request.user = userData as User;
+      request.tenant = tenantData as Tenant;
+      request.location = locationData;
+      request.tenantId = tenantData.id;
+      request.userId = userData.id;
+      return;
+    }
+
+    // Fallback to cached bypass context
     const context = await loadBypassContext();
     applyRequestContext(request, context);
     return;
@@ -256,6 +309,47 @@ export const optionalAuthMiddleware = async (
   _reply: FastifyReply
 ) => {
   if (shouldBypassAuth()) {
+    // Check if test headers are provided
+    const testTenantId = request.headers['x-tenant-id'] as string | undefined;
+    const testUserId = request.headers['x-user-id'] as string | undefined;
+
+    if (testTenantId && testUserId) {
+      // Use header-based context for tests
+      const [userData] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, testUserId))
+        .limit(1);
+
+      if (userData) {
+        const [tenantData] = await db
+          .select()
+          .from(tenants)
+          .where(eq(tenants.id, testTenantId))
+          .limit(1);
+
+        if (tenantData) {
+          let locationData: LocationRecord = null;
+          if (userData.locationId) {
+            const [loc] = await db
+              .select()
+              .from(locations)
+              .where(eq(locations.id, userData.locationId))
+              .limit(1);
+            locationData = loc ?? null;
+          }
+
+          request.user = userData as User;
+          request.tenant = tenantData as Tenant;
+          request.location = locationData;
+          request.tenantId = tenantData.id;
+          request.userId = userData.id;
+        }
+      }
+      return;
+    }
+
+    // Fallback to cached bypass context
     const context = await loadBypassContext();
     applyRequestContext(request, context);
     return;

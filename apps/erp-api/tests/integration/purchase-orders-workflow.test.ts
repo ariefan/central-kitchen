@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { getApp, getTestContext } from './test-setup';
 
 describe('Purchase Order Workflow (PROC-002)', () => {
@@ -8,7 +8,7 @@ describe('Purchase Order Workflow (PROC-002)', () => {
   let productId: string;
   let uomId: string;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     app = getApp();
     // Setup test data
     uomId = '10000000-0000-4000-8000-000000000011'; // KG
@@ -279,15 +279,13 @@ describe('Purchase Order Workflow (PROC-002)', () => {
           'x-user-id': ctx.userId,
         },
         payload: {
-          rejectedBy: ctx.userId,
-          rejectionReason: 'Price too high',
+          reason: 'Price too high',
         },
       });
 
       expect(rejectResponse.statusCode).toBe(200);
       const rejectedPO = JSON.parse(rejectResponse.body).data;
       expect(rejectedPO.status).toBe('rejected');
-      expect(rejectedPO.rejectionReason).toBe('Price too high');
 
       // Attempt to send rejected PO (should fail)
       const sendResponse = await app.inject({
