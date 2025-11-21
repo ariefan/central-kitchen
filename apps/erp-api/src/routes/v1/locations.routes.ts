@@ -29,10 +29,40 @@ import {
 import { getCurrentUser } from '@/shared/middleware/auth.js';
 import {
   createSuccessResponse,
-
   createNotFoundError,
   createBadRequestError,
 } from '@/shared/utils/responses.js';
+
+/**
+ * Map database location record to API response format
+ * Handles field name mapping: DB 'type' -> API 'locationType'
+ */
+function mapLocationToResponse(location: typeof locations.$inferSelect) {
+  return {
+    id: location.id,
+    tenantId: location.tenantId,
+    code: location.code,
+    name: location.name,
+    locationType: location.type,
+    address: location.address,
+    city: location.city,
+    postalCode: location.postalCode,
+    country: location.country || null,
+    latitude: (location.metadata as any)?.latitude || null,
+    longitude: (location.metadata as any)?.longitude || null,
+    phone: location.phone,
+    email: location.email,
+    managerName: (location.metadata as any)?.managerName || null,
+    operatingHours: (location.metadata as any)?.operatingHours || null,
+    isActive: location.isActive,
+    notes: (location.metadata as any)?.notes || null,
+    totalUsers: 0,
+    totalOnHandValue: '0.00',
+    totalProducts: 0,
+    createdAt: location.createdAt.toISOString(),
+    updatedAt: location.updatedAt.toISOString(),
+  };
+}
 
 /**
  * Register location routes
@@ -160,32 +190,7 @@ export function locationRoutes(fastify: FastifyInstance) {
         throw new Error('Failed to create location');
       }
 
-      const responseData = {
-        id: location.id,
-        tenantId: location.tenantId,
-        code: location.code,
-        name: location.name,
-        locationType: location.type,
-        address: location.address,
-        city: location.city,
-        postalCode: location.postalCode,
-        country: location.country || null,
-        latitude: (location.metadata as any)?.latitude || null,
-        longitude: (location.metadata as any)?.longitude || null,
-        phone: location.phone,
-        email: location.email,
-        managerName: (location.metadata as any)?.managerName || null,
-        operatingHours: (location.metadata as any)?.operatingHours || null,
-        isActive: location.isActive,
-        notes: (location.metadata as any)?.notes || null,
-        totalUsers: 0,
-        totalOnHandValue: '0.00',
-        totalProducts: 0,
-        createdAt: location.createdAt.toISOString(),
-        updatedAt: location.updatedAt.toISOString(),
-      };
-
-      return reply.status(201).send(createSuccessResponse(responseData, 'Location created successfully'));
+      return reply.status(201).send(createSuccessResponse(mapLocationToResponse(location), 'Location created successfully'));
     }
   );
 
@@ -268,28 +273,7 @@ export function locationRoutes(fastify: FastifyInstance) {
         .limit(limit)
         .offset(offset);
 
-      const items = locationsList.map((location) => ({
-        id: location.id,
-        tenantId: location.tenantId,
-        code: location.code,
-        name: location.name,
-        locationType: location.type,
-        address: location.address,
-        city: location.city,
-        postalCode: location.postalCode,
-        country: location.country || null,
-        latitude: (location.metadata as any)?.latitude || null,
-        longitude: (location.metadata as any)?.longitude || null,
-        phone: location.phone,
-        email: location.email,
-        managerName: (location.metadata as any)?.managerName || null,
-        isActive: location.isActive,
-        totalUsers: 0,
-        totalOnHandValue: '0.00',
-        totalProducts: 0,
-        createdAt: location.createdAt.toISOString(),
-        updatedAt: location.updatedAt.toISOString(),
-      }));
+      const items = locationsList.map(mapLocationToResponse);
 
       return reply.send(
         createSuccessResponse({
@@ -358,32 +342,7 @@ export function locationRoutes(fastify: FastifyInstance) {
         return createNotFoundError('Location not found', reply);
       }
 
-      const responseData = {
-        id: locationData.id,
-        tenantId: locationData.tenantId,
-        code: locationData.code,
-        name: locationData.name,
-        locationType: locationData.type,
-        address: locationData.address,
-        city: locationData.city,
-        postalCode: locationData.postalCode,
-        country: locationData.country || null,
-        latitude: (locationData.metadata as any)?.latitude || null,
-        longitude: (locationData.metadata as any)?.longitude || null,
-        phone: locationData.phone,
-        email: locationData.email,
-        managerName: (locationData.metadata as any)?.managerName || null,
-        operatingHours: (locationData.metadata as any)?.operatingHours || null,
-        isActive: locationData.isActive,
-        notes: (locationData.metadata as any)?.notes || null,
-        totalUsers: 0,
-        totalOnHandValue: '0.00',
-        totalProducts: 0,
-        createdAt: locationData.createdAt.toISOString(),
-        updatedAt: locationData.updatedAt.toISOString(),
-      };
-
-      return reply.send(createSuccessResponse(responseData));
+      return reply.send(createSuccessResponse(mapLocationToResponse(locationData)));
     }
   );
 
@@ -523,32 +482,7 @@ export function locationRoutes(fastify: FastifyInstance) {
         throw new Error('Failed to update location');
       }
 
-      const responseData = {
-        id: updatedLocation.id,
-        tenantId: updatedLocation.tenantId,
-        code: updatedLocation.code,
-        name: updatedLocation.name,
-        locationType: updatedLocation.type,
-        address: updatedLocation.address,
-        city: updatedLocation.city,
-        postalCode: updatedLocation.postalCode,
-        country: updatedLocation.country || null,
-        latitude: (updatedLocation.metadata as any)?.latitude || null,
-        longitude: (updatedLocation.metadata as any)?.longitude || null,
-        phone: updatedLocation.phone,
-        email: updatedLocation.email,
-        managerName: (updatedLocation.metadata as any)?.managerName || null,
-        operatingHours: (updatedLocation.metadata as any)?.operatingHours || null,
-        isActive: updatedLocation.isActive,
-        notes: (updatedLocation.metadata as any)?.notes || null,
-        totalUsers: 0,
-        totalOnHandValue: '0.00',
-        totalProducts: 0,
-        createdAt: updatedLocation.createdAt.toISOString(),
-        updatedAt: updatedLocation.updatedAt.toISOString(),
-      };
-
-      return reply.send(createSuccessResponse(responseData, 'Location updated successfully'));
+      return reply.send(createSuccessResponse(mapLocationToResponse(updatedLocation), 'Location updated successfully'));
     }
   );
 
