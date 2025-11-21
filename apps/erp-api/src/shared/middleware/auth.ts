@@ -91,7 +91,7 @@ const loadBypassContext = async (): Promise<AuthBypassContext> => {
       tenantId: tenantInsert.id,
       code: 'TEST-LOC',
       name: 'Test Location',
-      type: 'warehouse',
+      locationType: 'warehouse',
       country: 'Testland',
       isActive: true,
     }).returning();
@@ -362,7 +362,7 @@ declare module 'fastify' {
       tenantId: string;
       code: string;
       name: string;
-      type: string;
+      locationType: string;
       address: string | null;
       city: string | null;
       state: string | null;

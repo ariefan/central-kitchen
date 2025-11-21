@@ -1,4 +1,8 @@
 import { defineConfig } from 'vitest/config';
+import { config as loadEnv } from 'dotenv';
+
+// Load .env.test file
+loadEnv({ path: '.env.test' });
 
 export default defineConfig({
   test: {
@@ -9,8 +13,12 @@ export default defineConfig({
     hookTimeout: 20000,
     setupFiles: ['./tests/integration/test-setup.ts'],
     env: {
-      NODE_ENV: 'test',
-      DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/erp-test',
+      // Fallback values if .env.test is missing
+      NODE_ENV: process.env.NODE_ENV || 'test',
+      DATABASE_URL: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/erp-test',
+      BYPASS_AUTH_FOR_TESTS: process.env.BYPASS_AUTH_FOR_TESTS || 'true',
+      JWT_SECRET: process.env.JWT_SECRET || 'test-jwt-secret-min-32-chars-for-testing',
+      BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'test-better-auth-secret-min-32-chars',
     },
     reporter: ['default', 'json', 'verbose'],
     outputFile: {
