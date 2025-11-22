@@ -90,21 +90,6 @@ export function SupplierForm({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              {...register("description")}
-              placeholder="Brief description of supplier..."
-              disabled={isLoading}
-              rows={3}
-            />
-            {errors.description && (
-              <p className="text-sm text-destructive">
-                {errors.description.message}
-              </p>
-            )}
-          </div>
 
           <div className="flex items-center space-x-2">
             <Checkbox
