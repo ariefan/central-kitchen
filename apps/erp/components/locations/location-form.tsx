@@ -42,7 +42,7 @@ export function LocationForm({
     watch,
     formState: { errors },
   } = useForm<LocationCreate>({
-    resolver: zodResolver(locationCreateSchema),
+    resolver: zodResolver(locationCreateSchema) as any,
     defaultValues: {
       isActive: true,
       country: "Indonesia",
