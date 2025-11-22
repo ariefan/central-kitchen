@@ -77,13 +77,13 @@ services:
           cpus: '0.5'
           memory: 512M
 
-  # Inventory Frontend
+  # ERP Frontend
   web:
     build:
       context: .
-      dockerfile: apps/inventory/Dockerfile
+      dockerfile: apps/erp/Dockerfile
       args:
-        VITE_API_URL: https://api.personalapp.id
+        NEXT_PUBLIC_API_URL: https://api.personalapp.id
     restart: unless-stopped
     depends_on:
       api:
