@@ -249,7 +249,7 @@ async function seedDatabase() {
     ]).returning();
 
     const users = [userAdmin, userManager, userBarista];
-    if (!userAdmin || !userBarista) {
+    if (!userAdmin || !userManager || !userBarista) {
       throw new Error('Failed to seed core users');
     }
 
@@ -1628,22 +1628,25 @@ async function seedDatabase() {
 
     // 27. Drawer Movements
     console.log('💵 Creating drawer movements...');
-    await db.insert(schema.drawerMovements).values([
-      {
-        shiftId: (await db.select().from(schema.posShifts).limit(1))[0]?.id,
-        kind: 'cash_in',
-        amount: toNumericString(100000),
-        reason: 'Additional change needed',
-        createdBy: userBarista.id
-      },
-      {
-        shiftId: (await db.select().from(schema.posShifts).limit(1))[0]?.id,
-        kind: 'cash_out',
-        amount: toNumericString(50000),
-        reason: 'Petty cash for supplies',
-        createdBy: userBarista.id
-      }
-    ]);
+    const firstShift = (await db.select().from(schema.posShifts).limit(1))[0];
+    if (firstShift) {
+      await db.insert(schema.drawerMovements).values([
+        {
+          shiftId: firstShift.id,
+          kind: 'cash_in',
+          amount: toNumericString(100000),
+          reason: 'Additional change needed',
+          createdBy: userBarista.id
+        },
+        {
+          shiftId: firstShift.id,
+          kind: 'cash_out',
+          amount: toNumericString(50000),
+          reason: 'Petty cash for supplies',
+          createdBy: userBarista.id
+        }
+      ]);
+    }
 
     // 28. Deliveries
     console.log('🚴 Creating deliveries...');

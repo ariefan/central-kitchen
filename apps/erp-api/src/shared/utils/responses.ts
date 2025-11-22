@@ -207,11 +207,16 @@ export const handleValidationError = (error: ValidationError, reply: FastifyRepl
   // Try to extract a meaningful message from the first validation error
   let message = 'Invalid request data';
   if (error instanceof ZodError && error.issues.length > 0) {
-    message = error.issues[0].message;
-  } else if (error.validation && Array.isArray(error.validation) && error.validation.length > 0) {
-    message = error.validation[0].message || error.message || message;
-  } else if (error.message) {
-    message = error.message;
+    const firstIssue = error.issues[0];
+    message = firstIssue?.message || message;
+  } else {
+    // FastifyValidationError case
+    const fastifyError = error as FastifyValidationError;
+    if (fastifyError.validation && Array.isArray(fastifyError.validation) && fastifyError.validation.length > 0) {
+      message = (fastifyError.validation as any)[0]?.message || fastifyError.message || message;
+    } else if (fastifyError.message) {
+      message = fastifyError.message;
+    }
   }
 
   return reply.status(400).send(
