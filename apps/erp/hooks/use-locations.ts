@@ -100,7 +100,12 @@ export function useDeleteLocation() {
  * Get active locations only (for dropdowns)
  */
 export function useActiveLocations() {
-  return useLocations({ isActive: true });
+  return useLocations({
+    isActive: true,
+    limit: 100,
+    offset: 0,
+    sortOrder: 'asc'
+  });
 }
 
 /**
