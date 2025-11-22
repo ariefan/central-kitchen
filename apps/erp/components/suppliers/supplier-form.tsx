@@ -39,7 +39,7 @@ export function SupplierForm({
     resolver: zodResolver(supplierCreateSchema) as any,
     defaultValues: {
       isActive: true,
-      paymentTermsDays: 30,
+      paymentTerms: 30,
       leadTimeDays: 7,
       ...initialData,
     },
