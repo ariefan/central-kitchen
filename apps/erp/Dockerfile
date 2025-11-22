@@ -30,6 +30,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/erp/node_modules ./apps/erp/node_modules
+COPY --from=deps /app/packages/contracts/node_modules ./packages/contracts/node_modules
 
 # Copy source code
 COPY . .
