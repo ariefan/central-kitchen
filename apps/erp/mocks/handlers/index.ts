@@ -220,7 +220,7 @@ export const handlers = [
   http.post(`${API_BASE}/api/v1/goods-receipts/:id/post`, ({ params }) => {
     const gr = mockGoodsReceipts.find(g => g.id === params.id);
     if (gr) {
-      gr.status = 'posted';
+      (gr as any).status = 'posted';
       return HttpResponse.json(generateSuccessResponse(gr));
     }
     return HttpResponse.json(generateErrorResponse('GR not found'), { status: 404 });
