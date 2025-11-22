@@ -9,7 +9,7 @@ import { auth } from '../../lib/auth.js';
 interface User {
   id: string;
   authUserId: string;
-  tenantId: string;
+  tenantId: string | null;
   email: string;
   firstName: string | null;
   lastName: string | null;
@@ -121,6 +121,10 @@ const loadBypassContext = async (): Promise<AuthBypassContext> => {
   }
 
   // At this point userData is guaranteed to be defined
+  if (!userData.tenantId) {
+    throw new Error('Auth bypass enabled but test user has no tenant assigned.');
+  }
+
   const tenantResult = await db
     .select()
     .from(tenants)
@@ -255,6 +259,15 @@ export const authMiddleware = async (
       });
     }
 
+    // Check if user has a tenant assigned
+    if (!userData.tenantId) {
+      return reply.status(403).send({
+        success: false,
+        error: 'User has no tenant assigned',
+        code: 'NO_TENANT_ASSIGNED',
+      });
+    }
+
     // Fetch tenant
     const [tenantData] = await db
       .select()
@@ -369,12 +382,16 @@ export const optionalAuthMiddleware = async (
         .limit(1);
 
       if (userData) {
-        // Fetch tenant
-        const [tenantData] = await db
-          .select()
-          .from(tenants)
-          .where(eq(tenants.id, userData.tenantId))
-          .limit(1);
+        // Fetch tenant if user has one assigned
+        let tenantData = null;
+        if (userData.tenantId) {
+          const [tenant] = await db
+            .select()
+            .from(tenants)
+            .where(eq(tenants.id, userData.tenantId))
+            .limit(1);
+          tenantData = tenant ?? null;
+        }
 
         // Fetch location if assigned
         let locationData = null;
