@@ -12,12 +12,19 @@ COPY turbo.json ./
 
 # Copy app package.json files
 COPY apps/erp-api/package.json ./apps/erp-api/
+COPY packages/contracts/package.json ./packages/contracts/
 
 # Install dependencies (including dev dependencies for build)
 RUN pnpm install --frozen-lockfile
 
+# Copy contracts source (needed for API build)
+COPY packages/contracts ./packages/contracts/
+
 # Copy source code
 COPY apps/erp-api ./apps/erp-api
+
+# Build contracts package first
+RUN pnpm --filter @contracts/erp build
 
 # Build the application
 RUN pnpm --filter=erp-api build
@@ -33,6 +40,7 @@ WORKDIR /app
 # Copy package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/erp-api/package.json ./apps/erp-api/
+COPY packages/contracts/package.json ./packages/contracts/
 
 # Install ALL dependencies (including drizzle-kit for migrations)
 # We need drizzle-kit in production to run migrations
@@ -40,6 +48,7 @@ RUN pnpm install --frozen-lockfile
 
 # Copy built application from builder
 COPY --from=builder /app/apps/erp-api/dist ./apps/erp-api/dist
+COPY --from=builder /app/packages/contracts/dist ./packages/contracts/dist
 
 # Copy migration files and config (CRITICAL for production)
 COPY apps/erp-api/drizzle ./apps/erp-api/drizzle
