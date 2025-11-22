@@ -86,10 +86,10 @@ export const users = erp.table("users", {
   id: uuid("id").primaryKey().defaultRandom(),
 
   // Better Auth compatibility field
-  authUserId: varchar("auth_user_id", { length: 128 }).notNull(),
+  authUserId: varchar("auth_user_id", { length: 128 }),
 
   // Multi-tenant fields
-  tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
 
   // Core user fields
   name: text("name"),
