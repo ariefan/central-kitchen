@@ -4,6 +4,10 @@
   "description": "",
   "type": "module",
   "main": "index.js",
+  "imports": {
+    "#/*": "./dist/*",
+    "@/*": "./dist/*"
+  },
   "scripts": {
     "dev": "tsx ../../scripts/kill-port.ts 8000 && tsx watch src/index.ts",
     "build": "tsc",
