@@ -113,5 +113,10 @@ export function useActiveLocations() {
  * Get locations by type
  */
 export function useLocationsByType(locationType: LocationType) {
-  return useLocations({ locationType });
+  return useLocations({
+    locationType,
+    limit: 100,
+    offset: 0,
+    sortOrder: 'asc'
+  });
 }
