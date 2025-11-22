@@ -37,11 +37,12 @@ export default function UOMsPage() {
       );
 
       if (response.ok) {
-        const data = await response.json();
-        // Ensure data.data is an array
-        setUoms(Array.isArray(data.data) ? data.data : []);
+        const result = await response.json();
+        // API returns { success: true, data: { items: [...], pagination: {...} } }
+        const data = result.data || {};
+        setUoms(Array.isArray(data.items) ? data.items : []);
         setPagination({
-          page: data.pagination?.page || 1,
+          page: data.pagination?.currentPage || 1,
           pageSize: data.pagination?.limit || pageSize,
           total: data.pagination?.total || 0,
         });

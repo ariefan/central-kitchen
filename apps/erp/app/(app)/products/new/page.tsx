@@ -38,7 +38,7 @@ export default function NewProductPage() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    kind: "raw_material",
+    productKind: "raw_material",
     sku: "",
     baseUomId: "",
     categoryId: "",
@@ -94,6 +94,7 @@ export default function NewProductPage() {
     try {
       const payload = {
         ...formData,
+        sku: formData.sku || undefined, // Don't send empty string
         defaultExpiryDays: formData.defaultExpiryDays ? parseInt(formData.defaultExpiryDays) : undefined,
         minStock: formData.minStock ? parseFloat(formData.minStock) : undefined,
         maxStock: formData.maxStock ? parseFloat(formData.maxStock) : undefined,
@@ -193,14 +194,14 @@ export default function NewProductPage() {
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="kind">Product Type *</Label>
+                  <Label htmlFor="productKind">Product Type *</Label>
                   <Select
-                    value={formData.kind}
+                    value={formData.productKind}
                     onValueChange={(value) =>
-                      setFormData({ ...formData, kind: value })
+                      setFormData({ ...formData, productKind: value })
                     }
                   >
-                    <SelectTrigger id="kind">
+                    <SelectTrigger id="productKind">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

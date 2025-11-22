@@ -12,7 +12,7 @@ interface Product {
   id: string;
   sku: string;
   name: string;
-  kind: string;
+  productKind: string;
   baseUom: {
     code: string;
     name: string;
@@ -51,11 +51,12 @@ export default function ProductsPage() {
       );
 
       if (response.ok) {
-        const data = await response.json();
-        // Ensure data.data is an array
-        setProducts(Array.isArray(data.data) ? data.data : []);
+        const result = await response.json();
+        // API returns { success: true, data: { items: [...], pagination: {...} } }
+        const data = result.data || {};
+        setProducts(Array.isArray(data.items) ? data.items : []);
         setPagination({
-          page: data.pagination?.page || 1,
+          page: data.pagination?.currentPage || 1,
           pageSize: data.pagination?.limit || pageSize,
           total: data.pagination?.total || 0,
         });
@@ -82,7 +83,7 @@ export default function ProductsPage() {
       label: "Product Name",
     },
     {
-      key: "kind",
+      key: "productKind",
       label: "Type",
       render: (value) => (
         <Badge variant="outline" className="capitalize">

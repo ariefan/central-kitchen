@@ -34,26 +34,8 @@ export function categoryRoutes(fastify: FastifyInstance) {
     schema: {
       description: 'List product kinds (categories)',
       tags: ['Categories', 'Products'],
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            success: { type: 'boolean' },
-            message: { type: 'string' },
-            data: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  id: { type: 'string' },
-                  code: { type: 'string' },
-                  name: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
+      // Note: Response schema validation removed because Fastify with Zod type provider
+      // doesn't accept plain JSON schemas
     }
   }, async (_request: FastifyRequest, reply: FastifyReply) => {
     // Return product kinds from enum with proper display names
