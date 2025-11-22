@@ -11,6 +11,7 @@ import type {
   LocationUpdate,
   LocationQuery,
   DeleteResponse,
+  LocationType,
 } from '@contracts/erp';
 
 /**
@@ -111,6 +112,6 @@ export function useActiveLocations() {
 /**
  * Get locations by type
  */
-export function useLocationsByType(locationType: string) {
+export function useLocationsByType(locationType: LocationType) {
   return useLocations({ locationType });
 }
