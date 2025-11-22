@@ -92,6 +92,7 @@ export const users = erp.table("users", {
   tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
 
   // Core user fields
+  name: text("name"),
   email: varchar("email", { length: 255 }).notNull(),
   firstName: varchar("first_name", { length: 100 }),
   lastName: varchar("last_name", { length: 100 }),
