@@ -130,34 +130,17 @@ export function SupplierForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                {...register("phone")}
-                placeholder="+62 812 3456 7890"
-                disabled={isLoading}
-              />
-              {errors.phone && (
-                <p className="text-sm text-destructive">{errors.phone.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                {...register("website")}
-                placeholder="https://supplier.com"
-                disabled={isLoading}
-              />
-              {errors.website && (
-                <p className="text-sm text-destructive">
-                  {errors.website.message}
-                </p>
-              )}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              {...register("phone")}
+              placeholder="+62 812 3456 7890"
+              disabled={isLoading}
+            />
+            {errors.phone && (
+              <p className="text-sm text-destructive">{errors.phone.message}</p>
+            )}
           </div>
         </CardContent>
       </Card>
