@@ -14,11 +14,12 @@ COPY turbo.json ./
 COPY apps/erp-api/package.json ./apps/erp-api/
 COPY packages/contracts/package.json ./packages/contracts/
 
-# Install dependencies (including dev dependencies for build)
-RUN pnpm install --frozen-lockfile
-
-# Copy contracts source (needed for API build)
+# Copy contracts source (needed BEFORE install due to prepare script)
 COPY packages/contracts ./packages/contracts/
+
+# Install dependencies (including dev dependencies for build)
+# This will trigger contracts prepare script which needs the source
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY apps/erp-api ./apps/erp-api
