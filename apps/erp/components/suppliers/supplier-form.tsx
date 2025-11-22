@@ -164,7 +164,7 @@ export function SupplierForm({
             )}
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">City</Label>
               <Input
@@ -175,21 +175,6 @@ export function SupplierForm({
               />
               {errors.city && (
                 <p className="text-sm text-destructive">{errors.city.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="province">Province/State</Label>
-              <Input
-                id="province"
-                {...register("province")}
-                placeholder="DKI Jakarta"
-                disabled={isLoading}
-              />
-              {errors.province && (
-                <p className="text-sm text-destructive">
-                  {errors.province.message}
-                </p>
               )}
             </div>
 
@@ -232,17 +217,17 @@ export function SupplierForm({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="paymentTermsDays">Payment Terms (Days)</Label>
+              <Label htmlFor="paymentTerms">Payment Terms (Days)</Label>
               <Input
-                id="paymentTermsDays"
+                id="paymentTerms"
                 type="number"
-                {...register("paymentTermsDays", { valueAsNumber: true })}
+                {...register("paymentTerms", { valueAsNumber: true })}
                 placeholder="30"
                 disabled={isLoading}
               />
-              {errors.paymentTermsDays && (
+              {errors.paymentTerms && (
                 <p className="text-sm text-destructive">
-                  {errors.paymentTermsDays.message}
+                  {errors.paymentTerms.message}
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
