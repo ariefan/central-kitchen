@@ -165,7 +165,7 @@ export const handlers = [
       id: `po-${Date.now()}`,
       poNumber: `PO-202511-${String(mockPurchaseOrders.length + 1).padStart(5, '0')}`,
       ...body,
-      status: 'draft' as const,
+      status: 'draft' as any,
       createdAt: new Date().toISOString(),
     };
     mockPurchaseOrders.push(newPO);
