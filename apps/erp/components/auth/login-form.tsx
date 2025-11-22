@@ -76,6 +76,7 @@ export function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => vo
               <Label htmlFor="password">Password</Label>
               <button
                 type="button"
+                tabIndex={-1}
                 className="text-sm text-primary hover:underline"
                 onClick={() => {
                   // TODO: Implement forgot password flow
@@ -113,7 +114,7 @@ export function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => vo
             </Label>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
+        <CardFooter className="flex flex-col space-y-4 mt-2">
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Signing in..." : "Sign In"}
           </Button>

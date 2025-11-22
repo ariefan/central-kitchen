@@ -43,6 +43,11 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: 24h
       LOG_LEVEL: info
+      # Better Auth Configuration
+      BETTER_AUTH_SECRET: ${JWT_SECRET}
+      BETTER_AUTH_URL: https://api.personalapp.id
+      COOKIE_DOMAIN: .personalapp.id
+      FRONTEND_URL: https://erp.personalapp.id
     depends_on:
       postgres:
         condition: service_healthy
