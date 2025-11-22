@@ -105,7 +105,7 @@ export default function EditLocationPage() {
       </div>
 
       <LocationForm
-        initialData={location}
+        initialData={location as any}
         onSubmit={handleSubmit}
         isLoading={updateLocation.isPending}
         onCancel={() => router.push("/locations")}
