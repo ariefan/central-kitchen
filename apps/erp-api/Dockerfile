@@ -43,8 +43,12 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/erp-api/package.json ./apps/erp-api/
 COPY packages/contracts/package.json ./packages/contracts/
 
+# Copy contracts source (needed BEFORE install due to prepare script)
+COPY packages/contracts ./packages/contracts/
+
 # Install ALL dependencies (including drizzle-kit for migrations)
 # We need drizzle-kit in production to run migrations
+# This will trigger contracts prepare script which needs the source
 RUN pnpm install --frozen-lockfile
 
 # Copy built application from builder
