@@ -112,20 +112,6 @@ export function SupplierForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="contactPerson">Contact Person</Label>
-              <Input
-                id="contactPerson"
-                {...register("contactPerson")}
-                placeholder="John Doe"
-                disabled={isLoading}
-              />
-              {errors.contactPerson && (
-                <p className="text-sm text-destructive">
-                  {errors.contactPerson.message}
-                </p>
-              )}
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">
