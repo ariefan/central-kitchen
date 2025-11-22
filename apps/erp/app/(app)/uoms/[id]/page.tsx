@@ -108,7 +108,7 @@ export default function UomEditPage({ params }: UomEditPageProps) {
       </div>
 
       <UomForm
-        initialData={uom}
+        defaultValues={uom}
         onSubmit={handleSubmit}
         isLoading={isLoading}
         onCancel={() => router.push("/uoms")}
