@@ -4,8 +4,12 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Get the session cookie
-  const sessionToken = request.cookies.get("better-auth.session_token");
+  // Get the session cookie - handle both secure and non-secure cookie names
+  // In production (HTTPS), Better Auth uses __Secure- prefix
+  // In development (HTTP), it uses the plain name
+  const sessionToken =
+    request.cookies.get("__Secure-better-auth.session_token") ||
+    request.cookies.get("better-auth.session_token");
   const hasSession = !!sessionToken;
 
   // Public routes that don't require authentication
