@@ -60,7 +60,7 @@ export function CustomerForm({
     watch,
     formState: { errors },
   } = useForm<CustomerFormData>({
-    resolver: zodResolver(customerFormSchema),
+    resolver: zodResolver(customerFormSchema) as any,
     defaultValues: {
       type: "external",
       isActive: true,

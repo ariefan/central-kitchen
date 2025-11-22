@@ -36,7 +36,7 @@ export function SupplierForm({
     watch,
     formState: { errors },
   } = useForm<SupplierCreate>({
-    resolver: zodResolver(supplierCreateSchema),
+    resolver: zodResolver(supplierCreateSchema) as any,
     defaultValues: {
       isActive: true,
       paymentTermsDays: 30,
