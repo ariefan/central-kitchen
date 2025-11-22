@@ -38,7 +38,7 @@ export function UomForm({
     watch,
     setValue,
   } = useForm<UomCreate>({
-    resolver: zodResolver(uomCreateSchema),
+    resolver: zodResolver(uomCreateSchema) as any,
     defaultValues: defaultValues || {
       code: "",
       name: "",
