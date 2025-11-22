@@ -418,11 +418,15 @@ export const optionalAuthMiddleware = async (
 };
 
 // Helper to get current user from request
-export const getCurrentUser = (request: FastifyRequest): User => {
+// Note: After authMiddleware, tenantId is guaranteed to be non-null
+export const getCurrentUser = (request: FastifyRequest): User & { tenantId: string } => {
   if (!request.user) {
     throw new Error('User not found in request context');
   }
-  return request.user;
+  if (!request.user.tenantId) {
+    throw new Error('User has no tenant assigned');
+  }
+  return request.user as User & { tenantId: string };
 };
 
 // Helper to get current tenant from request
