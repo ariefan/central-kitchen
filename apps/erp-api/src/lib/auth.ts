@@ -49,6 +49,12 @@ export const auth = betterAuth({
       enabled: true,
       maxAge: 60 * 5, // 5 minutes
     },
+    cookieOptions: {
+      domain: process.env.COOKIE_DOMAIN || '.personalapp.id', // Allow cookies across subdomains
+      sameSite: 'lax' as const,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    },
   },
 
   // Trust the frontend origin
