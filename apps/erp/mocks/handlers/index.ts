@@ -175,7 +175,7 @@ export const handlers = [
   http.post(`${API_BASE}/api/v1/purchase-orders/:id/submit`, ({ params }) => {
     const po = mockPurchaseOrders.find(p => p.id === params.id);
     if (po) {
-      po.status = 'pending_approval';
+      (po as any).status = 'pending_approval';
       return HttpResponse.json(generateSuccessResponse(po));
     }
     return HttpResponse.json(generateErrorResponse('PO not found'), { status: 404 });
@@ -184,7 +184,7 @@ export const handlers = [
   http.post(`${API_BASE}/api/v1/purchase-orders/:id/approve`, ({ params }) => {
     const po = mockPurchaseOrders.find(p => p.id === params.id);
     if (po) {
-      po.status = 'approved';
+      (po as any).status = 'approved';
       return HttpResponse.json(generateSuccessResponse(po));
     }
     return HttpResponse.json(generateErrorResponse('PO not found'), { status: 404 });
