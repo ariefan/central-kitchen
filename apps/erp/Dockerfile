@@ -14,6 +14,9 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/erp/package.json ./apps/erp/
 COPY packages/contracts/package.json ./packages/contracts/
 
+# Copy contracts source (needed for prepare script during install)
+COPY packages/contracts ./packages/contracts/
+
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
