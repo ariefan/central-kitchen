@@ -37,13 +37,13 @@ export const orderChannels = ["pos", "online", "wholesale"] as const;
 export const orderTypes = ["dine_in", "take_away", "delivery"] as const;
 export const orderStatuses = ["open", "paid", "voided", "refunded"] as const;
 export const docStatuses = {
-  purchaseOrder: ["draft","pending_approval","approved","rejected","sent","confirmed","partial_receipt","completed","cancelled"] as const,
-  transfer: ["draft","pending_approval","approved","rejected","sent","in_transit","partial_receipt","completed","cancelled"] as const,
-  requisition: ["draft","pending_approval","approved","rejected","issued","partial_delivery","completed","cancelled"] as const,
-  production: ["scheduled","in_progress","completed","cancelled","on_hold"] as const,
-  count: ["draft","counting","review","posted"] as const,
-  adjustment: ["draft","approved","posted"] as const,
-  return: ["requested","approved","rejected","completed"] as const,
+  purchaseOrder: ["draft", "pending_approval", "approved", "rejected", "sent", "confirmed", "partial_receipt", "completed", "cancelled"] as const,
+  transfer: ["draft", "pending_approval", "approved", "rejected", "sent", "in_transit", "partial_receipt", "completed", "cancelled"] as const,
+  requisition: ["draft", "pending_approval", "approved", "rejected", "issued", "partial_delivery", "completed", "cancelled"] as const,
+  production: ["scheduled", "in_progress", "completed", "cancelled", "on_hold"] as const,
+  count: ["draft", "counting", "review", "posted"] as const,
+  adjustment: ["draft", "approved", "posted"] as const,
+  return: ["requested", "approved", "rejected", "completed"] as const,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ export const users = erp.table("users", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (t) => ({
-  uqTenantEmail: unique("uq_user_tenant_email").on(t.tenantId, t.email),
+  uqEmail: unique("uq_user_email").on(t.email),
   idxAuth: index("idx_user_auth").on(t.authUserId),
 }));
 

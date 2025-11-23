@@ -1,6 +1,6 @@
 {
-  "id": "fb1a242e-4e2a-4b77-bee6-26d02cd7d026",
-  "prevId": "e47527e5-c277-4de8-9a62-74b937917a03",
+  "id": "924e9439-8198-4c95-98b3-a641ad44ddf4",
+  "prevId": "effebcc1-e6b1-46f8-a640-9c0f2400f2ca",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -3528,24 +3528,30 @@
           "primaryKey": false,
           "notNull": true
         },
-        "code": {
-          "name": "code",
-          "type": "varchar(64)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
+        "variant_name": {
+          "name": "variant_name",
           "type": "varchar(128)",
           "primaryKey": false,
           "notNull": true
         },
-        "extra_price": {
-          "name": "extra_price",
-          "type": "numeric(16, 2)",
+        "price_differential": {
+          "name": "price_differential",
+          "type": "varchar(32)",
           "primaryKey": false,
           "notNull": true,
           "default": "'0'"
+        },
+        "barcode": {
+          "name": "barcode",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sku": {
+          "name": "sku",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
         },
         "is_active": {
           "name": "is_active",
@@ -3554,15 +3560,51 @@
           "notNull": true,
           "default": true
         },
+        "display_order": {
+          "name": "display_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_variant_display_order": {
+          "name": "idx_variant_display_order",
+          "columns": [
+            {
+              "expression": "product_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "display_order",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "product_variants_product_id_products_id_fk": {
           "name": "product_variants_product_id_products_id_fk",
@@ -3581,12 +3623,12 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "uq_variant_prod_code": {
-          "name": "uq_variant_prod_code",
+        "uq_variant_prod_name": {
+          "name": "uq_variant_prod_name",
           "nullsNotDistinct": false,
           "columns": [
             "product_id",
-            "code"
+            "variant_name"
           ]
         }
       },
@@ -7279,6 +7321,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "tenant_id": {
+          "name": "tenant_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "from_uom_id": {
           "name": "from_uom_id",
           "type": "uuid",
@@ -7303,10 +7351,31 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
       "foreignKeys": {
+        "uom_conversions_tenant_id_tenants_id_fk": {
+          "name": "uom_conversions_tenant_id_tenants_id_fk",
+          "tableFrom": "uom_conversions",
+          "tableTo": "tenants",
+          "schemaTo": "erp",
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "uom_conversions_from_uom_id_uoms_id_fk": {
           "name": "uom_conversions_from_uom_id_uoms_id_fk",
           "tableFrom": "uom_conversions",
@@ -7338,10 +7407,11 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "uq_conv_pair": {
-          "name": "uq_conv_pair",
+        "uq_conv_tenant_pair": {
+          "name": "uq_conv_tenant_pair",
           "nullsNotDistinct": false,
           "columns": [
+            "tenant_id",
             "from_uom_id",
             "to_uom_id"
           ]
@@ -7362,6 +7432,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "tenant_id": {
+          "name": "tenant_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "code": {
           "name": "code",
           "type": "varchar(16)",
@@ -7370,21 +7446,34 @@
         },
         "name": {
           "name": "name",
-          "type": "varchar(64)",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "uom_type": {
+          "name": "uom_type",
+          "type": "varchar(20)",
           "primaryKey": false,
           "notNull": true
         },
         "symbol": {
           "name": "symbol",
-          "type": "varchar(16)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "kind": {
-          "name": "kind",
           "type": "varchar(20)",
           "primaryKey": false,
           "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
         },
         "created_at": {
           "name": "created_at",
@@ -7392,17 +7481,168 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "uoms_tenant_id_tenants_id_fk": {
+          "name": "uoms_tenant_id_tenants_id_fk",
+          "tableFrom": "uoms",
+          "tableTo": "tenants",
+          "schemaTo": "erp",
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "uq_uom_code": {
-          "name": "uq_uom_code",
+        "uq_uom_tenant_code": {
+          "name": "uq_uom_tenant_code",
           "nullsNotDistinct": false,
           "columns": [
+            "tenant_id",
             "code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "erp.user_locations": {
+      "name": "user_locations",
+      "schema": "erp",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location_id": {
+          "name": "location_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_user_locations_user": {
+          "name": "idx_user_locations_user",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_user_locations_location": {
+          "name": "idx_user_locations_location",
+          "columns": [
+            {
+              "expression": "location_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "user_locations_user_id_users_id_fk": {
+          "name": "user_locations_user_id_users_id_fk",
+          "tableFrom": "user_locations",
+          "tableTo": "users",
+          "schemaTo": "erp",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "user_locations_location_id_locations_id_fk": {
+          "name": "user_locations_location_id_locations_id_fk",
+          "tableFrom": "user_locations",
+          "tableTo": "locations",
+          "schemaTo": "erp",
+          "columnsFrom": [
+            "location_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "user_locations_created_by_users_id_fk": {
+          "name": "user_locations_created_by_users_id_fk",
+          "tableFrom": "user_locations",
+          "tableTo": "users",
+          "schemaTo": "erp",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "uq_user_location": {
+          "name": "uq_user_location",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id",
+            "location_id"
           ]
         }
       },
@@ -7425,13 +7665,19 @@
           "name": "auth_user_id",
           "type": "varchar(128)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "tenant_id": {
           "name": "tenant_id",
           "type": "uuid",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "email": {
           "name": "email",
@@ -7584,11 +7830,10 @@
             "username"
           ]
         },
-        "uq_user_tenant_email": {
-          "name": "uq_user_tenant_email",
+        "uq_user_email": {
+          "name": "uq_user_email",
           "nullsNotDistinct": false,
           "columns": [
-            "tenant_id",
             "email"
           ]
         }
