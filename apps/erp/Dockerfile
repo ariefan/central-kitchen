@@ -42,6 +42,10 @@ RUN pnpm --filter @contracts/erp build
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
+# API service URL for rewrites (must be available at build time for Next.js standalone)
+ARG API_SERVICE_URL=http://localhost:8000
+ENV API_SERVICE_URL=$API_SERVICE_URL
+
 # Build the ERP app
 RUN pnpm --filter erp build
 
