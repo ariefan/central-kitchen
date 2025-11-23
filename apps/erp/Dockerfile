@@ -64,6 +64,10 @@ COPY --from=builder /app/apps/erp/public ./apps/erp/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/erp/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/erp/.next/static ./apps/erp/.next/static
 
+# Copy and prepare entrypoint script (before switching to nextjs user)
+COPY apps/erp/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh && chown nextjs:nodejs /docker-entrypoint.sh
+
 USER nextjs
 
 EXPOSE 3000
@@ -75,5 +79,5 @@ ENV HOSTNAME="0.0.0.0"
 # This will be overridden by docker-compose environment variables
 ENV API_SERVICE_URL="http://localhost:8000"
 
-# Start the application
-CMD ["node", "apps/erp/server.js"]
+# Start the application using entrypoint script
+ENTRYPOINT ["/docker-entrypoint.sh"]
