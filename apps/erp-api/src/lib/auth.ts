@@ -51,9 +51,9 @@ export const auth = betterAuth({
     },
     cookieOptions: {
       domain: process.env.COOKIE_DOMAIN || '.personalapp.id', // Allow cookies across subdomains
-      sameSite: 'lax' as const,
+      sameSite: 'none',
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
     },
   },
 
