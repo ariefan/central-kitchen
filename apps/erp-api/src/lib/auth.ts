@@ -66,6 +66,18 @@ export const auth = betterAuth({
   // Advanced options
   advanced: {
     generateId: () => crypto.randomUUID(), // Use UUID for consistency
+    // Force cookie attributes to override better-auth defaults
+    cookiePrefix: "__Secure-better-auth",
+    sessionCookie: {
+      name: "session_token",
+      attributes: {
+        sameSite: "none",
+        secure: true,
+        httpOnly: true,
+        domain: process.env.COOKIE_DOMAIN || ".personalapp.id",
+        path: "/",
+      },
+    },
   },
 });
 
