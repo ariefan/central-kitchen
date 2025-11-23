@@ -135,7 +135,7 @@ export async function build() {
   });
 
   // Health check route handler
-  const healthCheckHandler = async (_request, _reply) => {
+  const healthCheckHandler = async () => {
     let dbStatus: string;
     try {
       // Test database connection
