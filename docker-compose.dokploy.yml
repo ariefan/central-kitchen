@@ -109,6 +109,13 @@ services:
       - "traefik.http.routers.web-http.entrypoints=web"
       - "traefik.http.routers.web-http.middlewares=redirect-to-https-web"
       - "traefik.http.middlewares.redirect-to-https-web.redirectscheme.scheme=https"
+      # API proxy middleware and router
+      - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.web-api.rule=Host(`erp.personalapp.id`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.web-api.entrypoints=websecure"
+      - "traefik.http.routers.web-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.web-api.middlewares=api-stripprefix"
+      - "traefik.http.routers.web-api.service=api"
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/ || exit 1"]
       interval: 30s
