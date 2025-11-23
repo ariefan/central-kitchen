@@ -12,7 +12,11 @@ export const auth = betterAuth({
   }),
 
   // Base URL for auth endpoints
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:8000",
+  // Now that API is proxied through frontend, use the frontend URL
+  baseURL: process.env.BETTER_AUTH_URL ||
+    (process.env.NODE_ENV === 'production'
+      ? "https://erp.personalapp.id/api"
+      : "http://localhost:8000"),
 
   // Secret for JWT signing
   secret: process.env.BETTER_AUTH_SECRET!,
@@ -50,10 +54,11 @@ export const auth = betterAuth({
       maxAge: 60 * 5, // 5 minutes
     },
     cookieOptions: {
-      domain: process.env.COOKIE_DOMAIN || ".personalapp.id", // Allow cookies across subdomains
-      sameSite: "none",
+      // Now using same-domain proxy, so we can use more secure settings
+      domain: process.env.COOKIE_DOMAIN || undefined, // Let browser use current domain
+      sameSite: "lax", // Secure same-site setting (was "none" for cross-origin)
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
     },
   },
 
@@ -67,14 +72,14 @@ export const auth = betterAuth({
   advanced: {
     generateId: () => crypto.randomUUID(), // Use UUID for consistency
     // Force cookie attributes to override better-auth defaults
-    cookiePrefix: "__Secure-better-auth",
+    cookiePrefix: process.env.NODE_ENV === 'production' ? "__Secure-better-auth" : "better-auth",
     sessionCookie: {
       name: "session_token",
       attributes: {
-        sameSite: "none",
-        secure: true,
+        sameSite: "lax", // Secure same-site setting (was "none" for cross-origin)
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
-        domain: process.env.COOKIE_DOMAIN || ".personalapp.id",
+        domain: process.env.COOKIE_DOMAIN || undefined, // Let browser use current domain
         path: "/",
       },
     },

@@ -31,14 +31,14 @@ export async function build() {
   await server.register(cookie);
 
   // Register CORS
+  // Now that API is proxied through the frontend domain, we primarily need same-origin
   const allowedOrigins = env.NODE_ENV === 'production'
     ? [
-        'https://erp.personalapp.id',
-        'https://api.personalapp.id',
-        'https://your-project-name.vercel.app',
-        'https://your-custom-domain.com'
+        'https://erp.personalapp.id', // Frontend domain (proxies to API)
+        'http://erp-api:8000', // Internal Docker network (for rewrites)
+        'http://localhost:8000', // Internal Docker network alternative
       ]
-    : ['http://localhost:3000', 'http://localhost:5173'];
+    : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:8000'];
 
   await server.register(cors, {
     origin: allowedOrigins,

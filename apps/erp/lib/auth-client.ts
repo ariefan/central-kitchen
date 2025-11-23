@@ -5,7 +5,7 @@ export const authClient = createAuthClient({
   baseURL:
     process.env.NEXT_PUBLIC_API_URL ||
     (process.env.NODE_ENV === "production"
-      ? "https://erp.personalapp.id/api"
+      ? "/api" // Use relative URL to leverage Next.js proxy
       : "http://localhost:8000"),
   plugins: [usernameClient()],
 });

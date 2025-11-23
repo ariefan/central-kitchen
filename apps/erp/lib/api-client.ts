@@ -3,7 +3,10 @@
  * Works with @contracts/erp for type safety
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' && process.env.NODE_ENV === 'production'
+    ? window.location.origin // Use same origin in production for proxy
+    : 'http://localhost:8000');
 
 export class ApiError extends Error {
   constructor(
