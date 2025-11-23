@@ -134,51 +134,53 @@ export async function build() {
     transformStaticCSP: (header) => header,
   });
 
-  // Health check route
-  server.get(
-    '/health',
-    {
-      schema: {
-        description: 'Health check endpoint',
-        tags: ['Health'],
-        response: {
-          200: z.object({
-            success: z.boolean(),
-            data: z.object({
-              status: z.string(),
-              timestamp: z.string(),
-              uptime: z.number(),
-              environment: z.string(),
-              database: z.string(),
-            }),
-            message: z.string(),
+  // Health check route handler
+  const healthCheckHandler = async (_request, _reply) => {
+    let dbStatus: string;
+    try {
+      // Test database connection
+      await db.execute('SELECT 1');
+      dbStatus = 'connected';
+    } catch {
+      dbStatus = 'disconnected';
+    }
+
+    return {
+      success: true,
+      data: {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: env.NODE_ENV,
+        database: dbStatus,
+      },
+      message: 'Service is healthy',
+    };
+  };
+
+  const healthCheckSchema = {
+    schema: {
+      description: 'Health check endpoint',
+      tags: ['Health'],
+      response: {
+        200: z.object({
+          success: z.boolean(),
+          data: z.object({
+            status: z.string(),
+            timestamp: z.string(),
+            uptime: z.number(),
+            environment: z.string(),
+            database: z.string(),
           }),
-        },
+          message: z.string(),
+        }),
       },
     },
-    async (_request, _reply) => {
-      let dbStatus: string;
-      try {
-        // Test database connection
-        await db.execute('SELECT 1');
-        dbStatus = 'connected';
-      } catch {
-        dbStatus = 'disconnected';
-      }
+  };
 
-      return {
-        success: true,
-        data: {
-          status: 'healthy',
-          timestamp: new Date().toISOString(),
-          uptime: process.uptime(),
-          environment: env.NODE_ENV,
-          database: dbStatus,
-        },
-        message: 'Service is healthy',
-      };
-    }
-  );
+  // Health check routes (both /health and /api/health for compatibility)
+  server.get('/health', healthCheckSchema, healthCheckHandler);
+  server.get('/api/health', healthCheckSchema, healthCheckHandler);
 
   // Register Better Auth handler as all-method handler
   server.all('/api/auth/*', async (request, reply) => {
