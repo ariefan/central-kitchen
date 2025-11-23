@@ -45,7 +45,7 @@ services:
       LOG_LEVEL: info
       # Better Auth Configuration
       BETTER_AUTH_SECRET: ${JWT_SECRET}
-      BETTER_AUTH_URL: https://api.personalapp.id
+      BETTER_AUTH_URL: https://erp.personalapp.id/api
       COOKIE_DOMAIN: .personalapp.id
       FRONTEND_URL: https://erp.personalapp.id
     depends_on:
@@ -54,15 +54,8 @@ services:
     networks:
       - erp-network
       - dokploy-network
-    labels:
-      # Traefik labels for Dokploy
-      - "traefik.enable=true"
-      - "traefik.docker.network=dokploy-network"
-      # HTTP to HTTPS redirect
-      - "traefik.http.routers.api-http.rule=Host(`api.personalapp.id`)"
-      - "traefik.http.routers.api-http.entrypoints=web"
-      - "traefik.http.routers.api-http.middlewares=redirect-to-https-api"
-      - "traefik.http.middlewares.redirect-to-https-api.redirectscheme.scheme=https"
+    # No public Traefik labels - API is only accessible via internal Docker network
+    # Public access is through frontend proxy at erp.personalapp.id/api
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8000/health || exit 1"]
       interval: 30s
@@ -84,8 +77,11 @@ services:
       context: .
       dockerfile: apps/erp/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://api.personalapp.id
+        NEXT_PUBLIC_API_URL: https://erp.personalapp.id
     restart: unless-stopped
+    environment:
+      # Internal API service URL for server-side proxy
+      API_SERVICE_URL: http://api:8000
     depends_on:
       api:
         condition: service_healthy
@@ -105,13 +101,8 @@ services:
       - "traefik.http.routers.web-http.entrypoints=web"
       - "traefik.http.routers.web-http.middlewares=redirect-to-https-web"
       - "traefik.http.middlewares.redirect-to-https-web.redirectscheme.scheme=https"
-      # API proxy middleware and router
-      - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
-      - "traefik.http.routers.web-api.rule=Host(`erp.personalapp.id`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.web-api.entrypoints=websecure"
-      - "traefik.http.routers.web-api.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.web-api.middlewares=api-stripprefix"
-      - "traefik.http.routers.web-api.service=centralkitchenerp-compose-gz78mj-api-1"
+      # Note: API proxy is handled by Next.js rewrites, not Traefik
+      # All requests to erp.personalapp.id/api are proxied internally by Next.js
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/ || exit 1"]
       interval: 30s
