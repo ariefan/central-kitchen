@@ -1,18 +1,18 @@
-import { betterAuth } from 'better-auth';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { username } from 'better-auth/plugins';
-import { db } from '../config/database.js';
-import bcrypt from 'bcryptjs';
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { username } from "better-auth/plugins";
+import { db } from "../config/database.js";
+import bcrypt from "bcryptjs";
 
 export const auth = betterAuth({
   // Database adapter (uses existing Drizzle instance)
   database: drizzleAdapter(db, {
-    provider: 'pg',
+    provider: "pg",
     usePlural: true, // Maps 'user' to 'users' table
   }),
 
   // Base URL for auth endpoints
-  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:8000',
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:8000",
 
   // Secret for JWT signing
   secret: process.env.BETTER_AUTH_SECRET!,
@@ -50,8 +50,8 @@ export const auth = betterAuth({
       maxAge: 60 * 5, // 5 minutes
     },
     cookieOptions: {
-      domain: process.env.COOKIE_DOMAIN || '.personalapp.id', // Allow cookies across subdomains
-      sameSite: 'none' as const,
+      domain: process.env.COOKIE_DOMAIN || ".personalapp.id", // Allow cookies across subdomains
+      sameSite: "none",
       httpOnly: true,
       secure: true,
     },
@@ -59,8 +59,8 @@ export const auth = betterAuth({
 
   // Trust the frontend origin
   trustedOrigins: [
-    'http://localhost:3000', // Frontend dev
-    process.env.FRONTEND_URL || 'https://erp.personalapp.id',
+    "http://localhost:3000", // Frontend dev
+    process.env.FRONTEND_URL || "https://erp.personalapp.id",
   ],
 
   // Advanced options
