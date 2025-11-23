@@ -183,7 +183,7 @@ export async function build() {
   server.get('/api/health', healthCheckSchema, healthCheckHandler);
 
   // Register Better Auth handler for all HTTP methods
-  const authHandler = async (request, reply) => {
+  const authHandler = async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       // Convert Fastify request to Web Request
       const url = new URL(request.url, `http://${request.headers.host}`);
