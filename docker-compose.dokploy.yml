@@ -78,10 +78,8 @@ services:
       dockerfile: apps/erp/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: https://erp.personalapp.id
+        API_SERVICE_URL: http://api:8000
     restart: unless-stopped
-    environment:
-      # Internal API service URL for server-side proxy
-      API_SERVICE_URL: http://api:8000
     depends_on:
       api:
         condition: service_healthy
