@@ -71,5 +71,9 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+# API service URL for server-side proxy rewrites
+# This will be overridden by docker-compose environment variables
+ENV API_SERVICE_URL="http://localhost:8000"
+
 # Start the application
 CMD ["node", "apps/erp/server.js"]
