@@ -182,8 +182,8 @@ export async function build() {
   server.get('/health', healthCheckSchema, healthCheckHandler);
   server.get('/api/health', healthCheckSchema, healthCheckHandler);
 
-  // Register Better Auth handler as all-method handler
-  server.all('/api/auth/*', async (request, reply) => {
+  // Register Better Auth handler for all HTTP methods
+  const authHandler = async (request, reply) => {
     try {
       // Convert Fastify request to Web Request
       const url = new URL(request.url, `http://${request.headers.host}`);
@@ -227,7 +227,15 @@ export async function build() {
         error: 'Authentication error',
       });
     }
-  });
+  };
+
+  // Register Better Auth routes for all HTTP methods
+  server.get('/api/auth/*', authHandler);
+  server.post('/api/auth/*', authHandler);
+  server.put('/api/auth/*', authHandler);
+  server.patch('/api/auth/*', authHandler);
+  server.delete('/api/auth/*', authHandler);
+  server.options('/api/auth/*', authHandler);
 
   // Register API routes
   await server.register(apiV1Routes, { prefix: '/api/v1' });
