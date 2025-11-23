@@ -186,7 +186,13 @@ export async function build() {
   const authHandler = async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       // Convert Fastify request to Web Request
-      const url = new URL(request.url, `http://${request.headers.host}`);
+      // Use the Better Auth base URL to ensure proper routing
+      const baseURL = env.BETTER_AUTH_URL ||
+        (env.NODE_ENV === 'production'
+          ? 'https://erp.personalapp.id/api'
+          : 'http://localhost:8000');
+
+      const url = new URL(request.url, baseURL);
 
       const headers = new Headers();
       Object.entries(request.headers).forEach(([key, value]) => {
