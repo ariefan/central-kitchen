@@ -87,7 +87,17 @@
       "Bash(rmdir:*)",
       "Bash(ls:*)",
       "Bash(BYPASS_AUTH_FOR_TESTS=true pnpm vitest:*)",
-      "Bash(pnpm test:reset:*)"
+      "Bash(pnpm test:reset:*)",
+      "Bash(pnpm db:push:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres@localhost:5432/erp-api\" pnpm db:seed:*)",
+      "Bash(git push:*)",
+      "Bash(git merge:*)",
+      "Bash(git branch:*)",
+      "Bash(git pull:*)",
+      "Bash(pkill -f \"pnpm add -D tsc-alias\")",
+      "Bash(git rev-parse:*)",
+      "Bash(git restore:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres@18.143.15.78:5432/erp-api\" pnpm db:seed:*)"
     ],
     "deny": [],
     "ask": []
