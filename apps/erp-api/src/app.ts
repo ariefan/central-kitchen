@@ -182,66 +182,26 @@ export async function build() {
   server.get('/health', healthCheckSchema, healthCheckHandler);
   server.get('/api/health', healthCheckSchema, healthCheckHandler);
 
-  // Register Better Auth handler for all HTTP methods
+  // Register Better Auth handler using toNodeHandler utility
+  // Import is at the top of the file
+  const { toNodeHandler } = await import('better-auth/node');
+  const nodeAuthHandler = toNodeHandler(auth);
+
+  // Wrapper to convert Fastify request/reply to Node.js IncomingMessage/ServerResponse
   const authHandler = async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      // Convert Fastify request to Web Request
-      // Use the Better Auth base URL to ensure proper routing
-      const baseURL = env.BETTER_AUTH_URL ||
-        (env.NODE_ENV === 'production'
-          ? 'https://erp.personalapp.id/api'
-          : 'http://localhost:8000');
-
-      const url = new URL(request.url, baseURL);
-
       // Log incoming request details
       server.log.info({
         method: request.method,
-        originalUrl: request.url,
-        constructedUrl: url.toString(),
-        baseURL: baseURL,
+        url: request.url,
         hasBody: !!request.body,
       }, 'Better Auth Request');
 
-      const headers = new Headers();
-      Object.entries(request.headers).forEach(([key, value]) => {
-        if (typeof value === 'string') {
-          headers.set(key, value);
-        } else if (Array.isArray(value)) {
-          value.forEach(v => headers.append(key, v));
-        }
-      });
+      // Use Fastify's raw property to access Node.js request/response
+      await nodeAuthHandler(request.raw, reply.raw);
 
-      // Get raw body
-      let body: string | undefined;
-      if (request.body) {
-        body = typeof request.body === 'string' ? request.body : JSON.stringify(request.body);
-      }
-
-      const webRequest = new Request(url, {
-        method: request.method,
-        headers: headers,
-        body: body && request.method !== 'GET' && request.method !== 'HEAD' ? body : undefined,
-      });
-
-      // Handle auth request
-      const response = await auth.handler(webRequest);
-
-      // Log response details
-      server.log.info({
-        status: response.status,
-        statusText: response.statusText,
-        url: url.toString(),
-      }, 'Better Auth Response');
-
-      // Send response
-      reply.status(response.status);
-      response.headers.forEach((value, key) => {
-        reply.header(key, value);
-      });
-
-      const responseBody = await response.text();
-      return responseBody || null;
+      // Fastify manages the response, so we need to mark it as sent
+      reply.hijack();
     } catch (error) {
       server.log.error({ err: error }, 'Better Auth Error');
       return reply.status(500).send({
