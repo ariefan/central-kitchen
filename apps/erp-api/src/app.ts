@@ -194,6 +194,15 @@ export async function build() {
 
       const url = new URL(request.url, baseURL);
 
+      // Log incoming request details
+      server.log.info({
+        method: request.method,
+        originalUrl: request.url,
+        constructedUrl: url.toString(),
+        baseURL: baseURL,
+        hasBody: !!request.body,
+      }, 'Better Auth Request');
+
       const headers = new Headers();
       Object.entries(request.headers).forEach(([key, value]) => {
         if (typeof value === 'string') {
@@ -217,6 +226,13 @@ export async function build() {
 
       // Handle auth request
       const response = await auth.handler(webRequest);
+
+      // Log response details
+      server.log.info({
+        status: response.status,
+        statusText: response.statusText,
+        url: url.toString(),
+      }, 'Better Auth Response');
 
       // Send response
       reply.status(response.status);
