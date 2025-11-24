@@ -12,10 +12,10 @@ export const auth = betterAuth({
   }),
 
   // Base URL for auth endpoints
-  // Now that API is proxied through frontend, use the frontend URL
+  // Better Auth will add /api/auth to this base URL by default
   baseURL: process.env.BETTER_AUTH_URL ||
     (process.env.NODE_ENV === 'production'
-      ? "https://erp.personalapp.id/api"
+      ? "https://erp.personalapp.id"
       : "http://localhost:8000"),
 
   // Secret for JWT signing

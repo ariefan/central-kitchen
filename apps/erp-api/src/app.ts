@@ -6,6 +6,7 @@ import middie from '@fastify/middie';
 import cookie from '@fastify/cookie';
 import { serializerCompiler, validatorCompiler, jsonSchemaTransform, jsonSchemaTransformObject, ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { toNodeHandler } from 'better-auth/node';
 
 import { env } from './config/env.js';
 import { db } from './config/database.js';
@@ -183,8 +184,6 @@ export async function build() {
   server.get('/api/health', healthCheckSchema, healthCheckHandler);
 
   // Register Better Auth handler using toNodeHandler utility
-  // Import is at the top of the file
-  const { toNodeHandler } = await import('better-auth/node');
   const nodeAuthHandler = toNodeHandler(auth);
 
   // Wrapper to convert Fastify request/reply to Node.js IncomingMessage/ServerResponse

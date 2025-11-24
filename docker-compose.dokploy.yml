@@ -45,7 +45,7 @@ services:
       LOG_LEVEL: info
       # Better Auth Configuration
       BETTER_AUTH_SECRET: ${JWT_SECRET}
-      BETTER_AUTH_URL: https://erp.personalapp.id/api
+      BETTER_AUTH_URL: https://erp.personalapp.id
       COOKIE_DOMAIN: .personalapp.id
       FRONTEND_URL: https://erp.personalapp.id
     depends_on:
