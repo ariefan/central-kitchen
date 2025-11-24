@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { authClient } from "@/lib/auth-client";
+import { BUILD_INFO } from "@/lib/build-info";
 
 export function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
   const router = useRouter();
@@ -127,6 +128,9 @@ export function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => vo
             >
               Create one
             </button>
+          </p>
+          <p className="text-xs text-muted-foreground/60 text-center">
+            Build: {BUILD_INFO.timestamp}
           </p>
         </CardFooter>
       </form>
