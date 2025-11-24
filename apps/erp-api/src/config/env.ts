@@ -13,6 +13,10 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, "JWT secret must be at least 32 characters"),
   JWT_EXPIRES_IN: z.string().default("24h"),
   LOG_LEVEL: z.enum(["error", "warn", "info", "debug"]).default("info"),
+  BETTER_AUTH_URL: z.string().url().optional(),
+  BETTER_AUTH_SECRET: z.string().optional(),
+  FRONTEND_URL: z.string().url().optional(),
+  COOKIE_DOMAIN: z.string().optional(),
 });
 
 function validateEnv() {
