@@ -18,13 +18,14 @@
     "db:studio": "turbo run db:studio",
     "db:seed": "turbo run db:seed",
     "dev:api": "turbo run dev --filter=erp-api",
-    "dev:web": "turbo run dev --filter=inventory",
+    "dev:landing": "turbo run dev --filter=landing-page",
     "dev:erp": "turbo run dev --filter=erp",
     "build:api": "turbo run build --filter=erp-api",
-    "build:web": "turbo run build --filter=inventory",
+    "build:landing": "turbo run build --filter=landing-page",
     "build:erp": "turbo run build --filter=erp",
-    "start:api": "pnpm build:api && node erp-api/dist/index.js",
-    "start:web": "pnpm build:web && npx serve inventory/dist",
+    "start:api": "pnpm build:api && node apps/erp-api/dist/index.js",
+    "start:landing": "pnpm build:landing && npx serve apps/landing-page/dist",
+    "start:erp": "pnpm build:erp && cd apps/erp && pnpm start",
     "kill-port": "tsx scripts/kill-port.ts"
   },
   "keywords": [

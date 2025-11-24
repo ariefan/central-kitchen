@@ -47,15 +47,18 @@ services:
       retries: 3
       start_period: 40s
 
-  # Inventory Frontend
-  web:
+  # ERP Frontend (Next.js)
+  erp:
     build:
       context: .
-      dockerfile: apps/inventory/Dockerfile
+      dockerfile: apps/erp/Dockerfile
       args:
-        VITE_API_URL: https://api.personalapp.id
-    container_name: erp-web
+        API_SERVICE_URL: http://api:8000
+    container_name: erp-app
     restart: unless-stopped
+    environment:
+      API_SERVICE_URL: http://api:8000
+      NODE_ENV: production
     depends_on:
       api:
         condition: service_healthy
@@ -63,6 +66,21 @@ services:
       - erp-network
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Landing Page (Vite)
+  landing:
+    build:
+      context: .
+      dockerfile: apps/landing-page/Dockerfile
+    container_name: landing-page
+    restart: unless-stopped
+    networks:
+      - erp-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -82,7 +100,8 @@ services:
       - nginx_cache:/var/cache/nginx
     depends_on:
       - api
-      - web
+      - erp
+      - landing
     networks:
       - erp-network
     healthcheck:
