@@ -182,57 +182,64 @@ export async function build() {
   server.get('/health', healthCheckSchema, healthCheckHandler);
   server.get('/api/health', healthCheckSchema, healthCheckHandler);
 
-  // Register Better Auth routes using the official Fastify integration approach
-  // This creates a catch-all route that handles all auth endpoints
-  server.route({
-    method: ['GET', 'POST'],
-    url: '/api/auth/*',
-    handler: async (request, reply) => {
-      try {
-        // Construct the full URL for Better Auth
-        const url = new URL(request.url, `http://${request.headers.host}`);
+  // Register Better Auth routes
+  // Add custom content-type parser to prevent Fastify from parsing the body
+  // This allows Better Auth to handle the raw request body
+  server.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+    // Return the raw body string without parsing
+    done(null, body);
+  });
 
-        // Convert headers to Headers object
-        const headers = new Headers();
-        Object.entries(request.headers).forEach(([key, value]) => {
-          if (value) {
-            if (Array.isArray(value)) {
-              value.forEach(v => headers.append(key, v));
-            } else {
-              headers.set(key, value.toString());
-            }
+  // Create catch-all route for Better Auth
+  server.all('/api/auth/*', async (request, reply) => {
+    try {
+      // Construct the full URL for Better Auth
+      const url = new URL(request.url, `http://${request.headers.host}`);
+
+      // Convert headers to Headers object
+      const headers = new Headers();
+      Object.entries(request.headers).forEach(([key, value]) => {
+        if (value) {
+          if (Array.isArray(value)) {
+            value.forEach(v => headers.append(key, v));
+          } else {
+            headers.set(key, value.toString());
           }
-        });
+        }
+      });
 
-        // Create Web Request with body if present
-        const webRequest = new Request(url.toString(), {
-          method: request.method,
-          headers,
-          body: request.body && request.method !== 'GET' && request.method !== 'HEAD'
-            ? JSON.stringify(request.body)
-            : undefined,
-        });
-
-        // Call Better Auth handler
-        const response = await auth.handler(webRequest);
-
-        // Send response
-        reply.status(response.status);
-        response.headers.forEach((value, key) => {
-          reply.header(key, value);
-        });
-
-        const body = await response.text();
-        reply.send(body || null);
-      } catch (error) {
-        server.log.error({ err: error }, 'Better Auth Error');
-        reply.status(500).send({
-          success: false,
-          error: 'Internal Server Error',
-          message: 'An unexpected error occurred',
-        });
+      // Get the raw body if present
+      let body: string | undefined;
+      if (request.body && typeof request.body === 'string') {
+        body = request.body;
       }
-    },
+
+      // Create Web Request
+      const webRequest = new Request(url.toString(), {
+        method: request.method,
+        headers,
+        body: body && request.method !== 'GET' && request.method !== 'HEAD' ? body : undefined,
+      });
+
+      // Call Better Auth handler
+      const response = await auth.handler(webRequest);
+
+      // Send response
+      reply.status(response.status);
+      response.headers.forEach((value, key) => {
+        reply.header(key, value);
+      });
+
+      const responseBody = await response.text();
+      reply.send(responseBody || null);
+    } catch (error) {
+      server.log.error({ err: error }, 'Better Auth Error');
+      reply.status(500).send({
+        success: false,
+        error: 'Internal Server Error',
+        message: 'An unexpected error occurred',
+      });
+    }
   });
 
   // Register API routes
