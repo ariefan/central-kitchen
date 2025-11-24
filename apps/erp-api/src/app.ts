@@ -6,7 +6,6 @@ import middie from '@fastify/middie';
 import cookie from '@fastify/cookie';
 import { serializerCompiler, validatorCompiler, jsonSchemaTransform, jsonSchemaTransformObject, ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { toNodeHandler } from 'better-auth/node';
 
 import { env } from './config/env.js';
 import { db } from './config/database.js';
@@ -183,24 +182,61 @@ export async function build() {
   server.get('/health', healthCheckSchema, healthCheckHandler);
   server.get('/api/health', healthCheckSchema, healthCheckHandler);
 
-  // Register Better Auth handler using toNodeHandler utility
-  const nodeAuthHandler = toNodeHandler(auth);
-
-  // Wrapper to convert Fastify request/reply to Node.js IncomingMessage/ServerResponse
+  // Register Better Auth handler
+  // Convert Fastify request to Web Request for Better Auth
   const authHandler = async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      // Log incoming request details
+      // Construct full URL - Better Auth needs the complete URL to match routes
+      const protocol = env.NODE_ENV === 'production' ? 'https' : 'http';
+      const host = request.headers.host || 'localhost:8000';
+      const url = new URL(request.url, `${protocol}://${host}`);
+
       server.log.info({
         method: request.method,
         url: request.url,
+        fullUrl: url.toString(),
         hasBody: !!request.body,
       }, 'Better Auth Request');
 
-      // Use Fastify's raw property to access Node.js request/response
-      await nodeAuthHandler(request.raw, reply.raw);
+      // Convert headers
+      const headers = new Headers();
+      Object.entries(request.headers).forEach(([key, value]) => {
+        if (typeof value === 'string') {
+          headers.set(key, value);
+        } else if (Array.isArray(value)) {
+          value.forEach(v => headers.append(key, v));
+        }
+      });
 
-      // Fastify manages the response, so we need to mark it as sent
-      reply.hijack();
+      // Get request body
+      let body: string | undefined;
+      if (request.body && request.method !== 'GET' && request.method !== 'HEAD') {
+        body = typeof request.body === 'string' ? request.body : JSON.stringify(request.body);
+      }
+
+      // Create Web Request
+      const webRequest = new Request(url.toString(), {
+        method: request.method,
+        headers: headers,
+        body: body,
+      });
+
+      // Call Better Auth handler
+      const response = await auth.handler(webRequest);
+
+      server.log.info({
+        status: response.status,
+        url: url.toString(),
+      }, 'Better Auth Response');
+
+      // Send response
+      reply.status(response.status);
+      response.headers.forEach((value, key) => {
+        reply.header(key, value);
+      });
+
+      const responseBody = await response.text();
+      return responseBody || null;
     } catch (error) {
       server.log.error({ err: error }, 'Better Auth Error');
       return reply.status(500).send({
