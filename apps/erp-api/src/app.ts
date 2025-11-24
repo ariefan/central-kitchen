@@ -6,7 +6,6 @@ import middie from '@fastify/middie';
 import cookie from '@fastify/cookie';
 import { serializerCompiler, validatorCompiler, jsonSchemaTransform, jsonSchemaTransformObject, ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import fastifyBetterAuth from 'fastify-better-auth';
 
 import { env } from './config/env.js';
 import { db } from './config/database.js';
@@ -183,10 +182,57 @@ export async function build() {
   server.get('/health', healthCheckSchema, healthCheckHandler);
   server.get('/api/health', healthCheckSchema, healthCheckHandler);
 
-  // Register Better Auth plugin
-  // This automatically creates routes at /api/auth/* and handles request conversion
-  await server.register(fastifyBetterAuth, {
-    auth,
+  // Register Better Auth routes using the official Fastify integration approach
+  // This creates a catch-all route that handles all auth endpoints
+  server.route({
+    method: ['GET', 'POST'],
+    url: '/api/auth/*',
+    handler: async (request, reply) => {
+      try {
+        // Construct the full URL for Better Auth
+        const url = new URL(request.url, `http://${request.headers.host}`);
+
+        // Convert headers to Headers object
+        const headers = new Headers();
+        Object.entries(request.headers).forEach(([key, value]) => {
+          if (value) {
+            if (Array.isArray(value)) {
+              value.forEach(v => headers.append(key, v));
+            } else {
+              headers.set(key, value.toString());
+            }
+          }
+        });
+
+        // Create Web Request with body if present
+        const webRequest = new Request(url.toString(), {
+          method: request.method,
+          headers,
+          body: request.body && request.method !== 'GET' && request.method !== 'HEAD'
+            ? JSON.stringify(request.body)
+            : undefined,
+        });
+
+        // Call Better Auth handler
+        const response = await auth.handler(webRequest);
+
+        // Send response
+        reply.status(response.status);
+        response.headers.forEach((value, key) => {
+          reply.header(key, value);
+        });
+
+        const body = await response.text();
+        reply.send(body || null);
+      } catch (error) {
+        server.log.error({ err: error }, 'Better Auth Error');
+        reply.status(500).send({
+          success: false,
+          error: 'Internal Server Error',
+          message: 'An unexpected error occurred',
+        });
+      }
+    },
   });
 
   // Register API routes
