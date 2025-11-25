@@ -12,11 +12,13 @@ export const auth = betterAuth({
   }),
 
   // Base URL for auth endpoints
-  // Better Auth will add /api/auth to this base URL by default
   baseURL: process.env.BETTER_AUTH_URL ||
     (process.env.NODE_ENV === 'production'
       ? "https://erp.personalapp.id"
       : "http://localhost:8000"),
+
+  // Mount path for auth routes (frontend proxies /api/auth/* to /auth/*)
+  basePath: "/auth",
 
   // Secret for JWT signing
   secret: process.env.BETTER_AUTH_SECRET!,
