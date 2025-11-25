@@ -191,7 +191,8 @@ export async function build() {
   });
 
   // Create catch-all route for Better Auth
-  server.all('/api/auth/*', async (request, reply) => {
+  // Note: Mounted at /auth/* because proxies strip /api prefix
+  server.all('/auth/*', async (request, reply) => {
     try {
       // Construct the full URL for Better Auth
       const url = new URL(request.url, `http://${request.headers.host}`);
