@@ -46,8 +46,8 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ARG API_SERVICE_URL=http://localhost:8000
 ENV API_SERVICE_URL=$API_SERVICE_URL
 
-# Build the ERP app
-RUN pnpm --filter erp build
+# Build the ERP app with build timestamp (frozen at build time to avoid hydration mismatch)
+RUN NEXT_PUBLIC_BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) pnpm --filter erp build
 
 # Production image, copy all the files and run next
 FROM base AS runner
