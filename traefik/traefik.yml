@@ -1,0 +1,47 @@
+# Traefik Static Configuration
+
+# API and Dashboard
+api:
+  dashboard: true
+  insecure: true  # Set to false in production and use middleware for auth
+
+# Entry Points
+entryPoints:
+  web:
+    address: ":80"
+    # HTTP to HTTPS redirect (uncomment for production with SSL)
+    # http:
+    #   redirections:
+    #     entryPoint:
+    #       to: websecure
+    #       scheme: https
+
+  websecure:
+    address: ":443"
+
+# Docker Provider
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: erp-network
+
+# Certificate Resolvers (Let's Encrypt)
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@personalapp.id  # Change this to your email
+      storage: /letsencrypt/acme.json
+      # Use staging for testing
+      # caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+      httpChallenge:
+        entryPoint: web
+
+# Logging
+log:
+  level: INFO
+  format: json
+
+# Access Logs
+accessLog:
+  format: json

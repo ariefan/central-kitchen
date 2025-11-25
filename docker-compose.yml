@@ -40,6 +40,19 @@ services:
         condition: service_healthy
     networks:
       - erp-network
+    labels:
+      - "traefik.enable=true"
+      # Routes for personalapp.id/api
+      - "traefik.http.routers.api-landing.rule=Host(`personalapp.id`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-landing.entrypoints=web"
+      - "traefik.http.routers.api-landing.middlewares=api-stripprefix"
+      # Routes for erp.personalapp.id/api
+      - "traefik.http.routers.api-erp.rule=Host(`erp.personalapp.id`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-erp.entrypoints=web"
+      - "traefik.http.routers.api-erp.middlewares=api-stripprefix"
+      # Middleware to strip /api prefix
+      - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8000/health || exit 1"]
       interval: 30s
@@ -47,46 +60,82 @@ services:
       retries: 3
       start_period: 40s
 
-  # Inventory Frontend
-  web:
+  # ERP Frontend (Next.js)
+  erp:
     build:
       context: .
-      dockerfile: apps/inventory/Dockerfile
+      dockerfile: apps/erp/Dockerfile
       args:
-        VITE_API_URL: https://api.personalapp.id
-    container_name: erp-web
+        API_SERVICE_URL: http://api:8000
+    container_name: erp-app
     restart: unless-stopped
+    environment:
+      API_SERVICE_URL: http://api:8000
+      NODE_ENV: production
     depends_on:
       api:
         condition: service_healthy
     networks:
       - erp-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.erp.rule=Host(`erp.personalapp.id`)"
+      - "traefik.http.routers.erp.entrypoints=web"
+      - "traefik.http.routers.erp.priority=1"
+      - "traefik.http.services.erp.loadbalancer.server.port=3000"
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Nginx Reverse Proxy
-  nginx:
-    image: nginx:alpine
-    container_name: erp-nginx
+  # Landing Page (Vite)
+  landing:
+    build:
+      context: .
+      dockerfile: apps/landing-page/Dockerfile
+    container_name: landing-page
     restart: unless-stopped
+    networks:
+      - erp-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.landing.rule=Host(`personalapp.id`) || Host(`www.personalapp.id`)"
+      - "traefik.http.routers.landing.entrypoints=web"
+      - "traefik.http.routers.landing.priority=1"
+      - "traefik.http.services.landing.loadbalancer.server.port=80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Traefik Reverse Proxy
+  traefik:
+    image: traefik:v3.2
+    container_name: erp-traefik
+    restart: unless-stopped
+    command:
+      - "--configFile=/etc/traefik/traefik.yml"
     ports:
       - "80:80"
       - "443:443"
+      - "8080:8080"  # Traefik dashboard
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - nginx_cache:/var/cache/nginx
-    depends_on:
-      - api
-      - web
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - traefik_letsencrypt:/letsencrypt
     networks:
       - erp-network
+    labels:
+      - "traefik.enable=true"
+      # Dashboard
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.personalapp.id`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.entrypoints=web"
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost/health || exit 1"]
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -94,7 +143,7 @@ services:
 volumes:
   postgres_data:
     driver: local
-  nginx_cache:
+  traefik_letsencrypt:
     driver: local
 
 networks:
