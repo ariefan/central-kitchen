@@ -73,18 +73,8 @@ export const auth = betterAuth({
   // Advanced options
   advanced: {
     generateId: () => crypto.randomUUID(), // Use UUID for consistency
-    // Force cookie attributes to override better-auth defaults
-    cookiePrefix: process.env.NODE_ENV === 'production' ? "__Secure-better-auth" : "better-auth",
-    sessionCookie: {
-      name: "session_token",
-      attributes: {
-        sameSite: "lax", // Secure same-site setting (was "none" for cross-origin)
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        domain: process.env.COOKIE_DOMAIN || undefined, // Let browser use current domain
-        path: "/",
-      },
-    },
+    // Cookie prefix (Better Auth adds __Secure- automatically when secure=true)
+    cookiePrefix: "better-auth",
   },
 });
 
