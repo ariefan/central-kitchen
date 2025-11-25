@@ -1,6 +1,6 @@
 # Docker Compose Configuration for Dokploy
 # Optimized for deployment on Dokploy with Traefik integration
-# Last deployment trigger: 2025-11-25-v2
+# Last deployment trigger: 2025-11-25-v3
 
 services:
   # PostgreSQL Database
@@ -78,7 +78,8 @@ services:
       context: .
       dockerfile: apps/erp/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://erp.personalapp.id
+        # NEXT_PUBLIC_API_URL intentionally NOT set - auth-client uses empty string
+        # for same-origin requests in production, enabling proper cookie handling
         API_SERVICE_URL: http://api:8000
     restart: unless-stopped
     depends_on:
