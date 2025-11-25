@@ -223,41 +223,41 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform border-r transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-52 transform border-r transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
           "bg-card dark:bg-zinc-900/95 dark:border-zinc-800",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-16 items-center justify-between px-6 border-b dark:border-zinc-800">
-            <Link href="/" className="flex items-center gap-2">
-              <Package className="w-6 h-6 text-primary" />
-              <span className="text-xl font-bold">Central Kitchen</span>
+          <div className="flex h-12 items-center justify-between px-3 border-b dark:border-zinc-800">
+            <Link href="/" className="flex items-center gap-1.5">
+              <Package className="w-5 h-5 text-primary" />
+              <span className="text-base font-bold">Central Kitchen</span>
             </Link>
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
+              className="lg:hidden h-8 w-8"
               onClick={() => setSidebarOpen(false)}
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </Button>
           </div>
 
           {/* User info */}
           {user && (
-            <div className="px-6 py-4 border-b dark:border-zinc-800">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <div className="px-3 py-2 border-b dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
                   {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
+                  <p className="text-xs font-medium truncate">
                     {user.name || user.email}
                   </p>
                   {profile?.location && (
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-[10px] text-muted-foreground truncate">
                       {profile.location.name}
                     </p>
                   )}
@@ -267,14 +267,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           )}
 
           {/* Navigation */}
-          <ScrollArea className="flex-1 px-3 py-4">
-            <nav className="space-y-6">
+          <ScrollArea className="flex-1 px-2 py-2">
+            <nav className="space-y-2">
               {navigation.map((section) => (
                 <div key={section.title}>
-                  <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-zinc-400">
+                  <h3 className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground dark:text-zinc-500">
                     {section.title}
                   </h3>
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     {section.items.map((item) => {
                       const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
                       return (
@@ -285,16 +285,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         >
                           <div
                             className={cn(
-                              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                              "flex items-center gap-2 rounded-md px-2 py-1 text-xs transition-colors",
                               isActive
                                 ? "bg-primary text-primary-foreground shadow-sm"
                                 : "text-muted-foreground hover:bg-accent hover:text-accent-foreground dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                             )}
                           >
-                            <item.icon className="w-4 h-4 shrink-0" />
-                            <span className="flex-1">{item.title}</span>
+                            <item.icon className="w-3.5 h-3.5 shrink-0" />
+                            <span className="flex-1 truncate">{item.title}</span>
                             {item.badge && (
-                              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium">
+                              <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium">
                                 {item.badge}
                               </span>
                             )}
@@ -309,34 +309,37 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </ScrollArea>
 
           {/* Footer */}
-          <div className="border-t dark:border-zinc-800 p-4 space-y-2">
+          <div className="border-t dark:border-zinc-800 p-2 space-y-1">
             <Link href="/profile">
               <Button
                 variant="ghost"
-                className="w-full justify-start"
+                size="sm"
+                className="w-full justify-start h-7 text-xs"
                 onClick={() => setSidebarOpen(false)}
               >
-                <UserCircle className="w-4 h-4 mr-3" />
+                <UserCircle className="w-3.5 h-3.5 mr-2" />
                 Profile
               </Button>
             </Link>
             <Link href="/settings">
               <Button
                 variant="ghost"
-                className="w-full justify-start"
+                size="sm"
+                className="w-full justify-start h-7 text-xs"
                 onClick={() => setSidebarOpen(false)}
               >
-                <Settings className="w-4 h-4 mr-3" />
+                <Settings className="w-3.5 h-3.5 mr-2" />
                 Settings
               </Button>
             </Link>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
-                className="flex-1 justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+                size="sm"
+                className="flex-1 justify-start h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
                 onClick={handleSignOut}
               >
-                <LogOut className="w-4 h-4 mr-3" />
+                <LogOut className="w-3.5 h-3.5 mr-2" />
                 Sign Out
               </Button>
               <ThemeToggle />

@@ -1,6 +1,6 @@
 # Docker Compose Configuration for Dokploy
 # Optimized for deployment on Dokploy with Traefik integration
-# Last deployment trigger: 2025-11-25-v4
+# Last deployment trigger: 2025-11-26-v1
 
 services:
   # PostgreSQL Database
@@ -82,6 +82,9 @@ services:
         # for same-origin requests in production, enabling proper cookie handling
         API_SERVICE_URL: http://api:8000
     restart: unless-stopped
+    environment:
+      # Runtime API URL for Next.js rewrites (proxies /api/* to API service)
+      API_SERVICE_URL: http://api:8000
     depends_on:
       api:
         condition: service_healthy
