@@ -23,6 +23,20 @@ import {
   Warehouse,
   UserCircle,
   Clock,
+  ShoppingCart,
+  FileText,
+  Truck,
+  ClipboardList,
+  ArrowLeftRight,
+  ChefHat,
+  Factory,
+  Thermometer,
+  BarChart3,
+  Store,
+  Tags,
+  PackageCheck,
+  Minus,
+  UserCheck,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -51,6 +65,106 @@ const navigation: NavSection[] = [
         href: "/welcome",
         icon: LayoutDashboard,
       },
+      {
+        title: "Reports",
+        href: "/reports",
+        icon: BarChart3,
+      },
+    ],
+  },
+  {
+    title: "Sales",
+    items: [
+      {
+        title: "POS",
+        href: "/pos",
+        icon: Store,
+      },
+      {
+        title: "Sales Orders",
+        href: "/sales-orders",
+        icon: ShoppingCart,
+      },
+      {
+        title: "Customers",
+        href: "/customers",
+        icon: UserCheck,
+      },
+      {
+        title: "Deliveries",
+        href: "/deliveries",
+        icon: Truck,
+      },
+    ],
+  },
+  {
+    title: "Procurement",
+    items: [
+      {
+        title: "Purchase Orders",
+        href: "/purchase-orders",
+        icon: FileText,
+      },
+      {
+        title: "Goods Receipts",
+        href: "/goods-receipts",
+        icon: PackageCheck,
+      },
+      {
+        title: "Suppliers",
+        href: "/suppliers",
+        icon: Building2,
+      },
+    ],
+  },
+  {
+    title: "Production",
+    items: [
+      {
+        title: "Recipes",
+        href: "/recipes",
+        icon: ChefHat,
+      },
+      {
+        title: "Production Orders",
+        href: "/production-orders",
+        icon: Factory,
+      },
+      {
+        title: "Requisitions",
+        href: "/requisitions",
+        icon: ClipboardList,
+      },
+    ],
+  },
+  {
+    title: "Inventory",
+    items: [
+      {
+        title: "Stock Overview",
+        href: "/inventory",
+        icon: Warehouse,
+      },
+      {
+        title: "FEFO Picking",
+        href: "/inventory/fefo",
+        icon: Clock,
+      },
+      {
+        title: "Stock Transfers",
+        href: "/stock-transfers",
+        icon: ArrowLeftRight,
+      },
+      {
+        title: "Stock Adjustments",
+        href: "/stock-adjustments",
+        icon: Minus,
+      },
+      {
+        title: "Temperature Logs",
+        href: "/temperature-logs",
+        icon: Thermometer,
+      },
     ],
   },
   {
@@ -67,6 +181,11 @@ const navigation: NavSection[] = [
         icon: Package,
       },
       {
+        title: "Categories",
+        href: "/categories",
+        icon: Tags,
+      },
+      {
         title: "Units of Measure",
         href: "/uoms",
         icon: Ruler,
@@ -75,31 +194,6 @@ const navigation: NavSection[] = [
         title: "Users",
         href: "/users",
         icon: Users,
-      },
-    ],
-  },
-  {
-    title: "Procurement",
-    items: [
-      {
-        title: "Suppliers",
-        href: "/suppliers",
-        icon: Building2,
-      },
-    ],
-  },
-  {
-    title: "Inventory",
-    items: [
-      {
-        title: "Stock Overview",
-        href: "/inventory",
-        icon: Warehouse,
-      },
-      {
-        title: "FEFO Picking",
-        href: "/inventory/fefo",
-        icon: Clock,
       },
     ],
   },
@@ -129,13 +223,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform bg-card border-r transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-64 transform border-r transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
+          "bg-card dark:bg-zinc-900/95 dark:border-zinc-800",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-16 items-center justify-between px-6 border-b">
+          <div className="flex h-16 items-center justify-between px-6 border-b dark:border-zinc-800">
             <Link href="/" className="flex items-center gap-2">
               <Package className="w-6 h-6 text-primary" />
               <span className="text-xl font-bold">Central Kitchen</span>
@@ -152,7 +247,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* User info */}
           {user && (
-            <div className="px-6 py-4 border-b">
+            <div className="px-6 py-4 border-b dark:border-zinc-800">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
                   {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
@@ -176,7 +271,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <nav className="space-y-6">
               {navigation.map((section) => (
                 <div key={section.title}>
-                  <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-zinc-400">
                     {section.title}
                   </h3>
                   <div className="space-y-1">
@@ -192,8 +287,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             className={cn(
                               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                               isActive
-                                ? "bg-primary text-primary-foreground"
-                                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                             )}
                           >
                             <item.icon className="w-4 h-4 shrink-0" />
@@ -214,7 +309,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </ScrollArea>
 
           {/* Footer */}
-          <div className="border-t p-4 space-y-2">
+          <div className="border-t dark:border-zinc-800 p-4 space-y-2">
             <Link href="/profile">
               <Button
                 variant="ghost"
@@ -253,7 +348,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Mobile header */}
-        <header className="flex h-16 items-center justify-between border-b bg-card px-6 lg:hidden">
+        <header className="flex h-16 items-center justify-between border-b bg-card dark:bg-zinc-900/95 dark:border-zinc-800 px-6 lg:hidden">
           <Button
             variant="ghost"
             size="icon"
