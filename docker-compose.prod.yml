@@ -69,22 +69,46 @@ services:
         max_attempts: 3
         window: 120s
 
-  nginx:
-    ports:
-      - "80:80"
-      - "443:443"
-    # SSL certificate path - uses local ./nginx/ssl by default
-    # If using Let's Encrypt, uncomment the line below:
-    # volumes:
-    #   - /etc/letsencrypt/live:/etc/nginx/ssl:ro
+  traefik:
     deploy:
       resources:
         limits:
-          cpus: '1'
-          memory: 512M
+          cpus: '0.5'
+          memory: 256M
         reservations:
           cpus: '0.25'
           memory: 128M
+    labels:
+      # Enable HTTPS routers for production
+      - "traefik.http.routers.dashboard-secure.rule=Host(`traefik.personalapp.id`)"
+      - "traefik.http.routers.dashboard-secure.entrypoints=websecure"
+      - "traefik.http.routers.dashboard-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard-secure.service=api@internal"
 
-volumes:
-  nginx_cache:
+  api:
+    labels:
+      # HTTPS routes for API
+      - "traefik.http.routers.api-landing-secure.rule=Host(`personalapp.id`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-landing-secure.entrypoints=websecure"
+      - "traefik.http.routers.api-landing-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.api-landing-secure.middlewares=api-stripprefix"
+      - "traefik.http.routers.api-erp-secure.rule=Host(`erp.personalapp.id`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-erp-secure.entrypoints=websecure"
+      - "traefik.http.routers.api-erp-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.api-erp-secure.middlewares=api-stripprefix"
+
+  erp:
+    labels:
+      # HTTPS route for ERP
+      - "traefik.http.routers.erp-secure.rule=Host(`erp.personalapp.id`)"
+      - "traefik.http.routers.erp-secure.entrypoints=websecure"
+      - "traefik.http.routers.erp-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.erp-secure.priority=1"
+
+  landing:
+    labels:
+      # HTTPS route for Landing
+      - "traefik.http.routers.landing-secure.rule=Host(`personalapp.id`) || Host(`www.personalapp.id`)"
+      - "traefik.http.routers.landing-secure.entrypoints=websecure"
+      - "traefik.http.routers.landing-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.landing-secure.priority=1"
