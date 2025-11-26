@@ -183,11 +183,24 @@ export async function build() {
   server.get('/api/health', healthCheckSchema, healthCheckHandler);
 
   // Register Better Auth routes
-  // Add custom content-type parser to prevent Fastify from parsing the body
-  // This allows Better Auth to handle the raw request body
+  // Add custom content-type parser that parses JSON but stores raw body for Better Auth
   server.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
-    // Return the raw body string without parsing
-    done(null, body);
+    // Store raw body for Better Auth routes
+    (req as FastifyRequest & { rawBody?: string }).rawBody = body as string;
+
+    // For auth routes, return raw string (Better Auth handles parsing)
+    if (req.url.startsWith('/auth/')) {
+      done(null, body);
+      return;
+    }
+
+    // For other routes, parse JSON normally
+    try {
+      const parsed = body ? JSON.parse(body as string) : undefined;
+      done(null, parsed);
+    } catch (err) {
+      done(err as Error, undefined);
+    }
   });
 
   // Create catch-all route for Better Auth
