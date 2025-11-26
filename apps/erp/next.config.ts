@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
 
   // Allow external images from Unsplash
   images: {
+    unoptimized: true, // Disable image optimization in standalone mode (sharp not available)
     remotePatterns: [
       {
         protocol: 'https',
