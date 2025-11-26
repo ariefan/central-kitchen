@@ -10,7 +10,6 @@ interface Category {
   id: string;
   code: string;
   name: string;
-  description: string | null;
 }
 
 export default function CategoriesListClient() {
@@ -46,7 +45,7 @@ export default function CategoriesListClient() {
       render: (value) => <span className="font-mono text-sm">{value}</span>
     },
     { key: "name", label: "Name" },
-    { key: "description", label: "Description" },
+    { key: "id", label: "Type ID" },
   ];
 
   return (
@@ -55,9 +54,9 @@ export default function CategoriesListClient() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Product Categories</CardTitle>
+              <CardTitle>Product Kinds</CardTitle>
               <CardDescription>
-                View available product categories
+                View available product types/kinds
               </CardDescription>
             </div>
           </div>
