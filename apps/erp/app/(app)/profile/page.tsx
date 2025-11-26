@@ -45,10 +45,9 @@ export default function ProfilePage() {
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/me`,
-        { credentials: "include" }
-      );
+      const response = await fetch("/api/v1/auth/me", {
+        credentials: "include",
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -69,18 +68,15 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/me`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            name: `${formData.firstName} ${formData.lastName}`.trim(),
-            phone: formData.phone,
-          }),
-        }
-      );
+      const response = await fetch("/api/v1/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
+          phone: formData.phone,
+        }),
+      });
 
       if (response.ok) {
         toast.success("Profile updated successfully");

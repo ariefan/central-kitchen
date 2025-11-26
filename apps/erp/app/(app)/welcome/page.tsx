@@ -32,12 +32,10 @@ export default function WelcomePage() {
 
       setIsLoadingUser(true);
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/me`,
-          {
-            credentials: "include",
-          }
-        );
+        // Use relative URL to go through Next.js proxy
+        const response = await fetch("/api/v1/auth/me", {
+          credentials: "include",
+        });
 
         if (response.ok) {
           const data = await response.json();

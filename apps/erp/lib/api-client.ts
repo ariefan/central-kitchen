@@ -3,10 +3,21 @@
  * Works with @contracts/erp for type safety
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== 'undefined' && process.env.NODE_ENV === 'production'
-    ? window.location.origin // Use same origin in production for proxy
-    : 'http://localhost:8000');
+// Get API base URL - always use relative URLs in production for proxy
+function getApiBaseUrl(): string {
+  // If explicitly set, use it
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  // In browser, use current origin (goes through Next.js proxy)
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  // Server-side in development
+  return 'http://localhost:8000';
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export class ApiError extends Error {
   constructor(
@@ -26,9 +37,12 @@ interface FetchOptions extends RequestInit {
 
 /**
  * Build URL with query parameters
+ * Calculates base URL at request time to handle SSR correctly
  */
 function buildUrl(path: string, params?: Record<string, any>): string {
-  const url = new URL(path, API_BASE_URL);
+  // Get base URL at request time (not module load time)
+  const baseUrl = getApiBaseUrl();
+  const url = new URL(path, baseUrl);
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {

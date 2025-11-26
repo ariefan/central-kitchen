@@ -100,7 +100,8 @@
       "Bash(DATABASE_URL=\"postgresql://postgres:postgres@18.143.15.78:5432/erp-api\" pnpm db:seed:*)",
       "Bash(pnpm --filter erp typecheck:*)",
       "Bash(pnpm --filter erp build:*)",
-      "Bash(pnpm build:erp:*)"
+      "Bash(pnpm build:erp:*)",
+      "Bash(xargs sed:*)"
     ],
     "deny": [],
     "ask": []
