@@ -6,7 +6,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, Column } from "@/components/common/data-table";
-import { Users as UsersIcon } from "lucide-react";
+import { Users as UsersIcon, Plus, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface User {
   id: string;
@@ -24,6 +35,9 @@ export default function UsersPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -35,7 +49,6 @@ export default function UsersPage() {
 
       if (response.ok) {
         const data = await response.json();
-        // Ensure data.data is an array
         setUsers(Array.isArray(data.data) ? data.data : []);
       }
     } catch (error) {
@@ -48,6 +61,33 @@ export default function UsersPage() {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const handleDelete = async () => {
+    if (!userToDelete) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/v1/users/${userToDelete.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        toast.success("User deactivated successfully");
+        fetchUsers();
+      } else {
+        const error = await response.json();
+        toast.error(error.message || "Failed to deactivate user");
+      }
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      toast.error("Failed to deactivate user");
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    }
+  };
 
   const columns: Column<User>[] = [
     {
@@ -85,6 +125,34 @@ export default function UsersPage() {
         </Badge>
       ),
     },
+    {
+      key: "id",
+      label: "Actions",
+      render: (_, row) => (
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push(`/users/${row.id}`)}
+            title="Edit user"
+          >
+            <Pencil className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setUserToDelete(row);
+              setDeleteDialogOpen(true);
+            }}
+            title="Deactivate user"
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -101,6 +169,10 @@ export default function UsersPage() {
                 Manage user accounts and multi-location access
               </CardDescription>
             </div>
+            <Button onClick={() => router.push("/users/new")}>
+              <Plus className="w-4 h-4 mr-2" />
+              New User
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -112,6 +184,28 @@ export default function UsersPage() {
           />
         </CardContent>
       </Card>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deactivate User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to deactivate {userToDelete?.email}?
+              This will prevent them from logging in. You can reactivate them later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deactivating..." : "Deactivate"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
