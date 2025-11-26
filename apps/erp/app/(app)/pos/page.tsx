@@ -31,7 +31,7 @@ export default function POSPage() {
   const fetchProducts = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/products?limit=100`,
+        `/api/v1/products?limit=100`,
         { credentials: "include" }
       );
 
@@ -91,7 +91,7 @@ export default function POSPage() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/orders`, {
+      const response = await fetch(`/api/v1/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

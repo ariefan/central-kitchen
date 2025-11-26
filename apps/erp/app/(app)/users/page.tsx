@@ -29,7 +29,7 @@ export default function UsersPage() {
     setLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users?limit=100`,
+        `/api/v1/users?limit=100`,
         { credentials: "include" }
       );
 

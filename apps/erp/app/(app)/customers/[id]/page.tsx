@@ -42,7 +42,7 @@ export default function CustomerEditPage({ params }: CustomerEditPageProps) {
     setIsFetching(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/customers/${params.id}`,
+        `/api/v1/customers/${params.id}`,
         {
           credentials: "include",
         }
@@ -66,7 +66,7 @@ export default function CustomerEditPage({ params }: CustomerEditPageProps) {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/customers/${params.id}`,
+        `/api/v1/customers/${params.id}`,
         {
           method: "PATCH",
           headers: {

@@ -34,7 +34,7 @@ export default function SuppliersPage() {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/suppliers?${params}`,
+        `/api/v1/suppliers?${params}`,
         { credentials: "include" }
       );
 

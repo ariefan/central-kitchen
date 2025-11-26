@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { UomForm } from "@/components/uoms/uom-form";
 import type { UomCreate } from "@contracts/erp";
@@ -10,12 +10,13 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 interface UomEditPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function UomEditPage({ params }: UomEditPageProps) {
+  const { id } = use(params);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
@@ -23,17 +24,14 @@ export default function UomEditPage({ params }: UomEditPageProps) {
 
   useEffect(() => {
     fetchUom();
-  }, [params.id]);
+  }, [id]);
 
   const fetchUom = async () => {
     setIsFetching(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/uoms/${params.id}`,
-        {
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`/api/v1/uoms/${id}`, {
+        credentials: "include",
+      });
 
       if (response.ok) {
         const result = await response.json();
@@ -53,15 +51,12 @@ export default function UomEditPage({ params }: UomEditPageProps) {
   const handleSubmit = async (data: UomCreate) => {
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/uoms/${params.id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(data),
-        }
-      );
+      const response = await fetch(`/api/v1/uoms/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
 
       if (response.ok) {
         toast.success("UOM updated successfully");

@@ -43,8 +43,8 @@ export default function NewRecipeClient() {
   const fetchMasterData = async () => {
     try {
       const [productsRes, uomsRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/products?limit=100`, { credentials: "include" }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/uoms?limit=100`, { credentials: "include" }),
+        fetch("/api/v1/products?limit=100", { credentials: "include" }),
+        fetch("/api/v1/uoms?limit=100", { credentials: "include" }),
       ]);
 
       if (productsRes.ok) {
@@ -89,7 +89,7 @@ export default function NewRecipeClient() {
         })),
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/recipes`, {
+      const response = await fetch("/api/v1/recipes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

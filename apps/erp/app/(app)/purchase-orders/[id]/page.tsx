@@ -65,10 +65,9 @@ export default function PurchaseOrderDetailPage() {
   const fetchPO = async (id: string) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/purchase-orders/${id}`,
-        { credentials: "include" }
-      );
+      const response = await fetch(`/api/v1/purchase-orders/${id}`, {
+        credentials: "include",
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -90,13 +89,10 @@ export default function PurchaseOrderDetailPage() {
 
     setActionLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/purchase-orders/${po.id}/${action}`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`/api/v1/purchase-orders/${po.id}/${action}`, {
+        method: "POST",
+        credentials: "include",
+      });
 
       if (response.ok) {
         toast.success(`Purchase order ${action}ed successfully`);

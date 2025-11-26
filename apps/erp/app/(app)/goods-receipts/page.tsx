@@ -46,7 +46,7 @@ export default function GoodsReceiptsPage() {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/goods-receipts?${params}`,
+        `/api/v1/goods-receipts?${params}`,
         { credentials: "include" }
       );
 

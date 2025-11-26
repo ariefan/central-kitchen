@@ -32,10 +32,9 @@ export default function RecipesListClient() {
         limit: pageSize.toString(),
       });
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/recipes?${params}`,
-        { credentials: "include" }
-      );
+      const response = await fetch(`/api/v1/recipes?${params}`, {
+        credentials: "include",
+      });
 
       if (response.ok) {
         const data = await response.json();

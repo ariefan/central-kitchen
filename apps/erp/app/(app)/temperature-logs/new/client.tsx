@@ -30,10 +30,9 @@ export default function NewTemperatureLogClient() {
 
   const fetchLocations = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/locations?limit=100`,
-        { credentials: "include" }
-      );
+      const response = await fetch("/api/v1/locations?limit=100", {
+        credentials: "include",
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -59,7 +58,7 @@ export default function NewTemperatureLogClient() {
         notes: formData.notes || undefined,
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/temperature-logs`, {
+      const response = await fetch("/api/v1/temperature-logs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

@@ -58,7 +58,7 @@ export default function GoodsReceiptDetailPage() {
     setLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/goods-receipts/${id}`,
+        `/api/v1/goods-receipts/${id}`,
         { credentials: "include" }
       );
 
@@ -83,7 +83,7 @@ export default function GoodsReceiptDetailPage() {
     setActionLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/goods-receipts/${gr.id}/post`,
+        `/api/v1/goods-receipts/${gr.id}/post`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

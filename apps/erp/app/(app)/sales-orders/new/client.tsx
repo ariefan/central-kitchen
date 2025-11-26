@@ -43,9 +43,9 @@ export default function NewSalesOrderClient() {
   const fetchMasterData = async () => {
     try {
       const [customersRes, productsRes, uomsRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/customers?limit=100`, { credentials: "include" }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/products?limit=100`, { credentials: "include" }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/uoms?limit=100`, { credentials: "include" }),
+        fetch("/api/v1/customers?limit=100", { credentials: "include" }),
+        fetch("/api/v1/products?limit=100", { credentials: "include" }),
+        fetch("/api/v1/uoms?limit=100", { credentials: "include" }),
       ]);
 
       if (customersRes.ok) {
@@ -105,7 +105,7 @@ export default function NewSalesOrderClient() {
         totalAmount: calculateTotal().toString(),
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/sales-orders`, {
+      const response = await fetch("/api/v1/sales-orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

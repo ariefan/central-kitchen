@@ -19,10 +19,9 @@ export default function CategoriesListClient() {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/categories?limit=100`,
-        { credentials: "include" }
-      );
+      const response = await fetch("/api/v1/categories?limit=100", {
+        credentials: "include",
+      });
 
       if (response.ok) {
         const data = await response.json();

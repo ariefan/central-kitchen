@@ -40,7 +40,7 @@ export default function StockTransfersPage() {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/stock-transfers?${params}`,
+        `/api/v1/stock-transfers?${params}`,
         { credentials: "include" }
       );
 

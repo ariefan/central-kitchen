@@ -41,7 +41,7 @@ export default function SalesOrdersPage() {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/sales-orders?${params}`,
+        `/api/v1/sales-orders?${params}`,
         { credentials: "include" }
       );
 

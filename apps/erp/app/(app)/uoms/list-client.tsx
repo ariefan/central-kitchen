@@ -31,10 +31,9 @@ export default function UOMsListClient() {
         limit: pageSize.toString(),
       });
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/uoms?${params}`,
-        { credentials: "include" }
-      );
+      const response = await fetch(`/api/v1/uoms?${params}`, {
+        credentials: "include",
+      });
 
       if (response.ok) {
         const result = await response.json();

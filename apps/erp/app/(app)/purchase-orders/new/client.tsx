@@ -45,10 +45,10 @@ export default function NewPurchaseOrderClient() {
   const fetchMasterData = async () => {
     try {
       const [suppliersRes, locationsRes, productsRes, uomsRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/suppliers?limit=100`, { credentials: "include" }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/locations?limit=100`, { credentials: "include" }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/products?limit=100`, { credentials: "include" }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/uoms?limit=100`, { credentials: "include" }),
+        fetch("/api/v1/suppliers?limit=100", { credentials: "include" }),
+        fetch("/api/v1/locations?limit=100", { credentials: "include" }),
+        fetch("/api/v1/products?limit=100", { credentials: "include" }),
+        fetch("/api/v1/uoms?limit=100", { credentials: "include" }),
       ]);
 
       if (suppliersRes.ok) {
@@ -112,7 +112,7 @@ export default function NewPurchaseOrderClient() {
         totalAmount: calculateTotal().toString(),
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/purchase-orders`, {
+      const response = await fetch("/api/v1/purchase-orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

@@ -55,10 +55,10 @@ export default function NewGoodsReceiptClient() {
   const fetchMasterData = async () => {
     try {
       const [posRes, locationsRes, productsRes, uomsRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/purchase-orders?status=sent&limit=100`, { credentials: "include" }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/locations?limit=100`, { credentials: "include" }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/products?limit=100`, { credentials: "include" }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/uoms?limit=100`, { credentials: "include" }),
+        fetch("/api/v1/purchase-orders?status=sent&limit=100", { credentials: "include" }),
+        fetch("/api/v1/locations?limit=100", { credentials: "include" }),
+        fetch("/api/v1/products?limit=100", { credentials: "include" }),
+        fetch("/api/v1/uoms?limit=100", { credentials: "include" }),
       ]);
 
       if (posRes.ok) {
@@ -123,7 +123,7 @@ export default function NewGoodsReceiptClient() {
         })),
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/goods-receipts`, {
+      const response = await fetch("/api/v1/goods-receipts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

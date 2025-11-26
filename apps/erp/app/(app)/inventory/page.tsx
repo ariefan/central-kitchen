@@ -45,7 +45,7 @@ export default function InventoryPage() {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/inventory/onhand?${params}`,
+        `/api/v1/inventory/onhand?${params}`,
         { credentials: "include" }
       );
 
@@ -75,7 +75,7 @@ export default function InventoryPage() {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/inventory/lots?${params}`,
+        `/api/v1/inventory/lots?${params}`,
         { credentials: "include" }
       );
 

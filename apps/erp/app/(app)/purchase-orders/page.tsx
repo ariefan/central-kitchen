@@ -54,7 +54,7 @@ export default function PurchaseOrdersPage() {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/purchase-orders?${params}`,
+        `/api/v1/purchase-orders?${params}`,
         { credentials: "include" }
       );
 

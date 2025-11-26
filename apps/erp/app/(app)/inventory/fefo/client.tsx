@@ -71,10 +71,9 @@ export default function FEFOPickingClient() {
   const fetchProducts = async () => {
     setLoadingProducts(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/products?limit=100`,
-        { credentials: "include" }
-      );
+      const response = await fetch("/api/v1/products?limit=100", {
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
         setProducts(Array.isArray(data.data) ? data.data : []);
@@ -89,10 +88,9 @@ export default function FEFOPickingClient() {
   const fetchLocations = async () => {
     setLoadingLocations(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/locations?limit=100`,
-        { credentials: "include" }
-      );
+      const response = await fetch("/api/v1/locations?limit=100", {
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
         setLocations(Array.isArray(data.data) ? data.data : []);
@@ -123,7 +121,7 @@ export default function FEFOPickingClient() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/inventory/fefo/recommendations?${params}`,
+        `/api/v1/inventory/fefo/recommendations?${params}`,
         { credentials: "include" }
       );
 

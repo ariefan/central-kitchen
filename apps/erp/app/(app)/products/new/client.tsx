@@ -59,10 +59,9 @@ export default function NewProductClient() {
 
   const fetchUOMs = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/uoms?limit=100`,
-        { credentials: "include" }
-      );
+      const response = await fetch("/api/v1/uoms?limit=100", {
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
         setUoms(Array.isArray(data.data?.items) ? data.data.items : Array.isArray(data.data) ? data.data : []);
@@ -74,10 +73,9 @@ export default function NewProductClient() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/categories?limit=100`,
-        { credentials: "include" }
-      );
+      const response = await fetch("/api/v1/categories?limit=100", {
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
         setCategories(Array.isArray(data.data?.items) ? data.data.items : Array.isArray(data.data) ? data.data : []);
@@ -102,17 +100,14 @@ export default function NewProductClient() {
         categoryId: formData.categoryId || undefined,
       };
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/products`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch("/api/v1/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
 
       if (response.ok) {
         toast.success("Product created successfully");

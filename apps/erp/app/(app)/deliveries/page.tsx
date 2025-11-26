@@ -40,7 +40,7 @@ export default function DeliveriesPage() {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/deliveries?${params}`,
+        `/api/v1/deliveries?${params}`,
         { credentials: "include" }
       );
 

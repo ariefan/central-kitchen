@@ -16,15 +16,12 @@ export default function NewUomClient() {
   const handleSubmit = async (data: UomCreate) => {
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/uoms`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(data),
-        }
-      );
+      const response = await fetch("/api/v1/uoms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
 
       if (response.ok) {
         toast.success("UOM created successfully");

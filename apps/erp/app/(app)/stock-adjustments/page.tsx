@@ -39,7 +39,7 @@ export default function StockAdjustmentsPage() {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/adjustments?${params}`,
+        `/api/v1/adjustments?${params}`,
         { credentials: "include" }
       );
 

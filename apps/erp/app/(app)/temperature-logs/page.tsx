@@ -34,7 +34,7 @@ export default function TemperatureLogsPage() {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/temperature-logs?${params}`,
+        `/api/v1/temperature-logs?${params}`,
         { credentials: "include" }
       );
 

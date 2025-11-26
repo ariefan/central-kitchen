@@ -57,7 +57,7 @@ export default function EditProductPage() {
   const fetchProduct = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/products/${params.id}`,
+        `/api/v1/products/${params.id}`,
         { credentials: "include" }
       );
       if (response.ok) {
@@ -74,7 +74,7 @@ export default function EditProductPage() {
   const fetchUOMs = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/uoms?limit=100`,
+        `/api/v1/uoms?limit=100`,
         { credentials: "include" }
       );
       if (response.ok) {
@@ -89,7 +89,7 @@ export default function EditProductPage() {
   const fetchCategories = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/categories?limit=100`,
+        `/api/v1/categories?limit=100`,
         { credentials: "include" }
       );
       if (response.ok) {
@@ -105,7 +105,7 @@ export default function EditProductPage() {
     setLoadingVariants(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/products/${params.id}/variants`,
+        `/api/v1/products/${params.id}/variants`,
         { credentials: "include" }
       );
       if (response.ok) {
@@ -125,7 +125,7 @@ export default function EditProductPage() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/products/${params.id}`,
+        `/api/v1/products/${params.id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -177,8 +177,8 @@ export default function EditProductPage() {
     setSaving(true);
     try {
       const url = editingVariant
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product-variants/${editingVariant.id}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/v1/products/${params.id}/variants`;
+        ? `/api/v1/product-variants/${editingVariant.id}`
+        : `/api/v1/products/${params.id}/variants`;
 
       const response = await fetch(url, {
         method: editingVariant ? "PATCH" : "POST",
@@ -207,7 +207,7 @@ export default function EditProductPage() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/product-variants/${variantId}`,
+        `/api/v1/product-variants/${variantId}`,
         {
           method: "DELETE",
           credentials: "include",

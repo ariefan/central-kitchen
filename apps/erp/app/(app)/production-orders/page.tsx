@@ -41,7 +41,7 @@ export default function ProductionOrdersPage() {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/production-orders?${params}`,
+        `/api/v1/production-orders?${params}`,
         { credentials: "include" }
       );
 

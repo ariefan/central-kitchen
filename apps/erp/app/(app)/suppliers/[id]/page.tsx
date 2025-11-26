@@ -29,7 +29,7 @@ export default function SupplierEditPage({ params }: SupplierEditPageProps) {
     setIsFetching(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/suppliers/${params.id}`,
+        `/api/v1/suppliers/${params.id}`,
         {
           credentials: "include",
         }
@@ -53,7 +53,7 @@ export default function SupplierEditPage({ params }: SupplierEditPageProps) {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/suppliers/${params.id}`,
+        `/api/v1/suppliers/${params.id}`,
         {
           method: "PATCH",
           headers: {

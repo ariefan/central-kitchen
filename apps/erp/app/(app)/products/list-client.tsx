@@ -43,12 +43,9 @@ export default function ProductsListClient() {
         ...(search && { search }),
       });
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/products?${params}`,
-        {
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`/api/v1/products?${params}`, {
+        credentials: "include",
+      });
 
       if (response.ok) {
         const result = await response.json();
