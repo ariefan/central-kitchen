@@ -11,11 +11,14 @@ export const auth = betterAuth({
     usePlural: true, // Maps 'user' to 'users' table
   }),
 
-  // Base URL for auth endpoints
+  // Base URL for auth endpoints (frontend URL for cookie domain)
   baseURL: process.env.BETTER_AUTH_URL ||
     (process.env.NODE_ENV === 'production'
       ? "https://erp.personalapp.id"
       : "http://localhost:8000"),
+
+  // Trust proxy headers for proper URL detection behind reverse proxy
+  trustedProxyHeaders: ["x-forwarded-host", "x-forwarded-proto"],
 
   // Mount path for auth routes (frontend proxies /api/auth/* to /auth/*)
   basePath: "/auth",

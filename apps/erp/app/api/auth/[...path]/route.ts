@@ -19,12 +19,19 @@ async function proxyRequest(
 
   // Get request headers and forward them
   const headers = new Headers();
+  const originalHost = request.headers.get("host") || "erp.personalapp.id";
+
   request.headers.forEach((value, key) => {
     // Skip host header as it will be set by fetch
     if (key.toLowerCase() !== "host") {
       headers.set(key, value);
     }
   });
+
+  // Forward proxy headers so backend knows the original request details
+  headers.set("X-Forwarded-Host", originalHost);
+  headers.set("X-Forwarded-Proto", "https");
+  headers.set("X-Real-IP", request.headers.get("x-forwarded-for")?.split(",")[0] || "");
 
   // Forward cookies
   const cookieHeader = request.headers.get("cookie");
