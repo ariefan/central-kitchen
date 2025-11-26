@@ -7,9 +7,10 @@ import { DataTable, Column } from "@/components/common/data-table";
 import { Package } from "lucide-react";
 
 interface Category {
-  value: string;
-  label: string;
-  description: string;
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
 }
 
 export default function CategoriesListClient() {
@@ -40,11 +41,11 @@ export default function CategoriesListClient() {
 
   const columns: Column<Category>[] = [
     {
-      key: "value",
+      key: "code",
       label: "Code",
       render: (value) => <span className="font-mono text-sm">{value}</span>
     },
-    { key: "label", label: "Name" },
+    { key: "name", label: "Name" },
     { key: "description", label: "Description" },
   ];
 
