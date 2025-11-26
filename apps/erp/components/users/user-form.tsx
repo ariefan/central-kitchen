@@ -25,13 +25,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const userFormSchema = z.object({
   email: z.string().email("Invalid email address"),
-  username: z.string().min(3, "Username must be at least 3 characters").optional(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  phone: z.string().optional(),
+  username: z.string().min(3, "Username must be at least 3 characters").optional().or(z.literal("")),
+  firstName: z.string().optional().or(z.literal("")),
+  lastName: z.string().optional().or(z.literal("")),
+  phone: z.string().optional().or(z.literal("")),
   role: z.enum(["admin", "manager", "cashier", "staff"]),
   locationId: z.string().uuid().optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
 });
 
 export type UserFormData = z.infer<typeof userFormSchema>;
