@@ -1,6 +1,6 @@
 # Docker Compose Configuration for Dokploy
 # Optimized for deployment on Dokploy with Traefik integration
-# Last deployment trigger: 2025-11-26-v1
+# Last deployment trigger: 2025-11-26-v2
 
 services:
   # PostgreSQL Database
@@ -37,7 +37,8 @@ services:
       dockerfile: apps/erp-api/Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/erp-api
+      # Include search_path in connection string so Better Auth tables are found in erp schema
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/erp-api?options=-c%20search_path%3Derp,public
       PORT: 8000
       HOST: 0.0.0.0
       NODE_ENV: production

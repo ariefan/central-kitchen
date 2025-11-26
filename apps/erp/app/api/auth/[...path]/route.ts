@@ -57,9 +57,19 @@ async function proxyRequest(
 
     // Create response with headers from backend
     const responseHeaders = new Headers();
+
+    // Handle Set-Cookie headers specially - there can be multiple
+    // Headers.forEach only gives one value, but getSetCookie() returns all
+    const setCookies = response.headers.getSetCookie?.() || [];
+    setCookies.forEach((cookie) => {
+      responseHeaders.append("set-cookie", cookie);
+    });
+
+    // Forward other headers
     response.headers.forEach((value, key) => {
-      // Forward all headers except some that shouldn't be forwarded
-      if (!["content-encoding", "transfer-encoding", "connection"].includes(key.toLowerCase())) {
+      // Skip headers that shouldn't be forwarded or already handled
+      const lowerKey = key.toLowerCase();
+      if (!["content-encoding", "transfer-encoding", "connection", "set-cookie"].includes(lowerKey)) {
         responseHeaders.set(key, value);
       }
     });
