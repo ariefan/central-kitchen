@@ -11,22 +11,17 @@ const nextConfig: NextConfig = {
     },
   }),
 
-  async rewrites() {
-    // In production, proxy API requests to the API service
-    // This solves cross-origin cookie issues by serving everything from the same domain
-    const apiBaseUrl = process.env.API_SERVICE_URL || 'http://localhost:8000';
+  // Note: API proxying is now handled by route handlers in /api/v1/[...path] and /api/auth/[...path]
+  // This is more reliable than rewrites in standalone mode as it reads API_SERVICE_URL at runtime
 
-    // Log the configuration for debugging
-    console.log('[Next.js Config] API_SERVICE_URL:', process.env.API_SERVICE_URL);
-    console.log('[Next.js Config] Using API base URL:', apiBaseUrl);
-    console.log('[Next.js Config] Rewrite rule: /api/:path* -> ' + apiBaseUrl + '/:path*');
-
-    return [
+  // Allow external images from Unsplash
+  images: {
+    remotePatterns: [
       {
-        source: '/api/:path*',
-        destination: `${apiBaseUrl}/:path*`,
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
       },
-    ];
+    ],
   },
 };
 
