@@ -14,7 +14,8 @@ async function proxyRequest(
   const { path } = await params;
   const pathString = path.join("/");
   const url = new URL(request.url);
-  const targetUrl = `${API_URL}/api/auth/${pathString}${url.search}`;
+  // Backend has Better Auth at /auth/* (not /api/auth/*)
+  const targetUrl = `${API_URL}/auth/${pathString}${url.search}`;
 
   // Get request headers and forward them
   const headers = new Headers();

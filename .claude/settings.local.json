@@ -97,7 +97,10 @@
       "Bash(pkill -f \"pnpm add -D tsc-alias\")",
       "Bash(git rev-parse:*)",
       "Bash(git restore:*)",
-      "Bash(DATABASE_URL=\"postgresql://postgres:postgres@18.143.15.78:5432/erp-api\" pnpm db:seed:*)"
+      "Bash(DATABASE_URL=\"postgresql://postgres:postgres@18.143.15.78:5432/erp-api\" pnpm db:seed:*)",
+      "Bash(pnpm --filter erp typecheck:*)",
+      "Bash(pnpm --filter erp build:*)",
+      "Bash(pnpm build:erp:*)"
     ],
     "deny": [],
     "ask": []
