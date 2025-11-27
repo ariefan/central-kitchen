@@ -60,8 +60,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy built application
-COPY --from=builder /app/apps/erp/public ./apps/erp/public
+# Copy built application (with correct ownership for nextjs user)
+COPY --from=builder --chown=nextjs:nodejs /app/apps/erp/public ./apps/erp/public
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
