@@ -62,29 +62,31 @@ export default function WelcomePage() {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
-      {/* Header with Logo */}
-      <div className="flex justify-end mb-6">
-        <Image
-          src="/logo-light.jpeg"
-          alt="Dapoer Roema"
-          width={120}
-          height={50}
-          className="dark:hidden rounded"
-        />
-        <Image
-          src="/logo-dark.jpeg"
-          alt="Dapoer Roema"
-          width={120}
-          height={50}
-          className="hidden dark:block rounded"
-        />
-      </div>
-
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Welcome to ERP System</CardTitle>
-            <CardDescription>You are successfully logged in</CardDescription>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle>Welcome to ERP System</CardTitle>
+                <CardDescription>You are successfully logged in</CardDescription>
+              </div>
+              <div className="shrink-0">
+                <Image
+                  src="/logo-light.jpeg"
+                  alt="Dapoer Roema"
+                  width={100}
+                  height={40}
+                  className="dark:hidden rounded"
+                />
+                <Image
+                  src="/logo-dark.jpeg"
+                  alt="Dapoer Roema"
+                  width={100}
+                  height={40}
+                  className="hidden dark:block rounded"
+                />
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
