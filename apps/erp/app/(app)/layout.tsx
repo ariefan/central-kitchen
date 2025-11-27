@@ -234,7 +234,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col overflow-hidden">
           {/* Logo */}
           <div className="flex h-12 items-center justify-between px-3 border-b dark:border-zinc-800">
             <Link href="/" className="flex items-center gap-1.5">
@@ -271,9 +271,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           )}
 
-          {/* Navigation */}
-          <ScrollArea className="flex-1 px-2 py-2">
-            <nav className="space-y-2">
+          {/* Navigation - scrollable area */}
+          <ScrollArea className="flex-1 min-h-0">
+            <nav className="space-y-2 px-2 py-2">
               {navigation.map((section) => (
                 <div key={section.title}>
                   <h3 className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-zinc-500">

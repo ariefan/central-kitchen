@@ -31,7 +31,9 @@ interface Location {
 export function LocationSwitcher() {
   const [open, setOpen] = useState(false);
   const { user, location: currentLocation, profile } = useAuth();
-  const { data: userLocationsData, isLoading: isLoadingLocations } = useUserLocations(profile?.id);
+  // Use profile.id (users table ID) for fetching locations
+  const userId = profile?.id;
+  const { data: userLocationsData, isLoading: isLoadingLocations, error } = useUserLocations(userId);
   const switchLocation = useSwitchLocation();
 
   const locations: Location[] = userLocationsData?.data?.locations || [];
@@ -54,33 +56,26 @@ export function LocationSwitcher() {
     }
   };
 
-  // If only one location or no locations, just show the current location
-  if (!hasMultipleLocations) {
-    return (
-      <div className="flex items-center gap-1.5 px-2 py-1 text-sm text-muted-foreground">
-        <MapPin className="w-4 h-4" />
-        <span className="truncate">{currentLocation?.name || "No location"}</span>
-      </div>
-    );
-  }
-
+  // Always show as a clickable button - users can see available locations
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="ghost"
+          variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between h-auto py-1.5 px-2 text-sm"
-          disabled={switchLocation.isPending}
+          className="w-full justify-between h-auto py-1.5 px-2 text-sm border-dashed"
+          disabled={switchLocation.isPending || isLoadingLocations}
         >
           <div className="flex items-center gap-1.5 min-w-0">
-            <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
+            <MapPin className="w-4 h-4 shrink-0 text-primary" />
             <span className="truncate">
-              {currentLocation?.name || "Select location"}
+              {isLoadingLocations
+                ? "Loading..."
+                : currentLocation?.name || "Select location"}
             </span>
           </div>
-          {switchLocation.isPending ? (
+          {switchLocation.isPending || isLoadingLocations ? (
             <Loader2 className="ml-1 h-4 w-4 shrink-0 animate-spin" />
           ) : (
             <ChevronsUpDown className="ml-1 h-4 w-4 shrink-0 opacity-50" />
@@ -91,11 +86,17 @@ export function LocationSwitcher() {
         <Command>
           <CommandInput placeholder="Search location..." className="h-9 text-sm" />
           <CommandList>
-            <CommandEmpty>No location found.</CommandEmpty>
+            <CommandEmpty>
+              {error ? "Failed to load locations" : "No locations available"}
+            </CommandEmpty>
             <CommandGroup>
               {isLoadingLocations ? (
                 <div className="flex items-center justify-center py-4">
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : locations.length === 0 ? (
+                <div className="py-4 text-center text-sm text-muted-foreground">
+                  No locations assigned
                 </div>
               ) : (
                 locations.map((loc) => (
