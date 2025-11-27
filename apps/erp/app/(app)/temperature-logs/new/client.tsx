@@ -17,10 +17,9 @@ export default function NewTemperatureLogClient() {
 
   const [formData, setFormData] = useState({
     locationId: "",
-    equipmentName: "",
+    area: "",
     temperature: "",
-    minThreshold: "",
-    maxThreshold: "",
+    humidity: "",
     notes: "",
   });
 
@@ -35,8 +34,10 @@ export default function NewTemperatureLogClient() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setLocations(data.data || []);
+        const result = await response.json();
+        // API returns { success: true, data: { items: [...] } }
+        const data = result.data || {};
+        setLocations(Array.isArray(data.items) ? data.items : []);
       }
     } catch (error) {
       console.error("Failed to fetch locations:", error);
@@ -51,10 +52,9 @@ export default function NewTemperatureLogClient() {
     try {
       const payload = {
         locationId: formData.locationId,
-        equipmentName: formData.equipmentName,
+        area: formData.area || undefined,
         temperature: parseFloat(formData.temperature),
-        minThreshold: formData.minThreshold ? parseFloat(formData.minThreshold) : undefined,
-        maxThreshold: formData.maxThreshold ? parseFloat(formData.maxThreshold) : undefined,
+        humidity: formData.humidity ? parseFloat(formData.humidity) : undefined,
         notes: formData.notes || undefined,
       };
 
@@ -111,14 +111,24 @@ export default function NewTemperatureLogClient() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="equipmentName">Equipment Name *</Label>
-                <Input
-                  id="equipmentName"
-                  value={formData.equipmentName}
-                  onChange={(e) => setFormData({ ...formData, equipmentName: e.target.value })}
-                  placeholder="e.g., Refrigerator #1, Freezer #2"
-                  required
-                />
+                <Label htmlFor="area">Storage Area</Label>
+                <Select
+                  value={formData.area}
+                  onValueChange={(value) => setFormData({ ...formData, area: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select area" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="refrigerator">Refrigerator (0-5°C)</SelectItem>
+                    <SelectItem value="freezer">Freezer (-18 to -25°C)</SelectItem>
+                    <SelectItem value="dry_storage">Dry Storage (10-21°C)</SelectItem>
+                    <SelectItem value="hot_holding">Hot Holding (57-74°C)</SelectItem>
+                    <SelectItem value="cold_holding">Cold Holding (0-4°C)</SelectItem>
+                    <SelectItem value="receiving">Receiving Area</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -134,26 +144,16 @@ export default function NewTemperatureLogClient() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="minThreshold">Min Threshold (°C)</Label>
+                <Label htmlFor="humidity">Humidity (%)</Label>
                 <Input
-                  id="minThreshold"
+                  id="humidity"
                   type="number"
-                  step="0.1"
-                  value={formData.minThreshold}
-                  onChange={(e) => setFormData({ ...formData, minThreshold: e.target.value })}
-                  placeholder="e.g., 0"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="maxThreshold">Max Threshold (°C)</Label>
-                <Input
-                  id="maxThreshold"
-                  type="number"
-                  step="0.1"
-                  value={formData.maxThreshold}
-                  onChange={(e) => setFormData({ ...formData, maxThreshold: e.target.value })}
-                  placeholder="e.g., 5"
+                  step="1"
+                  min="0"
+                  max="100"
+                  value={formData.humidity}
+                  onChange={(e) => setFormData({ ...formData, humidity: e.target.value })}
+                  placeholder="e.g., 65"
                 />
               </div>
             </div>

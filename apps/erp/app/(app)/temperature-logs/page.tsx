@@ -11,12 +11,25 @@ import { Plus, AlertTriangle } from "lucide-react";
 interface TemperatureLog {
   id: string;
   locationId: string;
-  equipmentName: string;
-  temperature: number;
-  minThreshold?: number;
-  maxThreshold?: number;
-  loggedAt: string;
+  area: string | null;
+  temperature: string;
+  humidity: string | null;
+  recordedAt: string;
+  isAlert: boolean;
+  alertReason: string | null;
+  expectedMinTemp?: number;
+  expectedMaxTemp?: number;
   notes?: string;
+  location?: {
+    id: string;
+    name: string;
+    code: string;
+  };
+  recordedByUser?: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
 }
 
 export default function TemperatureLogsPage() {
@@ -28,9 +41,10 @@ export default function TemperatureLogsPage() {
   const fetchLogs = async (page: number = 1, pageSize: number = 20) => {
     setLoading(true);
     try {
+      const offset = (page - 1) * pageSize;
       const params = new URLSearchParams({
-        page: page.toString(),
         limit: pageSize.toString(),
+        offset: offset.toString(),
       });
 
       const response = await fetch(
@@ -39,12 +53,14 @@ export default function TemperatureLogsPage() {
       );
 
       if (response.ok) {
-        const data = await response.json();
-        setLogs(Array.isArray(data.data) ? data.data : []);
+        const result = await response.json();
+        // API returns { success: true, data: { items: [...], total, limit, offset, ... } }
+        const data = result.data || {};
+        setLogs(Array.isArray(data.items) ? data.items : []);
         setPagination({
-          page: data.pagination?.page || 1,
-          pageSize: data.pagination?.limit || pageSize,
-          total: data.pagination?.total || 0,
+          page: Math.floor((data.offset || 0) / pageSize) + 1,
+          pageSize: data.limit || pageSize,
+          total: data.total || 0,
         });
       }
     } catch (error) {
@@ -58,46 +74,56 @@ export default function TemperatureLogsPage() {
     fetchLogs();
   }, []);
 
-  const isOutOfRange = (log: TemperatureLog) => {
-    if (log.minThreshold !== undefined && log.temperature < log.minThreshold) return true;
-    if (log.maxThreshold !== undefined && log.temperature > log.maxThreshold) return true;
-    return false;
-  };
-
   const columns: Column<TemperatureLog>[] = [
     {
-      key: "loggedAt",
+      key: "recordedAt",
       label: "Date/Time",
       render: (value) => new Date(value).toLocaleString()
     },
-    { key: "equipmentName", label: "Equipment" },
+    {
+      key: "location",
+      label: "Location",
+      render: (value) => value?.name || "-"
+    },
+    {
+      key: "area",
+      label: "Area",
+      render: (value) => value ? (
+        <Badge variant="outline" className="capitalize">{value.replace(/_/g, " ")}</Badge>
+      ) : <span className="text-muted-foreground">-</span>
+    },
     {
       key: "temperature",
       label: "Temperature",
       render: (value, row) => (
         <div className="flex items-center gap-2">
-          <span className={`font-semibold ${isOutOfRange(row) ? 'text-destructive' : ''}`}>
-            {value}°C
+          <span className={`font-semibold ${row.isAlert ? 'text-destructive' : ''}`}>
+            {parseFloat(value).toFixed(1)}°C
           </span>
-          {isOutOfRange(row) && (
+          {row.isAlert && (
             <AlertTriangle className="w-4 h-4 text-destructive" />
           )}
         </div>
       )
     },
     {
-      key: "minThreshold",
+      key: "expectedMinTemp",
       label: "Range",
       render: (_, row) => {
-        if (row.minThreshold === undefined && row.maxThreshold === undefined) {
+        if (row.expectedMinTemp === undefined && row.expectedMaxTemp === undefined) {
           return <span className="text-muted-foreground">-</span>;
         }
         return (
           <span className="text-sm text-muted-foreground">
-            {row.minThreshold ?? '-'} to {row.maxThreshold ?? '-'}°C
+            {row.expectedMinTemp ?? '-'} to {row.expectedMaxTemp ?? '-'}°C
           </span>
         );
       }
+    },
+    {
+      key: "recordedByUser",
+      label: "Recorded By",
+      render: (value) => value?.name || value?.email || "-"
     },
     {
       key: "notes",
