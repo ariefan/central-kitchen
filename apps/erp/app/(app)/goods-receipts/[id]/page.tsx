@@ -108,7 +108,7 @@ export default function GoodsReceiptDetailPage() {
   };
 
   if (loading) {
-    return <div className="container mx-auto p-6">Loading...</div>;
+    return <div className="container mx-auto p-6 max-w-7xl">Loading...</div>;
   }
 
   if (!gr) {
@@ -116,7 +116,7 @@ export default function GoodsReceiptDetailPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 max-w-7xl space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => router.push("/goods-receipts")}>
           <ArrowLeft className="w-4 h-4" />

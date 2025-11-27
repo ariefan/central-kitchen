@@ -54,7 +54,7 @@ export default function ReportsClient() {
   const router = useRouter();
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 max-w-7xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Reports & Analytics</h1>
         <p className="text-muted-foreground">Access business intelligence and reports</p>

@@ -127,7 +127,7 @@ export default function POSPage() {
   );
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 max-w-7xl">
       <div className="grid grid-cols-3 gap-6">
         {/* Product Selection */}
         <div className="col-span-2 space-y-4">

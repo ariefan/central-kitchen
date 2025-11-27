@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 // Loading placeholder
 function LoadingSkeleton() {
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 max-w-7xl">
       <div className="h-8 w-48 bg-muted animate-pulse rounded mb-6" />
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[1, 2, 3, 4].map((i) => (

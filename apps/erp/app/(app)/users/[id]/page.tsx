@@ -86,7 +86,7 @@ export default function EditUserPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-6 max-w-7xl">
         <p>Loading...</p>
       </div>
     );
@@ -97,7 +97,7 @@ export default function EditUserPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 max-w-7xl">
       <div className="mb-6">
         <Button
           variant="ghost"

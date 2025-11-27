@@ -236,7 +236,7 @@ export default function EditProductPage() {
 
   if (!formData) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-6 max-w-7xl">
         <Card>
           <CardContent className="p-6">
             <p>Product not found</p>
@@ -247,7 +247,7 @@ export default function EditProductPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-3xl">
+    <div className="container mx-auto p-6 max-w-7xl">
       <Button variant="ghost" onClick={() => router.back()} className="mb-4">
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back

@@ -107,7 +107,7 @@ export default function CustomerEditPage({ params }: CustomerEditPageProps) {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 max-w-7xl">
       <div className="mb-6">
         <Button
           variant="ghost"

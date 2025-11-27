@@ -152,7 +152,7 @@ export default function InventoryPage() {
   ];
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 max-w-7xl">
       <Tabs defaultValue="onhand" className="space-y-4">
         <TabsList>
           <TabsTrigger value="onhand">On Hand</TabsTrigger>

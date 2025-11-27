@@ -8,7 +8,7 @@ import { Construction } from "lucide-react";
 
 export default function SettingsPage() {
   return (
-    <div className="container mx-auto p-6 max-w-2xl">
+    <div className="container mx-auto p-6 max-w-7xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-muted-foreground">Manage your application preferences</p>

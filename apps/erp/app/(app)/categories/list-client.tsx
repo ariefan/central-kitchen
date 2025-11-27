@@ -49,7 +49,7 @@ export default function CategoriesListClient() {
   ];
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 max-w-7xl">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">

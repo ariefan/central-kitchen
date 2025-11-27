@@ -94,7 +94,7 @@ export default function CustomersListClient() {
   ];
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 max-w-7xl">
       <Card>
         <CardHeader>
           <div className="flex justify-between items-start">
