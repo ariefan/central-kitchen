@@ -57,8 +57,8 @@ export function LocationSwitcher() {
   // If only one location or no locations, just show the current location
   if (!hasMultipleLocations) {
     return (
-      <div className="flex items-center gap-1.5 px-2 py-1 text-xs text-muted-foreground">
-        <MapPin className="w-3 h-3" />
+      <div className="flex items-center gap-1.5 px-2 py-1 text-sm text-muted-foreground">
+        <MapPin className="w-4 h-4" />
         <span className="truncate">{currentLocation?.name || "No location"}</span>
       </div>
     );
@@ -71,25 +71,25 @@ export function LocationSwitcher() {
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between h-auto py-1.5 px-2 text-xs"
+          className="w-full justify-between h-auto py-1.5 px-2 text-sm"
           disabled={switchLocation.isPending}
         >
           <div className="flex items-center gap-1.5 min-w-0">
-            <MapPin className="w-3 h-3 shrink-0 text-muted-foreground" />
+            <MapPin className="w-4 h-4 shrink-0 text-muted-foreground" />
             <span className="truncate">
               {currentLocation?.name || "Select location"}
             </span>
           </div>
           {switchLocation.isPending ? (
-            <Loader2 className="ml-1 h-3 w-3 shrink-0 animate-spin" />
+            <Loader2 className="ml-1 h-4 w-4 shrink-0 animate-spin" />
           ) : (
-            <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+            <ChevronsUpDown className="ml-1 h-4 w-4 shrink-0 opacity-50" />
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start">
+      <PopoverContent className="w-[220px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search location..." className="h-8 text-xs" />
+          <CommandInput placeholder="Search location..." className="h-9 text-sm" />
           <CommandList>
             <CommandEmpty>No location found.</CommandEmpty>
             <CommandGroup>
@@ -103,17 +103,17 @@ export function LocationSwitcher() {
                     key={loc.id}
                     value={loc.name}
                     onSelect={() => handleSwitchLocation(loc.id)}
-                    className="text-xs"
+                    className="text-sm"
                   >
                     <Check
                       className={cn(
-                        "mr-2 h-3 w-3",
+                        "mr-2 h-4 w-4",
                         currentLocation?.id === loc.id ? "opacity-100" : "opacity-0"
                       )}
                     />
                     <div className="flex flex-col">
                       <span>{loc.name}</span>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {loc.code} - {loc.locationType?.replace("_", " ")}
                       </span>
                     </div>

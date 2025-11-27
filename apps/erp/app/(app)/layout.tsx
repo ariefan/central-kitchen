@@ -229,7 +229,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-52 transform border-r transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-56 transform border-r transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
           "bg-card dark:bg-zinc-900/95 dark:border-zinc-800",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
@@ -255,11 +255,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {user && (
             <div className="px-3 py-2 border-b dark:border-zinc-800">
               <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
                   {user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate">
+                  <p className="text-sm font-medium truncate">
                     {user.name || user.email}
                   </p>
                 </div>
@@ -276,7 +276,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <nav className="space-y-2">
               {navigation.map((section) => (
                 <div key={section.title}>
-                  <h3 className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground dark:text-zinc-500">
+                  <h3 className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-zinc-500">
                     {section.title}
                   </h3>
                   <div className="space-y-0.5">
@@ -290,16 +290,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         >
                           <div
                             className={cn(
-                              "flex items-center gap-2 rounded-md px-2 py-1 text-xs transition-colors",
+                              "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
                               isActive
                                 ? "bg-primary text-primary-foreground shadow-sm"
                                 : "text-muted-foreground hover:bg-accent hover:text-accent-foreground dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                             )}
                           >
-                            <item.icon className="w-3.5 h-3.5 shrink-0" />
+                            <item.icon className="w-4 h-4 shrink-0" />
                             <span className="flex-1 truncate">{item.title}</span>
                             {item.badge && (
-                              <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium">
+                              <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium">
                                 {item.badge}
                               </span>
                             )}
@@ -319,10 +319,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start h-7 text-xs"
+                className="w-full justify-start h-8 text-sm"
                 onClick={() => setSidebarOpen(false)}
               >
-                <UserCircle className="w-3.5 h-3.5 mr-2" />
+                <UserCircle className="w-4 h-4 mr-2" />
                 Profile
               </Button>
             </Link>
@@ -330,10 +330,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start h-7 text-xs"
+                className="w-full justify-start h-8 text-sm"
                 onClick={() => setSidebarOpen(false)}
               >
-                <Settings className="w-3.5 h-3.5 mr-2" />
+                <Settings className="w-4 h-4 mr-2" />
                 Settings
               </Button>
             </Link>
@@ -341,10 +341,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex-1 justify-start h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                className="flex-1 justify-start h-8 text-sm text-destructive hover:text-destructive hover:bg-destructive/10"
                 onClick={handleSignOut}
               >
-                <LogOut className="w-3.5 h-3.5 mr-2" />
+                <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
               </Button>
               <ThemeToggle />
