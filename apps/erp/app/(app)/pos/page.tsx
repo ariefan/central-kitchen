@@ -37,7 +37,9 @@ export default function POSPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setProducts(data.data || []);
+        // API returns { data: { items: [...] } }
+        const productsData = data.data;
+        setProducts(Array.isArray(productsData) ? productsData : (productsData?.items || []));
       }
     } catch (error) {
       console.error("Failed to fetch products:", error);
