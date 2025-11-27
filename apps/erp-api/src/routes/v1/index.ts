@@ -11,6 +11,7 @@ import { goodsReceiptRoutes } from './goods-receipts.routes.js';
 import { inventoryRoutes } from './inventory.routes.js';
 import { locationRoutes } from './locations.routes.js';
 import { menuRoutes } from './menus.routes.js';
+import { onboardingRoutes } from './onboarding.routes.js';
 import { orderRoutes } from './orders.routes.js';
 import { posRoutes } from './pos.routes.js';
 import { priceBookRoutes } from './pricebooks.routes.js';
@@ -31,7 +32,7 @@ import { uomConversionRoutes } from './uom-conversions.routes.js';
 import { uomRoutes } from './uoms.routes.js';
 import { userRoutes } from './users.routes.js';
 import { wasteRoutes } from './waste.routes.js';
-import { authMiddleware } from '../../shared/middleware/auth.js';
+import { authMiddleware, sessionOnlyMiddleware } from '../../shared/middleware/auth.js';
 
 export async function apiV1Routes(fastify: FastifyInstance) {
   // Global OPTIONS handler for all API routes for CORS
@@ -41,6 +42,12 @@ export async function apiV1Routes(fastify: FastifyInstance) {
     reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     reply.header('Access-Control-Max-Age', '86400');
     return reply.code(204).send();
+  });
+
+  // Session-only routes - require authentication but NOT tenant
+  await fastify.register(async (sessionRoutes) => {
+    sessionRoutes.addHook('preHandler', sessionOnlyMiddleware);
+    await sessionRoutes.register(onboardingRoutes, { prefix: '/onboarding' });
   });
 
   // Protected routes - require authentication

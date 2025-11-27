@@ -6,10 +6,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
 import { LocationSwitcher } from "@/components/location-switcher";
+import { TenantRequiredDialog } from "@/components/tenant-required-dialog";
 import {
   MapPin,
   Package,
@@ -208,7 +208,7 @@ const navigation: NavSection[] = [
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, profile, isLoading, signOut } = useAuth();
+  const { user, profile, signOut, needsTenant } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = () => {
@@ -218,6 +218,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      {/* Tenant Required Dialog - shown when user has no tenant */}
+      <TenantRequiredDialog open={needsTenant ?? false} />
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -239,7 +241,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex h-12 items-center justify-between px-3 border-b dark:border-zinc-800">
             <Link href="/" className="flex items-center gap-1.5">
               <Package className="w-5 h-5 text-primary" />
-              <span className="text-base font-bold">Central Kitchen</span>
+              <span className="text-base font-bold truncate">{profile?.tenant?.name || "ERP"}</span>
             </Link>
             <Button
               variant="ghost"
@@ -366,7 +368,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </Button>
           <Link href="/" className="flex items-center gap-2">
             <Package className="w-6 h-6 text-primary" />
-            <span className="text-lg font-bold">Central Kitchen</span>
+            <span className="text-lg font-bold truncate">{profile?.tenant?.name || "ERP"}</span>
           </Link>
           <ThemeToggle />
         </header>

@@ -63,6 +63,12 @@ export function useAuth() {
   const isAuthenticated = !!session?.user;
   const isLoading = isSessionLoading || (isAuthenticated && isProfileLoading);
 
+  // Check if user needs to join a tenant
+  // This happens when the /auth/me endpoint returns NO_TENANT_ASSIGNED error
+  const needsTenant = isAuthenticated && !isProfileLoading && !profile?.data?.tenant &&
+    (profileError?.message?.includes('no tenant') ||
+     profileError?.message?.includes('NO_TENANT_ASSIGNED'));
+
   return {
     // Session data from Better Auth
     session,
@@ -80,6 +86,7 @@ export function useAuth() {
 
     // Auth state
     isAuthenticated,
+    needsTenant,
 
     // Errors
     sessionError,

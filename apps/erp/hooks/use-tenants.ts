@@ -176,3 +176,86 @@ export function useDeleteTenant() {
     },
   });
 }
+
+// ============================================================================
+// Onboarding - Join Tenant
+// ============================================================================
+
+interface TenantLookupResponse {
+  success: boolean;
+  data?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  error?: string;
+  message?: string;
+}
+
+interface JoinTenantResponse {
+  success: boolean;
+  data?: {
+    user: {
+      id: string;
+      email: string;
+      tenantId: string;
+    };
+    tenant: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  };
+  error?: string;
+  message?: string;
+}
+
+export function useLookupTenant(slug: string | undefined) {
+  return useQuery<TenantLookupResponse>({
+    queryKey: ['tenant-lookup', slug],
+    queryFn: async () => {
+      const response = await fetch(`/api/v1/onboarding/tenant/${slug}`, {
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Tenant not found');
+      }
+
+      return data;
+    },
+    enabled: !!slug && slug.length > 0,
+    retry: false,
+  });
+}
+
+export function useJoinTenant() {
+  const queryClient = useQueryClient();
+
+  return useMutation<JoinTenantResponse, Error, string>({
+    mutationFn: async (slug: string) => {
+      const response = await fetch('/api/v1/onboarding/join-tenant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ slug: slug.toLowerCase() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to join tenant');
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate auth profile to refresh user data with new tenant
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      // Also invalidate tenants list
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+    },
+  });
+}

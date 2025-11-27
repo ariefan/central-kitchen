@@ -417,6 +417,83 @@ export const optionalAuthMiddleware = async (
   }
 };
 
+/**
+ * Session-only middleware - requires authentication but NOT tenant assignment
+ * Use this for endpoints like joining a tenant
+ */
+export const sessionOnlyMiddleware = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+) => {
+  if (shouldBypassAuth()) {
+    const context = await loadBypassContext();
+    applyRequestContext(request, context);
+    return;
+  }
+
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers as Record<string, string>,
+    });
+
+    if (!session?.session || !session?.user) {
+      return reply.status(401).send({
+        success: false,
+        error: 'Unauthorized',
+        code: 'UNAUTHORIZED',
+      });
+    }
+
+    // Fetch user data from database
+    const [userData] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, session.user.id))
+      .limit(1);
+
+    if (!userData) {
+      return reply.status(401).send({
+        success: false,
+        error: 'User not found',
+        code: 'USER_NOT_FOUND',
+      });
+    }
+
+    // Attach user to request (tenant may be null)
+    request.user = userData as User;
+    request.userId = userData.id;
+
+    // If user has tenant, also attach tenant info
+    if (userData.tenantId) {
+      const [tenantData] = await db
+        .select()
+        .from(tenants)
+        .where(eq(tenants.id, userData.tenantId))
+        .limit(1);
+
+      if (tenantData) {
+        request.tenant = tenantData as Tenant;
+        request.tenantId = tenantData.id;
+      }
+    }
+  } catch (error) {
+    request.log.error({ err: error }, 'Session-only auth middleware error');
+    return reply.status(401).send({
+      success: false,
+      error: 'Invalid session',
+      code: 'INVALID_SESSION',
+    });
+  }
+};
+
+// Helper to get current user from request (session only - tenant may be null)
+export const getSessionUser = (request: FastifyRequest): User => {
+  if (!request.user) {
+    throw new Error('User not found in request context');
+  }
+  return request.user;
+};
+
 // Helper to get current user from request
 // Note: After authMiddleware, tenantId is guaranteed to be non-null
 export const getCurrentUser = (request: FastifyRequest): User & { tenantId: string } => {
