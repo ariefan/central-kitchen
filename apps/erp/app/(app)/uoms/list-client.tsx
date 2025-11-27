@@ -13,7 +13,7 @@ interface UOM {
   code: string;
   name: string;
   symbol: string;
-  kind: string;
+  uomType: string;
   isActive: boolean;
 }
 
@@ -62,7 +62,7 @@ export default function UOMsListClient() {
     { key: "name", label: "Name" },
     { key: "symbol", label: "Symbol" },
     {
-      key: "kind",
+      key: "uomType",
       label: "Type",
       render: (value) => <Badge variant="outline" className="capitalize">{value}</Badge>,
     },
