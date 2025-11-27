@@ -53,19 +53,23 @@ export default function NewPurchaseOrderClient() {
 
       if (suppliersRes.ok) {
         const data = await suppliersRes.json();
-        setSuppliers(data.data || []);
+        const items = data.data?.items || data.data || [];
+        setSuppliers(Array.isArray(items) ? items : []);
       }
       if (locationsRes.ok) {
         const data = await locationsRes.json();
-        setLocations(data.data || []);
+        const items = data.data?.items || data.data || [];
+        setLocations(Array.isArray(items) ? items : []);
       }
       if (productsRes.ok) {
         const data = await productsRes.json();
-        setProducts(data.data || []);
+        const items = data.data?.items || data.data || [];
+        setProducts(Array.isArray(items) ? items : []);
       }
       if (uomsRes.ok) {
         const data = await uomsRes.json();
-        setUoms(data.data || []);
+        const items = data.data?.items || data.data || [];
+        setUoms(Array.isArray(items) ? items : []);
       }
     } catch (error) {
       console.error("Failed to fetch master data:", error);

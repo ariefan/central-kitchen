@@ -86,7 +86,8 @@ export function UserForm({
       });
       if (response.ok) {
         const data = await response.json();
-        setLocations(data.data || []);
+        const items = data.data?.items || data.data || [];
+        setLocations(Array.isArray(items) ? items : []);
       }
     } catch (error) {
       console.error("Failed to fetch locations:", error);
