@@ -25,7 +25,7 @@ const userSchema = createSelectSchema(users, {
   // Override optional fields that might be undefined
   phone: z.string().nullable(),
   locationId: z.string().uuid().nullable(),
-  authUserId: z.string(),
+  authUserId: z.string().nullable(),
   tenantId: z.string().uuid(),
   email: z.string(),
   firstName: z.string().nullable(),
