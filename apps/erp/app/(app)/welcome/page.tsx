@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSession } from "@/lib/auth-client";
@@ -61,6 +62,24 @@ export default function WelcomePage() {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
+      {/* Header with Logo */}
+      <div className="flex justify-end mb-6">
+        <Image
+          src="/logo-light.jpeg"
+          alt="Dapoer Roema"
+          width={120}
+          height={50}
+          className="dark:hidden rounded"
+        />
+        <Image
+          src="/logo-dark.jpeg"
+          alt="Dapoer Roema"
+          width={120}
+          height={50}
+          className="hidden dark:block rounded"
+        />
+      </div>
+
       <div className="space-y-6">
         <Card>
           <CardHeader>
