@@ -104,3 +104,50 @@ export function useRequireAuth() {
 
   return { isAuthenticated, isLoading };
 }
+
+/**
+ * Get user's accessible locations for switching
+ */
+export function useUserLocations(userId?: string) {
+  return useQuery({
+    queryKey: ['auth', 'user-locations', userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/v1/auth/users/${userId}/locations`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch user locations');
+      }
+      return response.json();
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Switch active location
+ */
+export function useSwitchLocation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (locationId: string) => {
+      const response = await fetch('/api/v1/auth/switch-location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ locationId }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to switch location');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate user profile to refresh location data
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+    },
+  });
+}

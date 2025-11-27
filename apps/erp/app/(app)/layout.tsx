@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
+import { LocationSwitcher } from "@/components/location-switcher";
 import {
   MapPin,
   Package,
@@ -195,6 +196,11 @@ const navigation: NavSection[] = [
         href: "/users",
         icon: Users,
       },
+      {
+        title: "Tenants",
+        href: "/tenants",
+        icon: Building2,
+      },
     ],
   },
 ];
@@ -256,12 +262,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <p className="text-xs font-medium truncate">
                     {user.name || user.email}
                   </p>
-                  {profile?.location && (
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      {profile.location.name}
-                    </p>
-                  )}
                 </div>
+              </div>
+              {/* Location switcher */}
+              <div className="mt-2">
+                <LocationSwitcher />
               </div>
             </div>
           )}

@@ -25,6 +25,7 @@ import { returnRoutes } from './returns.routes.js';
 import { stockCountRoutes } from './stock-counts.routes.js';
 import { supplierRoutes } from './suppliers.routes.js';
 import { temperatureLogRoutes } from './temperature-logs.routes.js';
+import { tenantRoutes } from './tenants.routes.js';
 import { transferRoutes } from './transfers.routes.js';
 import { uomConversionRoutes } from './uom-conversions.routes.js';
 import { uomRoutes } from './uoms.routes.js';
@@ -97,5 +98,8 @@ export async function apiV1Routes(fastify: FastifyInstance) {
     // P3 - Quality Control & Compliance
     await protectedRoutes.register(temperatureLogRoutes, { prefix: '/temperature-logs' });
     await protectedRoutes.register(alertRoutes, { prefix: '/alerts' });
+
+    // Super Admin - Tenant Management
+    await protectedRoutes.register(tenantRoutes, { prefix: '/tenants' });
   });
 }

@@ -92,6 +92,7 @@ export * from './admin/menus.js';
 export * from './admin/pricebooks.js';
 export * from './admin/categories.js';
 export * from './admin/stock-counts.js';
+export * from './admin/tenants.js';
 
 // ============================================================================
 // REPORTS MODULE EXPORTS
@@ -267,6 +268,7 @@ export const PACKAGE_INFO = {
     'admin/pricebooks',
     'admin/categories',
     'admin/stock-counts',
+    'admin/tenants',
     'reports/reports',
   ],
 } as const;
