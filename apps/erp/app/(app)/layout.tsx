@@ -50,6 +50,7 @@ interface NavItem {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
+  requiresLocation?: boolean; // Hide if no location selected
 }
 
 interface NavSection {
@@ -80,6 +81,7 @@ const navigation: NavSection[] = [
         title: "POS",
         href: "/pos",
         icon: Store,
+        requiresLocation: true,
       },
       {
         title: "Sales Orders",
@@ -130,11 +132,13 @@ const navigation: NavSection[] = [
         title: "Production Orders",
         href: "/production-orders",
         icon: Factory,
+        requiresLocation: true,
       },
       {
         title: "Requisitions",
         href: "/requisitions",
         icon: ClipboardList,
+        requiresLocation: true,
       },
     ],
   },
@@ -145,26 +149,31 @@ const navigation: NavSection[] = [
         title: "Stock Overview",
         href: "/inventory",
         icon: Warehouse,
+        requiresLocation: true,
       },
       {
         title: "FEFO Picking",
         href: "/inventory/fefo",
         icon: Clock,
+        requiresLocation: true,
       },
       {
         title: "Stock Transfers",
         href: "/stock-transfers",
         icon: ArrowLeftRight,
+        requiresLocation: true,
       },
       {
         title: "Stock Adjustments",
         href: "/stock-adjustments",
         icon: Minus,
+        requiresLocation: true,
       },
       {
         title: "Temperature Logs",
         href: "/temperature-logs",
         icon: Thermometer,
+        requiresLocation: true,
       },
     ],
   },
@@ -276,42 +285,61 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Navigation - scrollable area */}
           <ScrollArea className="flex-1 min-h-0">
             <nav className="space-y-2 px-2 py-2">
-              {navigation.map((section) => (
-                <div key={section.title}>
-                  <h3 className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-zinc-500">
-                    {section.title}
-                  </h3>
-                  <div className="space-y-0.5">
-                    {section.items.map((item) => {
-                      const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setSidebarOpen(false)}
-                        >
-                          <div
-                            className={cn(
-                              "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
-                              isActive
-                                ? "bg-primary text-primary-foreground shadow-sm"
-                                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-                            )}
+              {navigation.map((section) => {
+                // Filter items based on location requirement
+                const visibleItems = section.items.filter(
+                  (item) => !item.requiresLocation || profile?.location
+                );
+
+                // Skip empty sections
+                if (visibleItems.length === 0) return null;
+
+                return (
+                  <div key={section.title}>
+                    <h3 className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-zinc-500">
+                      {section.title}
+                    </h3>
+                    <div className="space-y-0.5">
+                      {visibleItems.map((item) => {
+                        const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setSidebarOpen(false)}
                           >
-                            <item.icon className="w-4 h-4 shrink-0" />
-                            <span className="flex-1 truncate">{item.title}</span>
-                            {item.badge && (
-                              <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium">
-                                {item.badge}
-                              </span>
-                            )}
-                          </div>
-                        </Link>
-                      );
-                    })}
+                            <div
+                              className={cn(
+                                "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
+                                isActive
+                                  ? "bg-primary text-primary-foreground shadow-sm"
+                                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                              )}
+                            >
+                              <item.icon className="w-4 h-4 shrink-0" />
+                              <span className="flex-1 truncate">{item.title}</span>
+                              {item.badge && (
+                                <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium">
+                                  {item.badge}
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </div>
+                );
+              })}
+
+              {/* Show message when location-scoped items are hidden */}
+              {!profile?.location && (
+                <div className="px-3 py-2">
+                  <p className="text-xs text-muted-foreground dark:text-zinc-500 italic">
+                    Select a location to access more features
+                  </p>
                 </div>
-              ))}
+              )}
             </nav>
           </ScrollArea>
 
