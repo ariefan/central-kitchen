@@ -30,6 +30,10 @@ async function createSuperUser() {
     }
 
     const user = existingUsers[0];
+    if (!user) {
+      console.log('❌ User not found. Run setup-super-user.sql first!');
+      process.exit(1);
+    }
     console.log(`✅ Found user: ${user.email} (ID: ${user.id})`);
 
     // Update account password
