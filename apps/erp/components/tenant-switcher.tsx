@@ -36,7 +36,7 @@ export function TenantSwitcher() {
     return null;
   }
 
-  const tenants = tenantsData?.data || [];
+  const tenants = tenantsData?.data?.items || [];
   const currentTenant = profile?.tenant;
 
   const handleSwitchTenant = async (tenantId: string) => {
@@ -96,7 +96,7 @@ export function TenantSwitcher() {
                   No tenants available
                 </div>
               ) : (
-                tenants.map((tenant: any) => (
+                tenants.map((tenant) => (
                   <CommandItem
                     key={tenant.id}
                     value={tenant.name}
