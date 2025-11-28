@@ -268,6 +268,75 @@ export function authRoutes(fastify: FastifyInstance) {
     }
   );
 
+  // POST /api/v1/auth/switch-tenant - Switch active tenant (super users only)
+  fastify.post(
+    '/switch-tenant',
+    {
+      schema: {
+        description: 'Switch user active tenant (super users only)',
+        tags: ['Auth', 'Multi-Tenant'],
+        body: z.object({ tenantId: z.string().uuid() }),
+        response: {
+          200: meResponseSchema,
+          404: notFoundResponseSchema,
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{ Body: { tenantId: string } }>,
+      reply: FastifyReply
+    ) => {
+      const { tenantId } = request.body;
+      const currentUser = getCurrentUser(request);
+
+      // Verify tenant exists
+      const tenant = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+      if (!tenant.length) {
+        return createNotFoundError('Tenant not found', reply);
+      }
+
+      const tenantData = tenant[0];
+      if (!tenantData) {
+        throw new Error('Tenant data not found');
+      }
+
+      // Update user's active tenant
+      const updatedUser = await db
+        .update(users)
+        .set({
+          tenantId,
+          locationId: null, // Clear location when switching tenants
+        })
+        .where(eq(users.id, currentUser.id))
+        .returning();
+
+      if (!updatedUser.length) {
+        return createNotFoundError('User not found', reply);
+      }
+
+      const userWithTenant = updatedUser[0];
+      if (!userWithTenant) {
+        throw new Error('Failed to update user tenant');
+      }
+
+      // Return updated user info
+      const responseData = {
+        ...userWithTenant,
+        createdAt: userWithTenant.createdAt.toISOString(),
+        updatedAt: userWithTenant.updatedAt.toISOString(),
+        lastLogin: userWithTenant.lastLogin?.toISOString() ?? null,
+        tenant: {
+          ...tenantData,
+          createdAt: tenantData.createdAt.toISOString(),
+          updatedAt: tenantData.updatedAt.toISOString(),
+        },
+        location: null, // Cleared when switching tenants
+      };
+
+      return reply.send(createSuccessResponse(responseData, 'Tenant switched successfully'));
+    }
+  );
+
   // POST /api/v1/auth/switch-location - Switch active location
   fastify.post(
     '/switch-location',

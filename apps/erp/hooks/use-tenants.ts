@@ -259,3 +259,52 @@ export function useJoinTenant() {
     },
   });
 }
+
+// ============================================================================
+// Tenant Switching (for super users)
+// ============================================================================
+
+export function useAllTenants() {
+  return useQuery<TenantsResponse>({
+    queryKey: ['tenants', 'all'],
+    queryFn: async () => {
+      const response = await fetch('/api/v1/tenants?limit=100', {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch tenants');
+      }
+
+      return response.json();
+    },
+  });
+}
+
+export function useSwitchTenant() {
+  const queryClient = useQueryClient();
+
+  return useMutation<any, Error, string>({
+    mutationFn: async (tenantId: string) => {
+      const response = await fetch('/api/v1/auth/switch-tenant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ tenantId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to switch tenant');
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate auth profile to refresh user data with new tenant
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+    },
+  });
+}

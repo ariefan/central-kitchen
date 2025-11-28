@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
 import { usePermissions } from "@/hooks/use-permissions";
 import { LocationSwitcher } from "@/components/location-switcher";
+import { TenantSwitcher } from "@/components/tenant-switcher";
 import { TenantRequiredDialog } from "@/components/tenant-required-dialog";
 import {
   MapPin,
@@ -294,8 +295,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </p>
                 </div>
               </div>
-              {/* Location switcher */}
-              <div className="mt-2">
+              {/* Tenant switcher (super users only) */}
+              <div className="mt-2 space-y-2">
+                <TenantSwitcher />
+                {/* Location switcher */}
                 <LocationSwitcher />
               </div>
             </div>

@@ -34,6 +34,7 @@ BEGIN
   INSERT INTO erp.users (
     email,
     name,
+    username,
     email_verified,
     tenant_id,
     created_at,
@@ -41,6 +42,7 @@ BEGIN
   ) VALUES (
     'admin@personalapp.id',
     'Super User',
+    'admin',
     true,
     v_tenant_id,
     NOW(),
