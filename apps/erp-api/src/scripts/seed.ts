@@ -5,6 +5,7 @@ import * as schema from '../config/schema.js';
 import { randomUUID } from 'crypto';
 import { faker } from '@faker-js/faker';
 import { auth } from '../lib/auth.js';
+import { seedRBAC, assignSuperUserRole, assignAdminRole } from './seed-rbac.js';
 
 const toNumericString = (value: number | bigint | string): string => {
   if (typeof value === 'number' || typeof value === 'bigint') {
@@ -64,8 +65,12 @@ async function seedDatabase() {
       'accounts', // Better Auth
       'sessions', // Better Auth
       'verifications', // Better Auth
+      'user_roles', // RBAC
+      'role_permissions', // RBAC
       'users',
       'locations',
+      'roles', // RBAC
+      'permissions', // RBAC
       'tenants',
       'doc_sequences',
       'tax_rates',
@@ -1764,6 +1769,16 @@ async function seedDatabase() {
         amountApplied: toNumericString(50000)
       }
     ]);
+
+    // Seed RBAC system
+    console.log('\n🔐 Seeding RBAC (Roles & Permissions)...');
+    await seedRBAC(tenantDemo.id);
+
+    // Assign admin role to admin user
+    await assignAdminRole('admin@cafe.com', tenantDemo.id);
+
+    // You can uncomment this to assign super_user role to a specific email
+    // await assignSuperUserRole('your-email@example.com');
 
     console.log('✅ Comprehensive database seeding completed successfully!');
     console.log('\n📊 Summary:');

@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import {
   createSuccessResponse,
@@ -21,6 +21,7 @@ import {
 } from '@/modules/inventory/inventory.schema.js';
 import { inventoryService } from '@/modules/inventory/inventory.service.js';
 import { buildRequestContext, getTenantId, getUserId } from '@/shared/middleware/auth.js';
+import { requirePermission } from '@/shared/middleware/rbac.js';
 import { db } from '@/config/database.js';
 import { lots, stockLedger, products, locations } from '@/config/schema.js';
 import { eq, and, sql, desc, sum, inArray, type SQL } from 'drizzle-orm';
@@ -49,16 +50,18 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           200: inventoryListResponseSchema,
         },
       },
+      onRequest: [requirePermission('inventory', 'read')],
     },
-    async (request: FastifyRequest<{ Querystring: z.infer<typeof lotQuerySchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
-      const lotsResult = await inventoryService.listLots(request.query, context);
+      const query = request.query as z.infer<typeof lotQuerySchema>;
+      const lotsResult = await inventoryService.listLots(query, context);
       return reply.send(createSuccessResponse(lotsResult, 'Inventory lots retrieved successfully'));
     }
   );
 
   // OPTIONS /api/v1/inventory/lots - CORS preflight for lots endpoint
-  fastify.options('/lots', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.options('/lots', async (request, reply) => {
     reply.header('Access-Control-Allow-Origin', 'http://localhost:3000');
     reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD');
     reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
@@ -79,10 +82,12 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('inventory', 'read')],
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
-      const lot = await inventoryService.getLotById(request.params.id, context);
+      const { id } = request.params as { id: string };
+      const lot = await inventoryService.getLotById(id, context);
       if (!lot) {
         return createNotFoundError('Lot not found', reply);
       }
@@ -104,11 +109,13 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('inventory', 'write')],
     },
-    async (request: FastifyRequest<{ Body: z.infer<typeof lotCreateSchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
+      const body = request.body as z.infer<typeof lotCreateSchema>;
       try {
-        const lot = await inventoryService.createLot(request.body, context);
+        const lot = await inventoryService.createLot(body, context);
         return reply.status(201).send(createSuccessResponse(lot, 'Lot created successfully'));
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to create lot';
@@ -154,10 +161,12 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           }),
         },
       },
+      onRequest: [requirePermission('inventory', 'read')],
     },
-    async (request: FastifyRequest<{ Body: z.infer<typeof inventoryValuationSchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
-      const { locationId, productId, costMethod } = request.body;
+      const body = request.body as z.infer<typeof inventoryValuationSchema>;
+      const { locationId, productId, costMethod } = body;
 
       // Get lots with current stock
       let whereConditions = [eq(lots.tenantId, tenantId)];
@@ -351,19 +360,19 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('inventory', 'read')],
     },
-    async (request: FastifyRequest<{
-      Params: { productId: string },
-      Querystring: { locationId?: string, costMethod?: string }
-    }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
-      const { locationId } = request.query;
+      const { productId } = request.params as { productId: string };
+      const query = request.query as { locationId?: string; costMethod?: string };
+      const { locationId } = query;
 
       // Verify product exists and belongs to tenant
       const productCheck = await db.select()
         .from(products)
         .where(and(
-          eq(products.id, request.params.productId),
+          eq(products.id, productId),
           eq(products.tenantId, tenantId)
         ))
         .limit(1);
@@ -377,7 +386,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
       // Get lots with stock and cost information
       let lotWhereConditions = [
         eq(lots.tenantId, tenantId),
-        eq(lots.productId, request.params.productId)
+        eq(lots.productId, productId)
       ];
 
       if (locationId) {
@@ -478,7 +487,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
       // Get cost trend from recent stock movements
       let movementWhereConditions = [
         eq(stockLedger.tenantId, tenantId),
-        eq(stockLedger.productId, request.params.productId),
+        eq(stockLedger.productId, productId),
         sql`${stockLedger.unitCost} IS NOT NULL`
       ];
 
@@ -527,16 +536,18 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('inventory', 'write')],
     },
-    async (request: FastifyRequest<{ Body: z.infer<typeof stockMovementSchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const userId = getUserId(request);
+      const body = request.body as z.infer<typeof stockMovementSchema>;
 
       // Validate product and location
       const productCheck = await db.select()
         .from(products)
         .where(and(
-          eq(products.id, request.body.productId),
+          eq(products.id, body.productId),
           eq(products.tenantId, tenantId)
         ))
         .limit(1);
@@ -548,7 +559,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
       const locationCheck = await db.select()
         .from(locations)
         .where(and(
-          eq(locations.id, request.body.locationId),
+          eq(locations.id, body.locationId),
           eq(locations.tenantId, tenantId)
         ))
         .limit(1);
@@ -558,14 +569,14 @@ export function inventoryRoutes(fastify: FastifyInstance) {
       }
 
       // Validate lot if provided
-      if (request.body.lotId) {
+      if (body.lotId) {
         const lotCheck = await db.select()
           .from(lots)
           .where(and(
-            eq(lots.id, request.body.lotId),
+            eq(lots.id, body.lotId),
             eq(lots.tenantId, tenantId),
-            eq(lots.productId, request.body.productId),
-            eq(lots.locationId, request.body.locationId)
+            eq(lots.productId, body.productId),
+            eq(lots.locationId, body.locationId)
           ))
           .limit(1);
 
@@ -575,21 +586,21 @@ export function inventoryRoutes(fastify: FastifyInstance) {
       }
 
       // Determine movement type and ensure quantity is positive
-      const movementType = request.body.quantity > 0 ? 'rcv' : 'iss';
-      const quantity = Math.abs(request.body.quantity);
+      const movementType = body.quantity > 0 ? 'rcv' : 'iss';
+      const quantity = Math.abs(body.quantity);
 
-      const signedQuantity = request.body.quantity > 0 ? quantity : -quantity;
+      const signedQuantity = body.quantity > 0 ? quantity : -quantity;
       const movement: typeof stockLedger.$inferInsert = {
         tenantId,
-        productId: request.body.productId,
-        locationId: request.body.locationId,
-        lotId: request.body.lotId ?? null,
+        productId: body.productId,
+        locationId: body.locationId,
+        lotId: body.lotId ?? null,
         type: movementType,
         qtyDeltaBase: signedQuantity.toString(),
-        unitCost: request.body.unitCost !== undefined ? request.body.unitCost.toString() : null,
-        refType: request.body.refType,
-        refId: request.body.refId,
-        note: request.body.note ?? null,
+        unitCost: body.unitCost !== undefined ? body.unitCost.toString() : null,
+        refType: body.refType,
+        refId: body.refId,
+        note: body.note ?? null,
         createdBy: userId,
       };
 
@@ -613,9 +624,11 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           200: inventoryListResponseSchema,
         },
       },
+      onRequest: [requirePermission('inventory', 'read')],
     },
-    async (request: FastifyRequest<{ Querystring: z.infer<typeof ledgerQuerySchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
+      const query = request.query as z.infer<typeof ledgerQuerySchema>;
       const {
         locationId,
         productId,
@@ -625,7 +638,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
         refType,
         limit,
         offset
-      } = request.query;
+      } = query;
 
       const whereConditions: SQL[] = [eq(stockLedger.tenantId, tenantId)];
 
@@ -739,8 +752,9 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           200: inventoryListResponseSchema,
         },
       },
+      onRequest: [requirePermission('inventory', 'read')],
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const query = request.query as { locationId?: string; productId?: string };
       const { locationId, productId } = query;
@@ -862,6 +876,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           }),
         },
       },
+      onRequest: [requirePermission('inventory', 'read')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -1000,10 +1015,12 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('inventory', 'read')],
     },
-    async (request: FastifyRequest<{ Querystring: z.infer<typeof fefoPickQuerySchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
-      const { productId, locationId, quantityNeeded, excludeExpired } = request.query;
+      const query = request.query as z.infer<typeof fefoPickQuerySchema>;
+      const { productId, locationId, quantityNeeded, excludeExpired } = query;
 
       // Verify product exists
       const productCheck = await db.select({
@@ -1165,11 +1182,13 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('inventory', 'write')],
     },
-    async (request: FastifyRequest<{ Body: z.infer<typeof lotAllocationSchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const userId = getUserId(request);
-      const { productId, locationId, quantityNeeded, refType, refId, allowPartial, reserveOnly } = request.body;
+      const body = request.body as z.infer<typeof lotAllocationSchema>;
+      const { productId, locationId, quantityNeeded, refType, refId, allowPartial, reserveOnly } = body;
 
       // Verify product and location exist
       const [productCheck, locationCheck] = await Promise.all([

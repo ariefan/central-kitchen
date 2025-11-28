@@ -5,11 +5,11 @@ import { createSuccessResponse, createNotFoundError, notFoundResponseSchema } fr
 import { db } from '@/config/database.js';
 import { users } from '@/config/schema.js';
 import { eq } from 'drizzle-orm';
+import { getTenantId } from '@/shared/middleware/auth.js';
+import { requirePermission } from '@/shared/middleware/rbac.js';
 
 // Create schemas from the database schema (single source of truth)
-const userInsertSchema = createInsertSchema(users, {
-  role: z.enum(['admin', 'manager', 'cashier', 'staff']),
-}).omit({
+const userInsertSchema = createInsertSchema(users).omit({
   id: true,
   tenantId: true,
   createdAt: true,
@@ -37,10 +37,9 @@ export function userRoutes(fastify: FastifyInstance) {
     '/',
     {
       schema: {
-        description: 'Get all users',
+        description: 'Get all users in current tenant',
         tags: ['Users'],
         querystring: z.object({
-          role: z.enum(['admin', 'manager', 'cashier', 'staff']).optional(),
           locationId: z.string().uuid().optional(),
           isActive: z.coerce.boolean().optional(),
         }),
@@ -48,9 +47,11 @@ export function userRoutes(fastify: FastifyInstance) {
           200: usersResponseSchema,
         },
       },
+      onRequest: [requirePermission('user', 'read')],
     },
-    async (_request: FastifyRequest, reply: FastifyReply) => {
-      const allUsers = await db.select().from(users);
+    async (request, reply) => {
+      const tenantId = getTenantId(request);
+      const allUsers = await db.select().from(users).where(eq(users.tenantId, tenantId));
       return reply.send(createSuccessResponse(allUsers, 'Users retrieved successfully'));
     }
   );
@@ -68,11 +69,14 @@ export function userRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('user', 'read')],
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
-      const user = await db.select().from(users).where(eq(users.id, request.params.id)).limit(1);
+    async (request, reply) => {
+      const tenantId = getTenantId(request);
+      const { id } = request.params as { id: string };
+      const user = await db.select().from(users).where(eq(users.id, id)).limit(1);
 
-      if (!user.length) {
+      if (!user.length || user[0]?.tenantId !== tenantId) {
         return createNotFoundError('User not found', reply);
       }
 
@@ -92,15 +96,16 @@ export function userRoutes(fastify: FastifyInstance) {
           201: userResponseSchema,
         },
       },
+      onRequest: [requirePermission('user', 'create')],
     },
-    async (request: FastifyRequest<{ Body: z.infer<typeof userInsertSchema> }>, reply: FastifyReply) => {
-      // TODO: Get tenantId from auth middleware
-      const tenantId = '5a8d1d8f-8466-4fae-a779-f149cefa4c87'; // From database
+    async (request, reply) => {
+      const tenantId = getTenantId(request);
+      const body = request.body as z.infer<typeof userInsertSchema>;
 
       const newUser = {
-        ...request.body,
+        ...body,
         tenantId,
-        metadata: request.body.metadata ? JSON.stringify(request.body.metadata) : undefined,
+        metadata: body.metadata ? JSON.stringify(body.metadata) : undefined,
       };
 
       const result = await db.insert(users).values(newUser).returning();
@@ -123,23 +128,25 @@ export function userRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('user', 'update')],
     },
-    async (request: FastifyRequest<{
-      Params: { id: string };
-      Body: z.infer<typeof userInsertSchema>
-    }>, reply: FastifyReply) => {
+    async (request, reply) => {
+      const tenantId = getTenantId(request);
+      const { id } = request.params as { id: string };
+      const body = request.body as Partial<z.infer<typeof userInsertSchema>>;
+
       const updateData = {
-        ...request.body,
-        metadata: request.body.metadata ? JSON.stringify(request.body.metadata) : undefined,
+        ...body,
+        metadata: body.metadata ? JSON.stringify(body.metadata) : undefined,
       };
 
       const result = await db
         .update(users)
         .set(updateData)
-        .where(eq(users.id, request.params.id))
+        .where(eq(users.id, id))
         .returning();
 
-      if (!result.length) {
+      if (!result.length || result[0]?.tenantId !== tenantId) {
         return createNotFoundError('User not found', reply);
       }
 
@@ -168,14 +175,18 @@ export function userRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('user', 'delete')],
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (request, reply) => {
+      const tenantId = getTenantId(request);
+      const { id } = request.params as { id: string };
+
       // Check if user exists
       const existingUser = await db.select().from(users)
-        .where(eq(users.id, request.params.id))
+        .where(eq(users.id, id))
         .limit(1);
 
-      if (!existingUser.length) {
+      if (!existingUser.length || existingUser[0]?.tenantId !== tenantId) {
         return createNotFoundError('User not found', reply);
       }
 
@@ -183,7 +194,7 @@ export function userRoutes(fastify: FastifyInstance) {
       const result = await db
         .update(users)
         .set({ isActive: false, updatedAt: new Date() })
-        .where(eq(users.id, request.params.id))
+        .where(eq(users.id, id))
         .returning();
 
       return reply.send(createSuccessResponse({

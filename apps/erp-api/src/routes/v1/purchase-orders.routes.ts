@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import {
   createSuccessResponse,
@@ -16,6 +16,7 @@ import {
 } from '@/modules/purchase-orders/purchase-order.schema.js';
 import { purchaseOrderService } from '@/modules/purchase-orders/purchase-order.service.js';
 import { buildRequestContext } from '@/shared/middleware/auth.js';
+import { requirePermission } from '@/shared/middleware/rbac.js';
 
 export function purchaseOrderRoutes(fastify: FastifyInstance) {
   // GET /api/v1/purchase-orders - List all purchase orders
@@ -30,8 +31,9 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           200: purchaseOrdersResponseSchema,
         },
       },
+      onRequest: [requirePermission('purchase_order', 'read')],
     },
-    async (request: FastifyRequest<{ Querystring: z.infer<typeof purchaseOrderQuerySchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
       const result = await purchaseOrderService.list(request.query, context);
       return reply.send(createPaginatedResponse(result.items, result.total, result.limit, result.offset));
@@ -51,10 +53,12 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('purchase_order', 'read')],
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
-      const result = await purchaseOrderService.getById(request.params.id, context);
+      const { id } = request.params as { id: string };
+      const result = await purchaseOrderService.getById(id, context);
 
       if (!result) {
         return createNotFoundError('Purchase order not found', reply);
@@ -80,8 +84,9 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
         //   201: purchaseOrderWithItemsResponseSchema,
         // },
       },
+      onRequest: [requirePermission('purchase_order', 'create')],
     },
-    async (request: FastifyRequest<{ Body: z.infer<typeof purchaseOrderCreateSchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
       const result = await purchaseOrderService.create(request.body, context);
       return reply.status(201).send(createSuccessResponse(result, 'Purchase order created successfully'));
@@ -102,18 +107,20 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('purchase_order', 'update')],
     },
-    async (request: FastifyRequest<{ Params: { id: string }, Body: Partial<z.infer<typeof purchaseOrderUpdateSchema>> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
+      const { id } = request.params as { id: string };
       try {
-        const result = await purchaseOrderService.update(request.params.id, request.body, context);
+        const result = await purchaseOrderService.update(id, request.body, context);
         if (!result) {
           return createNotFoundError('Purchase order not found', reply);
         }
         return reply.send(createSuccessResponse(result, 'Purchase order updated successfully'));
       } catch (error) {
         if (error instanceof Error && error.message.includes('Only draft')) {
-          return reply.status(400).send({ success: false, error: 'Bad Request', message: error.message });
+          return (reply as any).status(400).send({ success: false, error: 'Bad Request', message: error.message });
         }
         throw error;
       }
@@ -133,10 +140,12 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('purchase_order', 'update')],
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
-      const result = await purchaseOrderService.submit(request.params.id, context);
+      const { id } = request.params as { id: string };
+      const result = await purchaseOrderService.submit(id, context);
       if (!result) {
         return createNotFoundError('Purchase order not found or not in draft status', reply);
       }
@@ -158,10 +167,12 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('purchase_order', 'approve')],
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
-      const result = await purchaseOrderService.approve(request.params.id, context);
+      const { id } = request.params as { id: string };
+      const result = await purchaseOrderService.approve(id, context);
       if (!result) {
         return createNotFoundError('Purchase order not found or not in pending approval status', reply);
       }
@@ -186,10 +197,13 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('purchase_order', 'reject')],
     },
-    async (request: FastifyRequest<{ Params: { id: string }, Body: { reason: string } }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
-      const result = await purchaseOrderService.reject(request.params.id, request.body.reason, context);
+      const { id } = request.params as { id: string };
+      const { reason } = request.body as { reason: string };
+      const result = await purchaseOrderService.reject(id, reason, context);
       if (!result) {
         return createNotFoundError('Purchase order not found or already processed', reply);
       }
@@ -215,10 +229,13 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('purchase_order', 'update')],
     },
-    async (request: FastifyRequest<{ Params: { id: string }, Body: { notes?: string, sentVia?: string } }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
-      const result = await purchaseOrderService.markSent(request.params.id, request.body, context);
+      const { id } = request.params as { id: string };
+      const body = request.body as { notes?: string; sentVia?: string };
+      const result = await purchaseOrderService.markSent(id, body, context);
       if (!result) {
         return createNotFoundError('Purchase order not found or must be approved before sending', reply);
       }
@@ -243,10 +260,13 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('purchase_order', 'update')],
     },
-    async (request: FastifyRequest<{ Params: { id: string }, Body: { reason: string } }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
-      const result = await purchaseOrderService.cancel(request.params.id, request.body.reason, context);
+      const { id } = request.params as { id: string };
+      const { reason } = request.body as { reason: string };
+      const result = await purchaseOrderService.cancel(id, reason, context);
       if (!result) {
         return createNotFoundError('Purchase order not found or cannot be cancelled', reply);
       }

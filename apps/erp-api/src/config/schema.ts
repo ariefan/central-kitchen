@@ -172,6 +172,77 @@ export const userLocations = erp.table("user_locations", {
 }));
 
 // ---------------------------------------------------------------------------
+// RBAC (Role-Based Access Control)
+// ---------------------------------------------------------------------------
+
+/**
+ * Roles table
+ * Stores role definitions for both system-level (super_user) and tenant-scoped roles
+ */
+export const roles = erp.table("roles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 100 }).notNull(),
+  slug: varchar("slug", { length: 100 }).notNull(),
+  description: text("description"),
+  isSystemRole: boolean("is_system_role").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => ({
+  uqTenantSlug: unique("uq_role_tenant_slug").on(t.tenantId, t.slug),
+  idxTenant: index("idx_role_tenant").on(t.tenantId),
+  idxSystemRole: index("idx_role_system").on(t.isSystemRole),
+}));
+
+/**
+ * Permissions table
+ * Stores permission definitions using resource:action pattern
+ */
+export const permissions = erp.table("permissions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  resource: varchar("resource", { length: 100 }).notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  uqResourceAction: unique("uq_permission_resource_action").on(t.resource, t.action),
+  idxResource: index("idx_permission_resource").on(t.resource),
+}));
+
+/**
+ * User Roles junction table
+ * Many-to-many: Users can have multiple roles
+ */
+export const userRoles = erp.table("user_roles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  roleId: uuid("role_id").notNull().references(() => roles.id, { onDelete: "cascade" }),
+  assignedBy: uuid("assigned_by").references(() => users.id, { onDelete: "set null" }),
+  assignedAt: timestamp("assigned_at").notNull().defaultNow(),
+}, (t) => ({
+  uqUserRole: unique("uq_user_role").on(t.userId, t.roleId),
+  idxUser: index("idx_user_roles_user").on(t.userId),
+  idxRole: index("idx_user_roles_role").on(t.roleId),
+}));
+
+/**
+ * Role Permissions junction table
+ * Many-to-many: Roles can have multiple permissions
+ */
+export const rolePermissions = erp.table("role_permissions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  roleId: uuid("role_id").notNull().references(() => roles.id, { onDelete: "cascade" }),
+  permissionId: uuid("permission_id").notNull().references(() => permissions.id, { onDelete: "cascade" }),
+  grantedBy: uuid("granted_by").references(() => users.id, { onDelete: "set null" }),
+  grantedAt: timestamp("granted_at").notNull().defaultNow(),
+}, (t) => ({
+  uqRolePermission: unique("uq_role_permission").on(t.roleId, t.permissionId),
+  idxRole: index("idx_role_permissions_role").on(t.roleId),
+  idxPermission: index("idx_role_permissions_permission").on(t.permissionId),
+}));
+
+// ---------------------------------------------------------------------------
 // Document sequences
 // ---------------------------------------------------------------------------
 export const docSequences = erp.table("doc_sequences", {

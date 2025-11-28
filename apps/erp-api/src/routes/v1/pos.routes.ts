@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import {
   createSuccessResponse,
@@ -19,6 +19,7 @@ import {
 } from '@/modules/pos/pos.schema.js';
 import { posService } from '@/modules/pos/pos.service.js';
 import { buildRequestContext } from '@/shared/middleware/auth.js';
+import { requirePermission } from '@/shared/middleware/rbac.js';
 
 export function posRoutes(fastify: FastifyInstance) {
   // GET /api/v1/pos/shifts - List shifts for a location
@@ -33,10 +34,12 @@ export function posRoutes(fastify: FastifyInstance) {
           200: shiftsResponseSchema,
         },
       },
+      onRequest: [requirePermission('pos', 'read')],
     },
-    async (request: FastifyRequest<{ Querystring: z.infer<typeof shiftQuerySchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
-      const shifts = await posService.listShifts(request.query, context);
+      const query = request.query as z.infer<typeof shiftQuerySchema>;
+      const shifts = await posService.listShifts(query, context);
       return reply.send(createSuccessResponse(shifts, 'Shifts retrieved successfully'));
     }
   );
@@ -54,10 +57,12 @@ export function posRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('pos', 'read')],
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
-      const shift = await posService.getShift(request.params.id, context);
+      const { id } = request.params as { id: string };
+      const shift = await posService.getShift(id, context);
       if (!shift) {
         return createNotFoundError('Shift not found', reply);
       }
@@ -80,11 +85,13 @@ export function posRoutes(fastify: FastifyInstance) {
           201: shiftResponseSchema,
         },
       },
+      onRequest: [requirePermission('pos', 'operate')],
     },
-    async (request: FastifyRequest<{ Body: z.infer<typeof shiftInsertSchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
+      const body = request.body as z.infer<typeof shiftInsertSchema>;
       try {
-        const shift = await posService.openShift(request.body, context);
+        const shift = await posService.openShift(body, context);
         return reply.status(201).send(createSuccessResponse(shift, 'Shift opened successfully'));
       } catch (error) {
         return createBadRequestError(error instanceof Error ? error.message : 'Failed to open shift', reply);
@@ -106,10 +113,13 @@ export function posRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('pos', 'operate')],
     },
-    async (request: FastifyRequest<{ Params: { id: string }; Body: z.infer<typeof shiftCloseSchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
-      const shift = await posService.closeShift(request.params.id, request.body, context);
+      const { id } = request.params as { id: string };
+      const body = request.body as z.infer<typeof shiftCloseSchema>;
+      const shift = await posService.closeShift(id, body, context);
       if (!shift) {
         return createNotFoundError('Open shift not found', reply);
       }
@@ -135,11 +145,14 @@ export function posRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('pos', 'operate')],
     },
-    async (request: FastifyRequest<{ Params: { id: string }; Body: z.infer<typeof drawerMovementInsertSchema> }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
+      const { id } = request.params as { id: string };
+      const body = request.body as z.infer<typeof drawerMovementInsertSchema>;
       try {
-        const movement = await posService.addDrawerMovement(request.params.id, request.body, context);
+        const movement = await posService.addDrawerMovement(id, body, context);
         if (!movement) {
           return createNotFoundError('Open shift not found', reply);
         }
@@ -163,15 +176,17 @@ export function posRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
+      onRequest: [requirePermission('pos', 'read')],
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (request, reply) => {
       const context = buildRequestContext(request);
-      const shift = await posService.getShift(request.params.id, context);
+      const { id } = request.params as { id: string };
+      const shift = await posService.getShift(id, context);
       if (!shift) {
         return createNotFoundError('Shift not found', reply);
       }
 
-      const movements = await posService.listDrawerMovements(request.params.id);
+      const movements = await posService.listDrawerMovements(id);
       return reply.send(createSuccessResponse(movements, 'Movements retrieved successfully'));
     }
   );
@@ -215,17 +230,17 @@ export function posRoutes(fastify: FastifyInstance) {
           }),
         },
       },
+      onRequest: [requirePermission('pos', 'read')],
     },
-    async (request: FastifyRequest<{
-      Querystring: {
+    async (request, reply) => {
+      const context = buildRequestContext(request);
+      const query = request.query as {
         locationId?: string;
         station?: string;
         kitchenStatus?: string;
         limit?: number;
       };
-    }>, reply: FastifyReply) => {
-      const context = buildRequestContext(request);
-      const { locationId, station, kitchenStatus, limit } = request.query;
+      const { locationId, station, kitchenStatus, limit } = query;
 
       const orders = await posService.getKitchenOrders({
         tenantId: context.tenantId,

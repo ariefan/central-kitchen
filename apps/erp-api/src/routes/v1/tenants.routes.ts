@@ -24,6 +24,7 @@ import {
   type TenantQuery,
 } from '@contracts/erp';
 import { getCurrentUser } from '@/shared/middleware/auth.js';
+import { requirePermission } from '@/shared/middleware/rbac.js';
 import {
   createSuccessResponse,
   createNotFoundError,
@@ -49,31 +50,20 @@ export function tenantRoutes(fastify: FastifyInstance) {
     '/',
     {
       schema: {
-        description: 'Create a new tenant',
+        description: 'Create a new tenant (super user only)',
         tags: ['Tenants', 'Admin'],
         body: tenantCreateSchema,
         response: {
           201: tenantResponseSchema,
         },
       },
+      onRequest: [requirePermission('tenant', 'manage')],
     },
-    async (
-      request: FastifyRequest<{ Body: TenantCreate }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const createData = request.body;
+      const createData = request.body as TenantCreate;
 
-      // Only admin can create tenants
-      if (currentUser.role !== 'admin') {
-        return reply.status(403).send({
-          success: false,
-          error: 'Forbidden',
-          message: 'Only admin users can create tenants',
-        });
-      }
-
-      // Check if slug already exists
+// Check if slug already exists
       const existingTenant = await db
         .select()
         .from(tenants)
@@ -126,31 +116,20 @@ export function tenantRoutes(fastify: FastifyInstance) {
     '/',
     {
       schema: {
-        description: 'Get paginated list of tenants',
+        description: 'Get paginated list of tenants (super user only)',
         tags: ['Tenants', 'Admin'],
         querystring: tenantQuerySchema,
         response: {
           200: tenantsResponseSchema,
         },
       },
+      onRequest: [requirePermission('tenant', 'manage')],
     },
-    async (
-      request: FastifyRequest<{ Querystring: TenantQuery }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const query = request.query;
+      const query = request.query as TenantQuery;
 
-      // Only admin can list all tenants
-      if (currentUser.role !== 'admin') {
-        return reply.status(403).send({
-          success: false,
-          error: 'Forbidden',
-          message: 'Only admin users can list tenants',
-        });
-      }
-
-      const limit = query.limit || 50;
+const limit = query.limit || 50;
       const offset = query.offset || 0;
 
       // Build where conditions
@@ -238,7 +217,7 @@ export function tenantRoutes(fastify: FastifyInstance) {
     '/:id',
     {
       schema: {
-        description: 'Get tenant details',
+        description: 'Get tenant details (super user only)',
         tags: ['Tenants', 'Admin'],
         params: z.object({
           id: z.string().uuid(),
@@ -247,22 +226,11 @@ export function tenantRoutes(fastify: FastifyInstance) {
           200: tenantResponseSchema,
         },
       },
+      onRequest: [requirePermission('tenant', 'manage')],
     },
-    async (
-      request: FastifyRequest<{ Params: { id: string } }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const { id } = request.params;
-
-      // Only admin can view tenant details
-      if (currentUser.role !== 'admin') {
-        return reply.status(403).send({
-          success: false,
-          error: 'Forbidden',
-          message: 'Only admin users can view tenant details',
-        });
-      }
+      const { id } = request.params as { id: string };
 
       const tenantResult = await db
         .select()
@@ -316,7 +284,7 @@ export function tenantRoutes(fastify: FastifyInstance) {
     '/:id',
     {
       schema: {
-        description: 'Update tenant',
+        description: 'Update tenant (super user only)',
         tags: ['Tenants', 'Admin'],
         params: z.object({
           id: z.string().uuid(),
@@ -326,26 +294,12 @@ export function tenantRoutes(fastify: FastifyInstance) {
           200: tenantResponseSchema,
         },
       },
+      onRequest: [requirePermission('tenant', 'manage')],
     },
-    async (
-      request: FastifyRequest<{
-        Params: { id: string };
-        Body: TenantUpdate;
-      }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const { id } = request.params;
-      const updateData = request.body;
-
-      // Only admin can update tenants
-      if (currentUser.role !== 'admin') {
-        return reply.status(403).send({
-          success: false,
-          error: 'Forbidden',
-          message: 'Only admin users can update tenants',
-        });
-      }
+      const { id } = request.params as { id: string };
+      const updateData = request.body as TenantUpdate;
 
       // Check if tenant exists
       const existingTenant = await db
@@ -443,7 +397,7 @@ export function tenantRoutes(fastify: FastifyInstance) {
     '/:id',
     {
       schema: {
-        description: 'Deactivate tenant',
+        description: 'Deactivate tenant (super user only)',
         tags: ['Tenants', 'Admin'],
         params: z.object({
           id: z.string().uuid(),
@@ -455,22 +409,11 @@ export function tenantRoutes(fastify: FastifyInstance) {
           }),
         },
       },
+      onRequest: [requirePermission('tenant', 'manage')],
     },
-    async (
-      request: FastifyRequest<{ Params: { id: string } }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const { id } = request.params;
-
-      // Only admin can deactivate tenants
-      if (currentUser.role !== 'admin') {
-        return reply.status(403).send({
-          success: false,
-          error: 'Forbidden',
-          message: 'Only admin users can deactivate tenants',
-        });
-      }
+      const { id } = request.params as { id: string };
 
       // Check if tenant exists
       const existingTenant = await db

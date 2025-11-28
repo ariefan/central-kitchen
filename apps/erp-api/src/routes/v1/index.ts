@@ -32,6 +32,8 @@ import { uomConversionRoutes } from './uom-conversions.routes.js';
 import { uomRoutes } from './uoms.routes.js';
 import { userRoutes } from './users.routes.js';
 import { wasteRoutes } from './waste.routes.js';
+import { rolesRoutes } from './roles.routes.js';
+import { permissionsRoutes } from './permissions.routes.js';
 import { authMiddleware, sessionOnlyMiddleware } from '../../shared/middleware/auth.js';
 
 export async function apiV1Routes(fastify: FastifyInstance) {
@@ -108,5 +110,9 @@ export async function apiV1Routes(fastify: FastifyInstance) {
 
     // Super Admin - Tenant Management
     await protectedRoutes.register(tenantRoutes, { prefix: '/tenants' });
+
+    // RBAC - Role and Permission Management
+    await protectedRoutes.register(rolesRoutes, { prefix: '/roles' });
+    await protectedRoutes.register(permissionsRoutes, { prefix: '/permissions' });
   });
 }

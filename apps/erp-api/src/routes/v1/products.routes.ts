@@ -26,6 +26,7 @@ import {
   type ProductQuery,
 } from '@contracts/erp';
 import { getCurrentUser } from '@/shared/middleware/auth.js';
+import { requirePermission } from '@/shared/middleware/rbac.js';
 import {
   createSuccessResponse,
   createNotFoundError,
@@ -82,13 +83,11 @@ export function productRoutes(fastify: FastifyInstance) {
           201: productResponseSchema,
         },
       },
+      onRequest: [requirePermission('product', 'create')],
     },
-    async (
-      request: FastifyRequest<{ Body: ProductCreate }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const createData = request.body;
+      const createData = request.body as ProductCreate;
 
       // Generate SKU if not provided
       let productSku = createData.sku;
@@ -254,13 +253,11 @@ export function productRoutes(fastify: FastifyInstance) {
           200: productsResponseSchema,
         },
       },
+      onRequest: [requirePermission('product', 'read')],
     },
-    async (
-      request: FastifyRequest<{ Querystring: ProductQuery }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const query = request.query;
+      const query = request.query as ProductQuery;
 
       const limit = query.limit || 50;
       const offset = query.offset || 0;
@@ -385,13 +382,11 @@ export function productRoutes(fastify: FastifyInstance) {
           200: productResponseSchema,
         },
       },
+      onRequest: [requirePermission('product', 'read')],
     },
-    async (
-      request: FastifyRequest<{ Params: { id: string } }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const { id } = request.params;
+      const { id } = request.params as { id: string };
 
       const productResult = await db
         .select({
@@ -487,17 +482,12 @@ export function productRoutes(fastify: FastifyInstance) {
           200: productResponseSchema,
         },
       },
+      onRequest: [requirePermission('product', 'update')],
     },
-    async (
-      request: FastifyRequest<{
-        Params: { id: string };
-        Body: ProductUpdate;
-      }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const { id } = request.params;
-      const updateData = request.body;
+      const { id } = request.params as { id: string };
+      const updateData = request.body as ProductUpdate;
 
       // Check if product exists
       const existingProduct = await db
@@ -654,13 +644,11 @@ export function productRoutes(fastify: FastifyInstance) {
           }),
         },
       },
+      onRequest: [requirePermission('product', 'delete')],
     },
-    async (
-      request: FastifyRequest<{ Params: { id: string } }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const { id } = request.params;
+      const { id } = request.params as { id: string };
 
       // Check if product exists
       const existingProduct = await db
@@ -732,13 +720,11 @@ export function productRoutes(fastify: FastifyInstance) {
           }),
         },
       },
+      onRequest: [requirePermission('product', 'read')],
     },
-    async (
-      request: FastifyRequest<{ Querystring: { kind?: string; includeInactive?: boolean } }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const { kind, includeInactive } = request.query;
+      const { kind, includeInactive } = request.query as { kind?: string; includeInactive?: boolean };
 
       // Build query conditions
       const conditions = [eq(products.tenantId, currentUser.tenantId)];
@@ -855,13 +841,11 @@ export function productRoutes(fastify: FastifyInstance) {
           }),
         },
       },
+      onRequest: [requirePermission('product', 'create')],
     },
-    async (
-      request: FastifyRequest<{ Body: { csv: string; skipHeader?: boolean } }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const { csv, skipHeader } = request.body;
+      const { csv, skipHeader } = request.body as { csv: string; skipHeader?: boolean };
 
       // Parse CSV
       const lines = csv.split('\n').filter(line => line.trim());

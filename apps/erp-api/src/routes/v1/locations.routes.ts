@@ -27,9 +27,9 @@ import {
   type LocationQuery,
 } from '@contracts/erp';
 import { getCurrentUser } from '@/shared/middleware/auth.js';
+import { requirePermission } from '@/shared/middleware/rbac.js';
 import {
   createSuccessResponse,
-
   createNotFoundError,
   createBadRequestError,
 } from '@/shared/utils/responses.js';
@@ -72,13 +72,11 @@ export function locationRoutes(fastify: FastifyInstance) {
           201: locationResponseSchema,
         },
       },
+      onRequest: [requirePermission('location', 'create')],
     },
-    async (
-      request: FastifyRequest<{ Body: LocationCreate }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const createData = request.body;
+      const createData = request.body as LocationCreate;
 
       // Generate location code if not provided
       let locationCode = createData.code;
@@ -218,13 +216,11 @@ export function locationRoutes(fastify: FastifyInstance) {
           200: locationsResponseSchema,
         },
       },
+      onRequest: [requirePermission('location', 'read')],
     },
-    async (
-      request: FastifyRequest<{ Querystring: LocationQuery }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const query = request.query;
+      const query = request.query as LocationQuery;
 
       const limit = query.limit || 50;
       const offset = query.offset || 0;
@@ -330,13 +326,11 @@ export function locationRoutes(fastify: FastifyInstance) {
           200: locationResponseSchema,
         },
       },
+      onRequest: [requirePermission('location', 'read')],
     },
-    async (
-      request: FastifyRequest<{ Params: { id: string } }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const { id } = request.params;
+      const { id } = request.params as { id: string };
 
       const locationResult = await db
         .select()
@@ -414,17 +408,12 @@ export function locationRoutes(fastify: FastifyInstance) {
           200: locationResponseSchema,
         },
       },
+      onRequest: [requirePermission('location', 'update')],
     },
-    async (
-      request: FastifyRequest<{
-        Params: { id: string };
-        Body: LocationUpdate;
-      }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const { id } = request.params;
-      const updateData = request.body;
+      const { id } = request.params as { id: string };
+      const updateData = request.body as LocationUpdate;
 
       // Check if location exists
       const existingLocationResult = await db
@@ -581,13 +570,11 @@ export function locationRoutes(fastify: FastifyInstance) {
           }),
         },
       },
+      onRequest: [requirePermission('location', 'delete')],
     },
-    async (
-      request: FastifyRequest<{ Params: { id: string } }>,
-      reply: FastifyReply
-    ) => {
+    async (request, reply) => {
       const currentUser = getCurrentUser(request);
-      const { id } = request.params;
+      const { id } = request.params as { id: string };
 
       // Check if location exists
       const existingLocation = await db
