@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
+import { usePermissions } from "@/hooks/use-permissions";
 import { LocationSwitcher } from "@/components/location-switcher";
 import { TenantRequiredDialog } from "@/components/tenant-required-dialog";
 import {
@@ -38,6 +39,8 @@ import {
   PackageCheck,
   Minus,
   UserCheck,
+  Shield,
+  Key,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -51,6 +54,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
   requiresLocation?: boolean; // Hide if no location selected
+  requiredPermissions?: Array<{ resource: string; action: string }>; // Hide if user lacks permissions
 }
 
 interface NavSection {
@@ -204,11 +208,25 @@ const navigation: NavSection[] = [
         title: "Users",
         href: "/users",
         icon: Users,
+        requiredPermissions: [{ resource: "user", action: "read" }],
+      },
+      {
+        title: "Roles",
+        href: "/roles",
+        icon: Shield,
+        requiredPermissions: [{ resource: "role", action: "read" }],
+      },
+      {
+        title: "Permissions",
+        href: "/permissions",
+        icon: Key,
+        requiredPermissions: [{ resource: "permission", action: "read" }],
       },
       {
         title: "Tenants",
         href: "/tenants",
         icon: Building2,
+        requiredPermissions: [{ resource: "tenant", action: "manage" }],
       },
     ],
   },
@@ -218,6 +236,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, profile, signOut, needsTenant } = useAuth();
+  const { hasAnyPermission, loading: permissionsLoading } = usePermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = () => {
@@ -286,10 +305,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <ScrollArea className="flex-1 min-h-0">
             <nav className="space-y-2 px-2 py-2">
               {navigation.map((section) => {
-                // Filter items based on location requirement
-                const visibleItems = section.items.filter(
-                  (item) => !item.requiresLocation || profile?.location
-                );
+                // Filter items based on location requirement and permissions
+                const visibleItems = section.items.filter((item) => {
+                  // Check location requirement
+                  if (item.requiresLocation && !profile?.location) return false;
+
+                  // Check permission requirement (skip check while loading)
+                  if (item.requiredPermissions && !permissionsLoading) {
+                    return hasAnyPermission(item.requiredPermissions);
+                  }
+
+                  return true;
+                });
 
                 // Skip empty sections
                 if (visibleItems.length === 0) return null;
