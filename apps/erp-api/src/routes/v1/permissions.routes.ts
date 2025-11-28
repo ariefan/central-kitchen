@@ -172,6 +172,39 @@ export function permissionsRoutes(fastify: FastifyInstance) {
   );
 
   // ============================================================================
+  // GET CURRENT USER'S PERMISSIONS (Frontend format)
+  // ============================================================================
+
+  fastify.get(
+    '/my-permissions',
+    {
+      schema: {
+        description: 'Get current user\'s permissions in frontend format',
+        tags: ['Permissions'],
+      },
+    },
+    async (request, reply) => {
+      const userPerms = await getUserPermissions(request);
+
+      // Transform permissions to "resource:action" format
+      const permissionStrings = userPerms.permissions.map(
+        p => `${p.resource}:${p.action}`
+      );
+
+      return reply.send(
+        createSuccessResponse({
+          permissions: permissionStrings,
+          roles: userPerms.roles.map(r => ({
+            id: r.id,
+            name: r.name,
+            isSystemRole: r.isSystemRole,
+          })),
+        })
+      );
+    }
+  );
+
+  // ============================================================================
   // CHECK IF USER HAS PERMISSION
   // ============================================================================
 
