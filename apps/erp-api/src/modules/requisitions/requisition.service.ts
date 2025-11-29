@@ -265,6 +265,12 @@ export const requisitionService = {
 
     const transfer = await transferService.create(transferData, context);
 
+    if (!transfer) {
+      throw new RequisitionServiceError(
+        "Failed to create transfer from requisition"
+      );
+    }
+
     // Update requisition with transfer reference
     await requisitionRepository.updateRequisition(id, context.tenantId, {
       transferId: transfer.id,
