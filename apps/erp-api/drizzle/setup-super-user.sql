@@ -53,8 +53,7 @@ BEGIN
   RAISE NOTICE 'Created user with ID: %', v_user_id;
 
   -- Step 4: Create better-auth account with hashed password
-  -- Password hash for "admin123" using bcrypt
-  -- This is bcrypt hash of "admin123" with salt rounds 10
+  -- Password: admin123 (bcrypt hash with salt rounds 10)
   INSERT INTO erp.accounts (
     id,
     user_id,
@@ -68,7 +67,7 @@ BEGIN
     v_user_id,
     v_user_id::text,
     'credential',
-    '$2a$10$rQ3qH5xVQq7Z9kX5Y5qX5uK5YqX5Y5qX5Y5qX5Y5qX5Y5qX5Y5qX.',  -- Placeholder, will be updated
+    '$2b$10$skJRU7FJiVSZrVI8BjOBe.ZV3yMR1sj0ymE2XogdbljtxqPlkHb2e',
     NOW(),
     NOW()
   )
@@ -91,10 +90,9 @@ BEGIN
   RAISE NOTICE 'Assigned Super User role to admin@personalapp.id';
   RAISE NOTICE '===========================================';
   RAISE NOTICE 'Super User created successfully!';
+  RAISE NOTICE 'Username: admin';
   RAISE NOTICE 'Email: admin@personalapp.id';
   RAISE NOTICE 'Password: admin123';
   RAISE NOTICE 'Name: Super User';
   RAISE NOTICE '===========================================';
-  RAISE NOTICE 'IMPORTANT: Password hash needs to be set properly!';
-  RAISE NOTICE 'Run the Node.js script to hash and update password.';
 END $$;
