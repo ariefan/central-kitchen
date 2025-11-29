@@ -333,7 +333,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                 return (
                   <div key={section.title}>
-                    <h3 className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-zinc-500">
+                    <h3 className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-foreground/70 dark:text-foreground/60">
                       {section.title}
                     </h3>
                     <div className="space-y-0.5">

@@ -5,13 +5,32 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/lib/auth-client";
-import { Loader2 } from "lucide-react";
+import {
+  Loader2,
+  Package,
+  MapPin,
+  Users,
+  ShoppingCart,
+  TrendingUp,
+  Settings,
+  BarChart3,
+  Warehouse,
+  ChefHat,
+  Truck,
+  FileText,
+  Building2
+} from "lucide-react";
 
 export default function WelcomePage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<{
+    tenant?: { name: string; slug: string };
+    role?: string;
+    location?: { name: string };
+  } | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -62,193 +81,266 @@ export default function WelcomePage() {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle>Welcome to ERP System</CardTitle>
-                <CardDescription>You are successfully logged in</CardDescription>
+      <div className="space-y-8">
+        {/* Welcome Header */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back, {session.user.name || session.user.email}!</h1>
+            <p className="text-muted-foreground mt-2">{`Here's what's happening with your business today`}</p>
+          </div>
+          <div className="shrink-0">
+            <Image
+              src="/logo-light.jpeg"
+              alt="Dapoer Roema"
+              width={120}
+              height={48}
+              className="dark:hidden rounded-lg shadow-sm"
+            />
+            <Image
+              src="/logo-dark.jpeg"
+              alt="Dapoer Roema"
+              width={120}
+              height={48}
+              className="hidden dark:block rounded-lg shadow-sm"
+            />
+          </div>
+        </div>
+
+        {/* User Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* User Profile Card */}
+          <Card className="border-primary/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                User Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Name:</span>
+                  <span className="text-sm">{session.user.name || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Email:</span>
+                  <span className="text-sm truncate max-w-[150px]" title={session.user.email}>
+                    {session.user.email}
+                  </span>
+                </div>
+                {userData?.role && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Role:</span>
+                    <Badge variant="secondary">{userData.role}</Badge>
+                  </div>
+                )}
               </div>
-              <div className="shrink-0">
-                <Image
-                  src="/logo-light.jpeg"
-                  alt="Dapoer Roema"
-                  width={100}
-                  height={40}
-                  className="dark:hidden rounded"
-                />
-                <Image
-                  src="/logo-dark.jpeg"
-                  alt="Dapoer Roema"
-                  width={100}
-                  height={40}
-                  className="hidden dark:block rounded"
-                />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Session Information</h3>
-                <div className="mt-2 p-4 bg-muted rounded-lg">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm font-medium">User ID:</span>
-                      <span className="text-sm text-muted-foreground">{session.user.id}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm font-medium">Email:</span>
-                      <span className="text-sm text-muted-foreground">{session.user.email}</span>
-                    </div>
-                    {session.user.name && (
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Name:</span>
-                        <span className="text-sm text-muted-foreground">{session.user.name}</span>
-                      </div>
-                    )}
+            </CardContent>
+          </Card>
+
+          {/* Tenant Info Card */}
+          {userData?.tenant && (
+            <Card className="border-primary/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5" />
+                  Organization
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Tenant:</span>
+                    <span className="text-sm font-semibold">{userData.tenant.name}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Slug:</span>
+                    <Badge variant="outline">{userData.tenant.slug}</Badge>
                   </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
+          )}
 
-              {isLoadingUser && (
-                <div className="flex items-center justify-center p-4">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                </div>
-              )}
-
-              {userData && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">User Details</h3>
-                  <div className="mt-2 p-4 bg-muted rounded-lg">
-                    <div className="space-y-2">
-                      {userData.tenant && (
-                        <>
-                          <div className="flex justify-between">
-                            <span className="text-sm font-medium">Tenant:</span>
-                            <span className="text-sm text-muted-foreground">{userData.tenant.name}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm font-medium">Tenant Slug:</span>
-                            <span className="text-sm text-muted-foreground">{userData.tenant.slug}</span>
-                          </div>
-                        </>
-                      )}
-                      {userData.role && (
-                        <div className="flex justify-between">
-                          <span className="text-sm font-medium">Role:</span>
-                          <span className="text-sm text-muted-foreground">{userData.role}</span>
-                        </div>
-                      )}
-                      {userData.location && (
-                        <div className="flex justify-between">
-                          <span className="text-sm font-medium">Location:</span>
-                          <span className="text-sm text-muted-foreground">{userData.location.name}</span>
-                        </div>
-                      )}
-                    </div>
+          {/* Location Info Card */}
+          {userData?.location && (
+            <Card className="border-primary/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  Current Location
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Location:</span>
+                    <span className="text-sm font-semibold">{userData.location.name}</span>
                   </div>
+                  <Badge variant="outline" className="w-full justify-center">
+                    Active
+                  </Badge>
                 </div>
-              )}
-            </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
-          </CardContent>
-        </Card>
-
+        {/* Quick Actions Grid */}
         <Card>
           <CardHeader>
-            <CardTitle>Quick Access</CardTitle>
-            <CardDescription>Navigate to different modules</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Quick Actions
+            </CardTitle>
+            <CardDescription>Jump to frequently used modules and features</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Button
                 variant="outline"
-                className="h-auto py-4 flex-col items-start"
-                onClick={() => router.push("/locations")}
-              >
-                <span className="font-semibold">Locations</span>
-                <span className="text-xs text-muted-foreground mt-1">
-                  Manage warehouses and stores
-                </span>
-              </Button>
-              <Button
-                variant="outline"
-                className="h-auto py-4 flex-col items-start"
+                className="h-24 flex-col gap-2 hover:border-primary/50 transition-colors"
                 onClick={() => router.push("/products")}
               >
-                <span className="font-semibold">Products</span>
-                <span className="text-xs text-muted-foreground mt-1">
-                  Product catalog & variants
-                </span>
+                <Package className="w-6 h-6" />
+                <span className="font-medium">Products</span>
+                <span className="text-xs text-muted-foreground">Catalog & variants</span>
               </Button>
               <Button
                 variant="outline"
-                className="h-auto py-4 flex-col items-start"
+                className="h-24 flex-col gap-2 hover:border-primary/50 transition-colors"
                 onClick={() => router.push("/inventory")}
               >
-                <span className="font-semibold">Inventory</span>
-                <span className="text-xs text-muted-foreground mt-1">
-                  Stock levels & tracking
-                </span>
+                <Warehouse className="w-6 h-6" />
+                <span className="font-medium">Inventory</span>
+                <span className="text-xs text-muted-foreground">Stock tracking</span>
               </Button>
               <Button
                 variant="outline"
-                className="h-auto py-4 flex-col items-start"
+                className="h-24 flex-col gap-2 hover:border-primary/50 transition-colors"
                 onClick={() => router.push("/suppliers")}
               >
-                <span className="font-semibold">Suppliers</span>
-                <span className="text-xs text-muted-foreground mt-1">
-                  Supplier management
-                </span>
+                <Building2 className="w-6 h-6" />
+                <span className="font-medium">Suppliers</span>
+                <span className="text-xs text-muted-foreground">Vendor management</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-24 flex-col gap-2 hover:border-primary/50 transition-colors"
+                onClick={() => router.push("/sales-orders")}
+              >
+                <ShoppingCart className="w-6 h-6" />
+                <span className="font-medium">Sales</span>
+                <span className="text-xs text-muted-foreground">Orders & customers</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-24 flex-col gap-2 hover:border-primary/50 transition-colors"
+                onClick={() => router.push("/purchase-orders")}
+              >
+                <FileText className="w-6 h-6" />
+                <span className="font-medium">Procurement</span>
+                <span className="text-xs text-muted-foreground">Purchase orders</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-24 flex-col gap-2 hover:border-primary/50 transition-colors"
+                onClick={() => router.push("/production-orders")}
+              >
+                <ChefHat className="w-6 h-6" />
+                <span className="font-medium">Production</span>
+                <span className="text-xs text-muted-foreground">Manufacturing</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-24 flex-col gap-2 hover:border-primary/50 transition-colors"
+                onClick={() => router.push("/deliveries")}
+              >
+                <Truck className="w-6 h-6" />
+                <span className="font-medium">Deliveries</span>
+                <span className="text-xs text-muted-foreground">Logistics</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-24 flex-col gap-2 hover:border-primary/50 transition-colors"
+                onClick={() => router.push("/reports")}
+              >
+                <BarChart3 className="w-6 h-6" />
+                <span className="font-medium">Reports</span>
+                <span className="text-xs text-muted-foreground">Analytics</span>
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Phase 1 Features</CardTitle>
-            <CardDescription>Available modules in the current release</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span>Product Catalog Management</span>
+        {/* System Status & Features */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                System Status
+              </CardTitle>
+              <CardDescription>Current system information and status</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Authentication</span>
+                <Badge variant="default" className="bg-green-500">Connected</Badge>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span>Product Variants</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Database</span>
+                <Badge variant="default" className="bg-green-500">Online</Badge>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span>Unit of Measure (UoM) Management</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">API Services</span>
+                <Badge variant="default" className="bg-green-500">Operational</Badge>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span>Location Management</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Session</span>
+                <Badge variant="outline">Active</Badge>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span>Inventory Tracking</span>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5" />
+                Available Features
+              </CardTitle>
+              <CardDescription>Modules and capabilities in Phase 1</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <span>Product Catalog</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <span>Inventory Tracking</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <span>Location Management</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <span>Supplier Management</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <span>User Management</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <span>Role-Based Access</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span>Supplier Management</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span>User Profile Management</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span>Authentication & Authorization</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
