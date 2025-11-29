@@ -60,7 +60,7 @@ export function tenantRoutes(fastify: FastifyInstance) {
           201: tenantResponseSchema,
         },
       },
-      onRequest: [requireSuperUser()],
+      preHandler: [requireSuperUser()],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -130,7 +130,7 @@ export function tenantRoutes(fastify: FastifyInstance) {
           200: tenantsResponseSchema,
         },
       },
-      onRequest: [requireSuperUser()],
+      preHandler: [requireSuperUser()],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -233,7 +233,7 @@ export function tenantRoutes(fastify: FastifyInstance) {
           200: tenantResponseSchema,
         },
       },
-      onRequest: [requireSuperUser()],
+      preHandler: [requireSuperUser()],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -301,7 +301,7 @@ export function tenantRoutes(fastify: FastifyInstance) {
           200: tenantResponseSchema,
         },
       },
-      onRequest: [requireSuperUser()],
+      preHandler: [requireSuperUser()],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -420,7 +420,7 @@ export function tenantRoutes(fastify: FastifyInstance) {
           }),
         },
       },
-      onRequest: [requireSuperUser()],
+      preHandler: [requireSuperUser()],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
