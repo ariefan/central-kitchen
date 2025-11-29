@@ -338,7 +338,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </h3>
                     <div className="space-y-0.5">
                       {visibleItems.map((item) => {
-                        const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+                        // Check if current path exactly matches the item href
+                        // OR if it's a parent route and we're not on a more specific sibling route
+                        const isActive = pathname === item.href ||
+                          (pathname?.startsWith(item.href + "/") &&
+                            // Don't mark parent as active if there's a more specific menu item that matches
+                            !visibleItems.some(otherItem =>
+                              otherItem.href !== item.href &&
+                              otherItem.href.startsWith(item.href + "/") &&
+                              pathname.startsWith(otherItem.href + "/")
+                            ));
                         return (
                           <Link
                             key={item.href}
