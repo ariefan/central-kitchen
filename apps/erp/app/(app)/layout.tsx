@@ -42,6 +42,7 @@ import {
   UserCheck,
   Shield,
   Key,
+  ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -228,6 +229,12 @@ const navigation: NavSection[] = [
         href: "/permissions",
         icon: Key,
         requiredPermissions: [{ resource: "permission", action: "read" }],
+      },
+      {
+        title: "RBAC Dashboard",
+        href: "/rbac",
+        icon: ShieldCheck,
+        requiredPermissions: [{ resource: "role", action: "read" }],
       },
       {
         title: "Tenants",

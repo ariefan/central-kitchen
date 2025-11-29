@@ -18,32 +18,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useEnhancedPermissions } from "@/hooks/use-enhanced-permissions";
+import { PermissionGuard } from "@/components/rbac/permission-guard";
+import { MultiRoleAssignment } from "@/components/rbac/multi-role-assignment";
+import { User, Role, UserRole, Permission } from "@/types/rbac";
 
-interface User {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  role: string;
-  isActive: boolean;
-  location?: {
-    name: string;
-  };
+interface EnhancedUser extends User {
+  roles?: Role[];
+  permissions?: Permission[];
 }
 
 export default function UsersPage() {
   const router = useRouter();
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<EnhancedUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<EnhancedUser | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showRoleAssignment, setShowRoleAssignment] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `/api/v1/users?limit=100`,
+        `/api/v1/users?limit=100&includeRoles=true`,
         { credentials: "include" }
       );
 
@@ -89,7 +87,7 @@ export default function UsersPage() {
     }
   };
 
-  const columns: Column<User>[] = [
+  const columns: Column<EnhancedUser>[] = [
     {
       key: "email",
       label: "Email",
@@ -103,13 +101,27 @@ export default function UsersPage() {
       },
     },
     {
-      key: "role",
-      label: "Role",
-      render: (value) => (
-        <Badge variant="outline" className="capitalize">
-          {value}
-        </Badge>
-      ),
+      key: "roles",
+      label: "Roles",
+      render: (_, row) => {
+        if (!row.roles || row.roles.length === 0) {
+          return <Badge variant="outline">No roles</Badge>;
+        }
+        return (
+          <div className="flex gap-1 flex-wrap">
+            {row.roles.slice(0, 2).map((role) => (
+              <Badge key={role.id} variant="outline" className="text-xs">
+                {role.name}
+              </Badge>
+            ))}
+            {row.roles.length > 2 && (
+              <Badge variant="secondary" className="text-xs">
+                +{row.roles.length - 2}
+              </Badge>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "location.name",
@@ -130,26 +142,30 @@ export default function UsersPage() {
       label: "Actions",
       render: (_, row) => (
         <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.push(`/users/${row.id}`)}
-            title="Edit user"
-          >
-            <Pencil className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setUserToDelete(row);
-              setDeleteDialogOpen(true);
-            }}
-            title="Deactivate user"
-            className="text-destructive hover:text-destructive"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+          <PermissionGuard permission="user:update">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push(`/users/${row.id}`)}
+              title="Edit user"
+            >
+              <Pencil className="w-4 h-4" />
+            </Button>
+          </PermissionGuard>
+          <PermissionGuard permission="user:delete">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setUserToDelete(row);
+                setDeleteDialogOpen(true);
+              }}
+              title="Deactivate user"
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </PermissionGuard>
         </div>
       ),
     },
@@ -166,13 +182,23 @@ export default function UsersPage() {
                 Users
               </CardTitle>
               <CardDescription>
-                Manage user accounts and multi-location access
+                Manage user accounts and role assignments
               </CardDescription>
             </div>
-            <Button onClick={() => router.push("/users/new")}>
-              <Plus className="w-4 h-4 mr-2" />
-              New User
-            </Button>
+            <div className="flex gap-2">
+              <PermissionGuard permission="user:create">
+                <Button onClick={() => router.push("/users/new")}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  New User
+                </Button>
+              </PermissionGuard>
+              <PermissionGuard permission="user:update">
+                <Button variant="outline" onClick={() => setShowRoleAssignment(!showRoleAssignment)}>
+                  <UsersIcon className="w-4 h-4 mr-2" />
+                  {showRoleAssignment ? "Hide" : "Show"} Role Assignment
+                </Button>
+              </PermissionGuard>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -184,6 +210,21 @@ export default function UsersPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Role Assignment Panel */}
+      {showRoleAssignment && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Role Assignment</CardTitle>
+            <CardDescription>
+              Assign and manage user roles with context-aware permissions
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MultiRoleAssignment />
+          </CardContent>
+        </Card>
+      )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

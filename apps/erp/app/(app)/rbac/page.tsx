@@ -3,16 +3,17 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shield as ShieldIcon, Plus } from "lucide-react";
+import { Shield, Users, Key, History, Settings } from "lucide-react";
 import { useEnhancedPermissions } from "@/hooks/use-enhanced-permissions";
 import { PermissionGuard } from "@/components/rbac/permission-guard";
+import { RbacDashboard } from "@/components/rbac/rbac-dashboard";
 import { RoleManagement } from "@/components/rbac/role-management";
 import { MultiRoleAssignment } from "@/components/rbac/multi-role-assignment";
-import { RbacDashboard } from "@/components/rbac/rbac-dashboard";
+import AuditLogViewer from "@/components/rbac/audit-log";
 
-export default function RolesPage() {
-    const [activeTab, setActiveTab] = useState('dashboard');
-    const { hasPermission } = useEnhancedPermissions();
+export default function RbacPage() {
+    const [activeTab, setActiveTab] = useState('overview');
+    const { hasPermission, isSuperUser } = useEnhancedPermissions();
 
     return (
         <div className="container mx-auto p-6 max-w-7xl">
@@ -21,21 +22,21 @@ export default function RolesPage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <CardTitle className="flex items-center gap-2">
-                                <ShieldIcon className="w-5 h-5" />
-                                Role Management
+                                <Shield className="w-5 h-5" />
+                                RBAC Management
                             </CardTitle>
                             <CardDescription>
-                                Comprehensive role and permission management
+                                Comprehensive role-based access control system
                             </CardDescription>
                         </div>
                         <div className="flex gap-2">
                             <PermissionGuard permission="role:read">
                                 <Button
-                                    variant={activeTab === 'dashboard' ? 'default' : 'outline'}
-                                    onClick={() => setActiveTab('dashboard')}
+                                    variant={activeTab === 'overview' ? 'default' : 'outline'}
+                                    onClick={() => setActiveTab('overview')}
                                 >
-                                    <ShieldIcon className="w-4 h-4 mr-2" />
-                                    Dashboard
+                                    <Shield className="w-4 h-4 mr-2" />
+                                    Overview
                                 </Button>
                             </PermissionGuard>
                             <PermissionGuard permission="role:read">
@@ -43,7 +44,7 @@ export default function RolesPage() {
                                     variant={activeTab === 'roles' ? 'default' : 'outline'}
                                     onClick={() => setActiveTab('roles')}
                                 >
-                                    <ShieldIcon className="w-4 h-4 mr-2" />
+                                    <Shield className="w-4 h-4 mr-2" />
                                     Roles
                                 </Button>
                             </PermissionGuard>
@@ -52,14 +53,17 @@ export default function RolesPage() {
                                     variant={activeTab === 'assignments' ? 'default' : 'outline'}
                                     onClick={() => setActiveTab('assignments')}
                                 >
-                                    <ShieldIcon className="w-4 h-4 mr-2" />
+                                    <Users className="w-4 h-4 mr-2" />
                                     Assignments
                                 </Button>
                             </PermissionGuard>
-                            <PermissionGuard permission="role:create">
-                                <Button onClick={() => setActiveTab('roles')}>
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    New Role
+                            <PermissionGuard permission="audit_log:read">
+                                <Button
+                                    variant={activeTab === 'audit' ? 'default' : 'outline'}
+                                    onClick={() => setActiveTab('audit')}
+                                >
+                                    <History className="w-4 h-4 mr-2" />
+                                    Audit Log
                                 </Button>
                             </PermissionGuard>
                         </div>
@@ -67,7 +71,7 @@ export default function RolesPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-6">
-                        {activeTab === 'dashboard' && (
+                        {activeTab === 'overview' && (
                             <RbacDashboard />
                         )}
 
@@ -77,6 +81,10 @@ export default function RolesPage() {
 
                         {activeTab === 'assignments' && hasPermission('user', 'update') && (
                             <MultiRoleAssignment />
+                        )}
+
+                        {activeTab === 'audit' && hasPermission('audit_log', 'read') && (
+                            <AuditLogViewer />
                         )}
                     </div>
                 </CardContent>
