@@ -306,14 +306,14 @@ export default function EditProductPage() {
               <div className="space-y-2">
                 <Label>Category</Label>
                 <Select
-                  value={formData.categoryId || ""}
-                  onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+                  value={formData.categoryId || "none"}
+                  onValueChange={(value) => setFormData({ ...formData, categoryId: value === "none" ? null : value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {categories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
                         {cat.name}
