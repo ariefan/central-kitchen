@@ -51,7 +51,7 @@
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
+  --primary: oklch(0.65 0.2 30);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
@@ -70,7 +70,7 @@
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.21 0.006 285.885);
+  --sidebar-primary: oklch(0.65 0.2 30);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.967 0.001 286.375);
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
@@ -85,19 +85,19 @@
   --card-foreground: oklch(0.98 0 0);
   --popover: oklch(0.18 0.006 285.885);
   --popover-foreground: oklch(0.98 0 0);
-  --primary: oklch(0.70 0.18 264.376);
+  --primary: oklch(0.75 0.18 30);
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.22 0.006 286.033);
   --secondary-foreground: oklch(0.98 0 0);
   --muted: oklch(0.22 0.006 286.033);
-  --muted-foreground: oklch(0.70 0.015 286.067);
+  --muted-foreground: oklch(0.7 0.015 286.067);
   --accent: oklch(0.28 0.008 286.033);
   --accent-foreground: oklch(0.98 0 0);
   --destructive: oklch(0.65 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(1 0 0 / 15%);
   --input: oklch(1 0 0 / 20%);
-  --ring: oklch(0.70 0.18 264.376);
+  --ring: oklch(0.7 0.18 264.376);
   --chart-1: oklch(0.55 0.25 264.376);
   --chart-2: oklch(0.7 0.18 162.48);
   --chart-3: oklch(0.75 0.19 70.08);
@@ -106,12 +106,12 @@
   /* Sidebar - more contrast in dark mode */
   --sidebar: oklch(0.14 0.008 285.885);
   --sidebar-foreground: oklch(0.92 0 0);
-  --sidebar-primary: oklch(0.65 0.22 264.376);
+  --sidebar-primary: oklch(0.75 0.18 30);
   --sidebar-primary-foreground: oklch(0.98 0 0);
   --sidebar-accent: oklch(0.24 0.01 264.376);
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(1 0 0 / 18%);
-  --sidebar-ring: oklch(0.70 0.18 264.376);
+  --sidebar-ring: oklch(0.7 0.18 264.376);
 }
 
 @layer base {
@@ -179,7 +179,7 @@
 
   /* Enhanced focus states for dark mode */
   .dark *:focus-visible {
-    outline-color: oklch(0.75 0.15 264.376);
+    outline-color: oklch(0.75 0.15 30);
   }
 
   /* Better selection colors */

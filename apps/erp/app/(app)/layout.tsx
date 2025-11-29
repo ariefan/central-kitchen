@@ -245,10 +245,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleSignOut = () => {
     signOut();
-    // Only redirect if not already on auth page to prevent multiple redirects
-    if (pathname !== "/auth") {
-      router.push("/auth");
-    }
+    // The redirect is handled in the useSignOut hook's onSuccess callback
+    // No need to redirect here as it causes race conditions
   };
 
   return (

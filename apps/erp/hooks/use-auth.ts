@@ -2,11 +2,11 @@
  * Authentication hooks using TanStack Query + Better Auth
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import { authClient, useSession } from '@/lib/auth-client';
-import { get } from '@/lib/api-client';
-import type { UserProfileResponse } from '@contracts/erp';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { authClient, useSession } from "@/lib/auth-client";
+import { get } from "@/lib/api-client";
+import type { UserProfileResponse } from "@contracts/erp";
 
 /**
  * Get current user session from Better Auth
@@ -22,8 +22,8 @@ export function useUserProfile() {
   const { data: session, isPending: isSessionPending } = useSession();
 
   return useQuery({
-    queryKey: ['auth', 'me'],
-    queryFn: () => get<UserProfileResponse>('/api/v1/auth/me'),
+    queryKey: ["auth", "me"],
+    queryFn: () => get<UserProfileResponse>("/api/v1/auth/me"),
     enabled: !!session?.user,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false,
@@ -45,7 +45,15 @@ export function useSignOut() {
       // Clear all queries on logout
       queryClient.clear();
       // Redirect to auth page
-      router.push('/auth');
+      router.push("/auth");
+      router.refresh();
+    },
+    onError: (error) => {
+      // Even if sign-out fails on the server, we should still clear local state
+      // and redirect to auth page to ensure user is logged out locally
+      console.error("Sign out error:", error);
+      queryClient.clear();
+      router.push("/auth");
       router.refresh();
     },
   });
@@ -56,8 +64,16 @@ export function useSignOut() {
  * Returns session, profile, and loading states
  */
 export function useAuth() {
-  const { data: session, isPending: isSessionLoading, error: sessionError } = useSession();
-  const { data: profile, isPending: isProfileLoading, error: profileError } = useUserProfile();
+  const {
+    data: session,
+    isPending: isSessionLoading,
+    error: sessionError,
+  } = useSession();
+  const {
+    data: profile,
+    isPending: isProfileLoading,
+    error: profileError,
+  } = useUserProfile();
   const signOut = useSignOut();
 
   const isAuthenticated = !!session?.user;
@@ -65,9 +81,12 @@ export function useAuth() {
 
   // Check if user needs to join a tenant
   // This happens when the /auth/me endpoint returns NO_TENANT_ASSIGNED error
-  const needsTenant = isAuthenticated && !isProfileLoading && !profile?.data?.tenant &&
-    (profileError?.message?.includes('no tenant') ||
-     profileError?.message?.includes('NO_TENANT_ASSIGNED'));
+  const needsTenant =
+    isAuthenticated &&
+    !isProfileLoading &&
+    !profile?.data?.tenant &&
+    (profileError?.message?.includes("no tenant") ||
+      profileError?.message?.includes("NO_TENANT_ASSIGNED"));
 
   return {
     // Session data from Better Auth
@@ -106,7 +125,7 @@ export function useRequireAuth() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (!isLoading && !isAuthenticated) {
-    router.push('/auth');
+    router.push("/auth");
   }
 
   return { isAuthenticated, isLoading };
@@ -117,13 +136,13 @@ export function useRequireAuth() {
  */
 export function useUserLocations(userId?: string) {
   return useQuery({
-    queryKey: ['auth', 'user-locations', userId],
+    queryKey: ["auth", "user-locations", userId],
     queryFn: async () => {
       const response = await fetch(`/api/v1/auth/users/${userId}/locations`, {
-        credentials: 'include',
+        credentials: "include",
       });
       if (!response.ok) {
-        throw new Error('Failed to fetch user locations');
+        throw new Error("Failed to fetch user locations");
       }
       return response.json();
     },
@@ -140,21 +159,21 @@ export function useSwitchLocation() {
 
   return useMutation({
     mutationFn: async (locationId: string) => {
-      const response = await fetch('/api/v1/auth/switch-location', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+      const response = await fetch("/api/v1/auth/switch-location", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ locationId }),
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to switch location');
+        throw new Error(error.message || "Failed to switch location");
       }
       return response.json();
     },
     onSuccess: () => {
       // Invalidate user profile to refresh location data
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
     },
   });
 }
