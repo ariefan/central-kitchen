@@ -47,16 +47,17 @@ export function LocationForm({
     register,
     handleSubmit,
     setValue,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<z.infer<typeof locationCreateSchema>>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(schema) as any,
     defaultValues: {
       ...initialData,
+      locationType: initialData?.locationType || "central_kitchen",
       isActive: initialData?.isActive ?? true,
       country: initialData?.country ?? "Singapore",
     },
-    mode: "onSubmit",
+    mode: "onChange",
   });
 
   // Use controller for better type safety and avoid watch() warnings
@@ -66,6 +67,8 @@ export function LocationForm({
   const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
 
   const handleFormSubmit = (data: z.infer<typeof locationCreateSchema>) => {
+    console.log("Form submitted with data:", data);
+    console.log("Validation errors:", errors);
     onSubmit(data as LocationCreate | LocationUpdate);
   };
 
@@ -298,8 +301,12 @@ export function LocationForm({
             Cancel
           </Button>
         )}
-        <Button type="submit" disabled={isLoading}>
-          {isLoading
+        <Button
+          type="submit"
+          disabled={isLoading || isSubmitting}
+          onClick={() => console.log("Submit button clicked, errors:", errors)}
+        >
+          {isLoading || isSubmitting
             ? "Saving..."
             : initialData
               ? "Update Location"
