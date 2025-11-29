@@ -350,7 +350,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
                                 isActive
                                   ? "bg-primary text-primary-foreground shadow-sm"
-                                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground dark:text-zinc-200 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+                                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground dark:text-zinc-200 dark:hover:bg-zinc-900 dark:hover:text-primary-200"
                               )}
                             >
                               <item.icon className="w-4 h-4 shrink-0" />
