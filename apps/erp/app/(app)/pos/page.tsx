@@ -93,18 +93,22 @@ export default function POSPage() {
 
     setLoading(true);
     try {
+      // TODO: Get locationId from user session/context
+      const locationId = "00000000-0000-0000-0000-000000000000"; // Placeholder - needs real location
+
       const response = await fetch(`/api/v1/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          orderType: "pos",
+          locationId,
+          channel: "pos",
+          orderType: "dine_in",
           items: cart.map(item => ({
             productId: item.productId,
-            quantity: item.quantity.toString(),
-            unitPrice: item.unitPrice.toString(),
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
           })),
-          totalAmount: calculateTotal().toString(),
         }),
       });
 

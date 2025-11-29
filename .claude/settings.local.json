@@ -102,7 +102,8 @@
       "Bash(pnpm --filter erp build:*)",
       "Bash(pnpm build:erp:*)",
       "Bash(xargs sed:*)",
-      "Bash(pnpm --filter erp-api typecheck:*)"
+      "Bash(pnpm --filter erp-api typecheck:*)",
+      "Bash(pnpm tsc:*)"
     ],
     "deny": [],
     "ask": []

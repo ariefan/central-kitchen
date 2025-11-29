@@ -3,6 +3,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { locationCreateSchema, type LocationCreate } from "@contracts/erp";
+import { z } from "zod";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,27 +41,35 @@ export function LocationForm({
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
-  } = useForm<LocationCreate>({
+  } = useForm<z.infer<typeof locationCreateSchema>>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(locationCreateSchema) as any,
     defaultValues: {
-      isActive: true,
-      country: "Indonesia",
       ...initialData,
+      isActive: initialData?.isActive ?? true,
+      country: initialData?.country ?? "Singapore",
     },
+    mode: "onSubmit",
   });
 
-  const locationType = watch("locationType");
-  const isActive = watch("isActive");
+  // Use controller for better type safety and avoid watch() warnings
+  const [locationType, setLocationType] = useState<"central_kitchen" | "outlet" | "warehouse">(
+    initialData?.locationType || "central_kitchen"
+  );
+  const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
+
+  const handleFormSubmit = (data: z.infer<typeof locationCreateSchema>) => {
+    onSubmit(data as LocationCreate);
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Basic Information</CardTitle>
           <CardDescription>
-            Enter the basic details for this location
+            Enter basic details for this location
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -104,7 +114,11 @@ export function LocationForm({
             </Label>
             <Select
               value={locationType}
-              onValueChange={(value) => setValue("locationType", value as any)}
+              onValueChange={(value) => {
+                const typedValue = value as "central_kitchen" | "outlet" | "warehouse";
+                setLocationType(typedValue);
+                setValue("locationType", typedValue);
+              }}
               disabled={isLoading}
             >
               <SelectTrigger>
@@ -236,9 +250,11 @@ export function LocationForm({
             <Checkbox
               id="isActive"
               checked={isActive}
-              onCheckedChange={(checked) =>
-                setValue("isActive", checked === true)
-              }
+              onCheckedChange={(checked) => {
+                const isActiveValue = checked === true;
+                setIsActive(isActiveValue);
+                setValue("isActive", isActiveValue);
+              }}
               disabled={isLoading}
             />
             <Label htmlFor="isActive" className="cursor-pointer font-normal">
@@ -263,8 +279,8 @@ export function LocationForm({
           {isLoading
             ? "Saving..."
             : initialData
-            ? "Update Location"
-            : "Create Location"}
+              ? "Update Location"
+              : "Create Location"}
         </Button>
       </div>
     </form>

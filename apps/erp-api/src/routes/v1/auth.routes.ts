@@ -1,24 +1,35 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { z } from 'zod';
-import { createSelectSchema } from 'drizzle-zod';
-import { successResponseSchema, createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '@/shared/utils/responses.js';
-import { users, tenants, locations, userLocations, accounts } from '@/config/schema.js';
-import { getCurrentUser, getCurrentTenant } from '@/shared/middleware/auth.js';
-import { getUserPermissions } from '@/shared/middleware/rbac.js';
-import { db } from '@/config/database.js';
-import { eq, and, inArray } from 'drizzle-orm';
+import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { z } from "zod";
+import { createSelectSchema } from "drizzle-zod";
+import {
+  successResponseSchema,
+  createSuccessResponse,
+  createNotFoundError,
+  notFoundResponseSchema,
+} from "@/shared/utils/responses.js";
+import {
+  users,
+  tenants,
+  locations,
+  userLocations,
+  accounts,
+} from "@/config/schema.js";
+import { getCurrentUser, getCurrentTenant } from "@/shared/middleware/auth.js";
+import { getUserPermissions } from "@/shared/middleware/rbac.js";
+import { db } from "@/config/database.js";
+import { eq, and, inArray } from "drizzle-orm";
 import {
   userLocationAssignSchema,
-  userLocationSwitchSchema,
+  switchLocationInputSchema as userLocationSwitchSchema,
   userLocationsResponseSchema,
   userProfileUpdateSchema,
   userPasswordChangeSchema,
-} from '@contracts/erp';
+} from "@contracts/erp";
 
 // Generate schemas from database tables with proper type handling
 const userSchema = createSelectSchema(users, {
   // Override role to be more specific
-  role: z.enum(['admin', 'manager', 'cashier', 'staff']).nullable(),
+  role: z.enum(["admin", "manager", "cashier", "staff"]).nullable(),
   // Handle Date fields properly - convert them to strings
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -63,19 +74,21 @@ const locationSchema = createSelectSchema(locations, {
   createdAt: z.string(),
   updatedAt: z.string(),
   metadata: z.any().nullable(),
-}).pick({
-  id: true,
-  name: true,
-  type: true,
-  address: true,
-  city: true,
-  state: true,
-  postalCode: true,
-  country: true,
-  isActive: true,
-  createdAt: true,
-  updatedAt: true,
-}).nullable();
+})
+  .pick({
+    id: true,
+    name: true,
+    type: true,
+    address: true,
+    city: true,
+    state: true,
+    postalCode: true,
+    country: true,
+    isActive: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .nullable();
 
 const meResponseSchema = successResponseSchema(
   userSchema.extend({
@@ -87,11 +100,11 @@ const meResponseSchema = successResponseSchema(
 export function authRoutes(fastify: FastifyInstance) {
   // GET /api/v1/auth/me - Current user info
   fastify.get(
-    '/me',
+    "/me",
     {
       schema: {
-        description: 'Get current user information',
-        tags: ['Auth'],
+        description: "Get current user information",
+        tags: ["Auth"],
         response: {
           200: meResponseSchema,
         },
@@ -115,14 +128,21 @@ export function authRoutes(fastify: FastifyInstance) {
           createdAt: tenant.createdAt.toISOString(),
           updatedAt: tenant.updatedAt.toISOString(),
         },
-        location: location ? {
-          ...location,
-          createdAt: location.createdAt.toISOString(),
-          updatedAt: location.updatedAt.toISOString(),
-        } : null,
+        location: location
+          ? {
+              ...location,
+              createdAt: location.createdAt.toISOString(),
+              updatedAt: location.updatedAt.toISOString(),
+            }
+          : null,
       };
 
-      return reply.send(createSuccessResponse(responseData, 'User information retrieved successfully'));
+      return reply.send(
+        createSuccessResponse(
+          responseData,
+          "User information retrieved successfully"
+        )
+      );
     }
   );
 
@@ -132,11 +152,11 @@ export function authRoutes(fastify: FastifyInstance) {
 
   // GET /api/v1/users/:id/locations - Get user's accessible locations
   fastify.get(
-    '/users/:id/locations',
+    "/users/:id/locations",
     {
       schema: {
-        description: 'Get user accessible locations',
-        tags: ['Auth', 'Multi-Location'],
+        description: "Get user accessible locations",
+        tags: ["Auth", "Multi-Location"],
         params: z.object({ id: z.string().uuid() }),
         response: {
           200: userLocationsResponseSchema,
@@ -144,18 +164,25 @@ export function authRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       const { id: userId } = request.params;
 
       // Verify user exists
-      const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      const user = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
       if (!user.length) {
-        return createNotFoundError('User not found', reply);
+        return createNotFoundError("User not found", reply);
       }
 
       const userData = user[0];
       if (!userData) {
-        return createNotFoundError('User not found', reply);
+        return createNotFoundError("User not found", reply);
       }
 
       // Check if user is super user
@@ -199,7 +226,7 @@ export function authRoutes(fastify: FastifyInstance) {
             userId,
             locations: userLocationsList,
           },
-          'User locations retrieved successfully'
+          "User locations retrieved successfully"
         )
       );
     }
@@ -207,11 +234,11 @@ export function authRoutes(fastify: FastifyInstance) {
 
   // POST /api/v1/users/:id/locations - Assign locations to user
   fastify.post(
-    '/users/:id/locations',
+    "/users/:id/locations",
     {
       schema: {
-        description: 'Assign locations to user',
-        tags: ['Auth', 'Multi-Location'],
+        description: "Assign locations to user",
+        tags: ["Auth", "Multi-Location"],
         params: z.object({ id: z.string().uuid() }),
         body: userLocationAssignSchema.omit({ userId: true }),
         response: {
@@ -223,7 +250,7 @@ export function authRoutes(fastify: FastifyInstance) {
     async (
       request: FastifyRequest<{
         Params: { id: string };
-        Body: Omit<z.infer<typeof userLocationAssignSchema>, 'userId'>;
+        Body: Omit<z.infer<typeof userLocationAssignSchema>, "userId">;
       }>,
       reply: FastifyReply
     ) => {
@@ -232,9 +259,13 @@ export function authRoutes(fastify: FastifyInstance) {
       const currentUser = getCurrentUser(request);
 
       // Verify user exists
-      const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      const user = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
       if (!user.length) {
-        return createNotFoundError('User not found', reply);
+        return createNotFoundError("User not found", reply);
       }
 
       // Verify all locations exist
@@ -246,8 +277,8 @@ export function authRoutes(fastify: FastifyInstance) {
       if (locationsList.length !== locationIds.length) {
         return reply.status(400).send({
           success: false,
-          error: 'Invalid locations',
-          message: 'One or more location IDs are invalid',
+          error: "Invalid locations",
+          message: "One or more location IDs are invalid",
         });
       }
 
@@ -265,10 +296,7 @@ export function authRoutes(fastify: FastifyInstance) {
 
       // Insert with ON CONFLICT DO NOTHING to handle duplicates
       for (const assignment of insertData) {
-        await db
-          .insert(userLocations)
-          .values(assignment)
-          .onConflictDoNothing();
+        await db.insert(userLocations).values(assignment).onConflictDoNothing();
       }
 
       // Return updated location list
@@ -290,7 +318,7 @@ export function authRoutes(fastify: FastifyInstance) {
             userId,
             locations: updatedLocations,
           },
-          `Locations ${replaceExisting ? 'replaced' : 'assigned'} successfully`
+          `Locations ${replaceExisting ? "replaced" : "assigned"} successfully`
         )
       );
     }
@@ -298,11 +326,11 @@ export function authRoutes(fastify: FastifyInstance) {
 
   // POST /api/v1/auth/switch-tenant - Switch active tenant (super users only)
   fastify.post(
-    '/switch-tenant',
+    "/switch-tenant",
     {
       schema: {
-        description: 'Switch user active tenant (super users only)',
-        tags: ['Auth', 'Multi-Tenant'],
+        description: "Switch user active tenant (super users only)",
+        tags: ["Auth", "Multi-Tenant"],
         body: z.object({ tenantId: z.string().uuid() }),
         response: {
           200: meResponseSchema,
@@ -318,14 +346,18 @@ export function authRoutes(fastify: FastifyInstance) {
       const currentUser = getCurrentUser(request);
 
       // Verify tenant exists
-      const tenant = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+      const tenant = await db
+        .select()
+        .from(tenants)
+        .where(eq(tenants.id, tenantId))
+        .limit(1);
       if (!tenant.length) {
-        return createNotFoundError('Tenant not found', reply);
+        return createNotFoundError("Tenant not found", reply);
       }
 
       const tenantData = tenant[0];
       if (!tenantData) {
-        throw new Error('Tenant data not found');
+        throw new Error("Tenant data not found");
       }
 
       // Update user's active tenant
@@ -339,12 +371,12 @@ export function authRoutes(fastify: FastifyInstance) {
         .returning();
 
       if (!updatedUser.length) {
-        return createNotFoundError('User not found', reply);
+        return createNotFoundError("User not found", reply);
       }
 
       const userWithTenant = updatedUser[0];
       if (!userWithTenant) {
-        throw new Error('Failed to update user tenant');
+        throw new Error("Failed to update user tenant");
       }
 
       // Return updated user info
@@ -361,17 +393,19 @@ export function authRoutes(fastify: FastifyInstance) {
         location: null, // Cleared when switching tenants
       };
 
-      return reply.send(createSuccessResponse(responseData, 'Tenant switched successfully'));
+      return reply.send(
+        createSuccessResponse(responseData, "Tenant switched successfully")
+      );
     }
   );
 
   // POST /api/v1/auth/switch-location - Switch active location
   fastify.post(
-    '/switch-location',
+    "/switch-location",
     {
       schema: {
-        description: 'Switch user active location',
-        tags: ['Auth', 'Multi-Location'],
+        description: "Switch user active location",
+        tags: ["Auth", "Multi-Location"],
         body: userLocationSwitchSchema,
         response: {
           200: meResponseSchema,
@@ -380,7 +414,9 @@ export function authRoutes(fastify: FastifyInstance) {
       },
     },
     async (
-      request: FastifyRequest<{ Body: z.infer<typeof userLocationSwitchSchema> }>,
+      request: FastifyRequest<{
+        Body: z.infer<typeof userLocationSwitchSchema>;
+      }>,
       reply: FastifyReply
     ) => {
       const body = userLocationSwitchSchema.parse(request.body);
@@ -388,9 +424,13 @@ export function authRoutes(fastify: FastifyInstance) {
       const currentUser = getCurrentUser(request);
 
       // Verify location exists
-      const location = await db.select().from(locations).where(eq(locations.id, locationId)).limit(1);
+      const location = await db
+        .select()
+        .from(locations)
+        .where(eq(locations.id, locationId))
+        .limit(1);
       if (!location.length) {
-        return createNotFoundError('Location not found', reply);
+        return createNotFoundError("Location not found", reply);
       }
 
       const locationData = location[0];
@@ -410,8 +450,8 @@ export function authRoutes(fastify: FastifyInstance) {
       if (!hasAccess.length) {
         return reply.status(403).send({
           success: false,
-          error: 'Access denied',
-          message: 'User does not have access to this location',
+          error: "Access denied",
+          message: "User does not have access to this location",
         });
       }
 
@@ -423,12 +463,12 @@ export function authRoutes(fastify: FastifyInstance) {
         .returning();
 
       if (!updatedUser.length) {
-        return createNotFoundError('User not found', reply);
+        return createNotFoundError("User not found", reply);
       }
 
       const userWithLocation = updatedUser[0];
       if (!userWithLocation) {
-        throw new Error('Failed to update user location');
+        throw new Error("Failed to update user location");
       }
 
       // Get tenant data
@@ -454,7 +494,9 @@ export function authRoutes(fastify: FastifyInstance) {
           : null,
       };
 
-      return reply.send(createSuccessResponse(responseData, 'Location switched successfully'));
+      return reply.send(
+        createSuccessResponse(responseData, "Location switched successfully")
+      );
     }
   );
 
@@ -464,11 +506,11 @@ export function authRoutes(fastify: FastifyInstance) {
 
   // PATCH /api/v1/auth/me - Update user profile
   fastify.patch(
-    '/me',
+    "/me",
     {
       schema: {
-        description: 'Update current user profile',
-        tags: ['Auth', 'Profile'],
+        description: "Update current user profile",
+        tags: ["Auth", "Profile"],
         body: userProfileUpdateSchema,
         response: {
           200: meResponseSchema,
@@ -476,7 +518,9 @@ export function authRoutes(fastify: FastifyInstance) {
       },
     },
     async (
-      request: FastifyRequest<{ Body: z.infer<typeof userProfileUpdateSchema> }>,
+      request: FastifyRequest<{
+        Body: z.infer<typeof userProfileUpdateSchema>;
+      }>,
       reply: FastifyReply
     ) => {
       const currentUser = getCurrentUser(request);
@@ -487,9 +531,9 @@ export function authRoutes(fastify: FastifyInstance) {
 
       if (updateData.name !== undefined) {
         // Split name into firstName and lastName
-        const nameParts = updateData.name.trim().split(' ');
+        const nameParts = updateData.name.trim().split(" ");
         updates.firstName = nameParts[0];
-        updates.lastName = nameParts.slice(1).join(' ') || null;
+        updates.lastName = nameParts.slice(1).join(" ") || null;
       }
 
       if (updateData.phone !== undefined) {
@@ -513,12 +557,12 @@ export function authRoutes(fastify: FastifyInstance) {
         .returning();
 
       if (!updatedUsers.length) {
-        return createNotFoundError('User not found', reply);
+        return createNotFoundError("User not found", reply);
       }
 
       const updatedUser = updatedUsers[0];
       if (!updatedUser) {
-        throw new Error('Failed to update user profile');
+        throw new Error("Failed to update user profile");
       }
 
       const tenant = getCurrentTenant(request);
@@ -546,17 +590,19 @@ export function authRoutes(fastify: FastifyInstance) {
           : null,
       };
 
-      return reply.send(createSuccessResponse(responseData, 'Profile updated successfully'));
+      return reply.send(
+        createSuccessResponse(responseData, "Profile updated successfully")
+      );
     }
   );
 
   // POST /api/v1/auth/me/photo - Upload profile photo
   fastify.post(
-    '/me/photo',
+    "/me/photo",
     {
       schema: {
-        description: 'Upload profile photo',
-        tags: ['Auth', 'Profile'],
+        description: "Upload profile photo",
+        tags: ["Auth", "Profile"],
         body: z.object({
           photoUrl: z.string().url(),
         }),
@@ -580,12 +626,12 @@ export function authRoutes(fastify: FastifyInstance) {
         .returning();
 
       if (!updatedUsers.length) {
-        return createNotFoundError('User not found', reply);
+        return createNotFoundError("User not found", reply);
       }
 
       const updatedUser = updatedUsers[0];
       if (!updatedUser) {
-        throw new Error('Failed to update user photo');
+        throw new Error("Failed to update user photo");
       }
 
       const tenant = getCurrentTenant(request);
@@ -611,17 +657,19 @@ export function authRoutes(fastify: FastifyInstance) {
           : null,
       };
 
-      return reply.send(createSuccessResponse(responseData, 'Photo uploaded successfully'));
+      return reply.send(
+        createSuccessResponse(responseData, "Photo uploaded successfully")
+      );
     }
   );
 
   // POST /api/v1/auth/me/change-password - Change password
   fastify.post(
-    '/me/change-password',
+    "/me/change-password",
     {
       schema: {
-        description: 'Change user password',
-        tags: ['Auth', 'Profile'],
+        description: "Change user password",
+        tags: ["Auth", "Profile"],
         body: userPasswordChangeSchema,
         response: {
           200: z.object({
@@ -637,7 +685,9 @@ export function authRoutes(fastify: FastifyInstance) {
       },
     },
     async (
-      request: FastifyRequest<{ Body: z.infer<typeof userPasswordChangeSchema> }>,
+      request: FastifyRequest<{
+        Body: z.infer<typeof userPasswordChangeSchema>;
+      }>,
       reply: FastifyReply
     ) => {
       const currentUser = getCurrentUser(request);
@@ -653,8 +703,8 @@ export function authRoutes(fastify: FastifyInstance) {
       if (!userAccount.length) {
         return reply.status(400).send({
           success: false,
-          error: 'Invalid credentials',
-          message: 'User account not found or password not set',
+          error: "Invalid credentials",
+          message: "User account not found or password not set",
         });
       }
 
@@ -662,20 +712,23 @@ export function authRoutes(fastify: FastifyInstance) {
       if (!account || !account.password) {
         return reply.status(400).send({
           success: false,
-          error: 'Invalid credentials',
-          message: 'User account not found or password not set',
+          error: "Invalid credentials",
+          message: "User account not found or password not set",
         });
       }
 
       // Verify current password
-      const bcrypt = await import('bcryptjs');
-      const isValidPassword = await bcrypt.compare(currentPassword, account.password);
+      const bcrypt = await import("bcryptjs");
+      const isValidPassword = await bcrypt.compare(
+        currentPassword,
+        account.password
+      );
 
       if (!isValidPassword) {
         return reply.status(400).send({
           success: false,
-          error: 'Invalid credentials',
-          message: 'Current password is incorrect',
+          error: "Invalid credentials",
+          message: "Current password is incorrect",
         });
       }
 
@@ -690,7 +743,7 @@ export function authRoutes(fastify: FastifyInstance) {
 
       return reply.send({
         success: true,
-        message: 'Password changed successfully',
+        message: "Password changed successfully",
       });
     }
   );
