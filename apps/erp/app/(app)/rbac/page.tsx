@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shield, Users, Key, History, Settings } from "lucide-react";
+import { Shield, Users, History } from "lucide-react";
 import { useEnhancedPermissions } from "@/hooks/use-enhanced-permissions";
 import { PermissionGuard } from "@/components/rbac/permission-guard";
 import { RbacDashboard } from "@/components/rbac/rbac-dashboard";
@@ -13,7 +13,7 @@ import AuditLogViewer from "@/components/rbac/audit-log";
 
 export default function RbacPage() {
     const [activeTab, setActiveTab] = useState('overview');
-    const { hasPermission, isSuperUser } = useEnhancedPermissions();
+    const { hasPermission } = useEnhancedPermissions();
 
     return (
         <div className="container mx-auto p-6 max-w-7xl">

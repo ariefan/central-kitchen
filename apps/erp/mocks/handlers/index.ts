@@ -42,7 +42,7 @@ export const handlers = [
     const limit = parseInt(url.searchParams.get('limit') || '20');
     const type = url.searchParams.get('type');
 
-    let filtered = type ? mockLocations.filter(l => l.type === type) : mockLocations;
+    const filtered = type ? mockLocations.filter(l => l.type === type) : mockLocations;
     return HttpResponse.json(generatePaginatedResponse(filtered, page, limit));
   }),
 
@@ -148,7 +148,7 @@ export const handlers = [
     const limit = parseInt(url.searchParams.get('limit') || '20');
     const status = url.searchParams.get('status');
 
-    let filtered = status ? mockPurchaseOrders.filter(po => po.status === status) : mockPurchaseOrders;
+    const filtered = status ? mockPurchaseOrders.filter(po => po.status === status) : mockPurchaseOrders;
     return HttpResponse.json(generatePaginatedResponse(filtered, page, limit));
   }),
 

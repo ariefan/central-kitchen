@@ -18,10 +18,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useEnhancedPermissions } from "@/hooks/use-enhanced-permissions";
 import { PermissionGuard } from "@/components/rbac/permission-guard";
 import { MultiRoleAssignment } from "@/components/rbac/multi-role-assignment";
-import { User, Role, UserRole, Permission } from "@/types/rbac";
+import { User, Role, Permission } from "@/types/rbac";
 
 interface EnhancedUser extends User {
   roles?: Role[];

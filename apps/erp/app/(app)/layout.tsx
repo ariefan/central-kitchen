@@ -250,7 +250,6 @@ const navigation: NavSection[] = [
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const { user, profile, signOut, needsTenant } = useAuth();
   const { hasAnyPermission, isSuperUser, loading: permissionsLoading } = usePermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
