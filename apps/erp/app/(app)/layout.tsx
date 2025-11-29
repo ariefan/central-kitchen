@@ -211,6 +211,8 @@ const navigation: NavSection[] = [
         href: "/users",
         icon: Users,
         requiredPermissions: [{ resource: "user", action: "read" }],
+        // Admin users can access users on any tenant, including their own
+        visibleOnlyToSuperUser: false, // Allow admin roles to see Users menu
       },
       {
         title: "Roles",
@@ -338,7 +340,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </h3>
                     <div className="space-y-0.5">
                       {visibleItems.map((item) => {
-                        const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+                        const isActive = pathname === item.href || (pathname?.startsWith(item.href + "/") && !pathname.includes("/", item.href.length + 1));
                         return (
                           <Link
                             key={item.href}
@@ -350,7 +352,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
                                 isActive
                                   ? "bg-primary text-primary-foreground shadow-sm"
-                                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground dark:text-zinc-200 dark:hover:bg-zinc-900 dark:hover:text-primary-200"
+                                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground dark:text-zinc-200 dark:hover:bg-primary/80 dark:hover:text-primary/20"
                               )}
                             >
                               <item.icon className="w-4 h-4 shrink-0" />
