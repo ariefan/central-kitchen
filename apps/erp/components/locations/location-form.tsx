@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { locationCreateSchema, type LocationCreate } from "@contracts/erp";
+import { locationCreateSchema, locationUpdateSchema, type LocationCreate, type LocationUpdate } from "@contracts/erp";
 import { z } from "zod";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -25,8 +25,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface LocationFormProps {
-  initialData?: Partial<LocationCreate>;
-  onSubmit: (data: LocationCreate) => void;
+  initialData?: Partial<LocationCreate | LocationUpdate>;
+  onSubmit: (data: LocationCreate | LocationUpdate) => void;
   isLoading?: boolean;
   onCancel?: () => void;
 }
@@ -37,6 +37,12 @@ export function LocationForm({
   isLoading = false,
   onCancel,
 }: LocationFormProps) {
+  // Determine if this is an update operation (has initialData with id)
+  const isUpdate = !!initialData && 'id' in initialData;
+
+  // Use appropriate schema based on operation type
+  const schema = isUpdate ? locationUpdateSchema : locationCreateSchema;
+
   const {
     register,
     handleSubmit,
@@ -44,7 +50,7 @@ export function LocationForm({
     formState: { errors },
   } = useForm<z.infer<typeof locationCreateSchema>>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(locationCreateSchema) as any,
+    resolver: zodResolver(schema) as any,
     defaultValues: {
       ...initialData,
       isActive: initialData?.isActive ?? true,
@@ -60,7 +66,7 @@ export function LocationForm({
   const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
 
   const handleFormSubmit = (data: z.infer<typeof locationCreateSchema>) => {
-    onSubmit(data as LocationCreate);
+    onSubmit(data as LocationCreate | LocationUpdate);
   };
 
   return (
@@ -73,24 +79,41 @@ export function LocationForm({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="code">
-                Location Code <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="code"
-                {...register("code")}
-                placeholder="LOC-CK01"
-                disabled={isLoading}
-              />
-              {errors.code && (
-                <p className="text-sm text-destructive">{errors.code.message}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Uppercase letters, numbers, and hyphens only
-              </p>
-            </div>
+          <div className={isUpdate ? "space-y-4" : "grid grid-cols-2 gap-4"}>
+            {!isUpdate && (
+              <div className="space-y-2">
+                <Label htmlFor="code">
+                  Location Code <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="code"
+                  {...register("code")}
+                  placeholder="LOC-CK01"
+                  disabled={isLoading}
+                />
+                {!isUpdate && errors.code && (
+                  <p className="text-sm text-destructive">{errors.code.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Uppercase letters, numbers, and hyphens only
+                </p>
+              </div>
+            )}
+            {isUpdate && (
+              <div className="space-y-2">
+                <Label htmlFor="code">
+                  Location Code
+                </Label>
+                <Input
+                  id="code"
+                  value={(initialData as LocationCreate)?.code || ''}
+                  disabled={true}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Location code cannot be changed
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="name">
