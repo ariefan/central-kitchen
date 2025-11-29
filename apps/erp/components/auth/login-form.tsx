@@ -111,7 +111,7 @@ export function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => vo
               htmlFor="remember"
               className="text-sm font-normal cursor-pointer"
             >
-              Remember me for 7 days
+              Remember me
             </Label>
           </div>
         </CardContent>

@@ -7,12 +7,12 @@
  * @module routes/v1/tenants
  */
 
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { eq, and, ilike, sql, desc } from 'drizzle-orm';
-import { z } from 'zod';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { eq, and, ilike, sql, desc } from "drizzle-orm";
+import { z } from "zod";
 
-import { db } from '@/config/database.js';
-import { tenants, users, locations } from '@/config/schema.js';
+import { db } from "@/config/database.js";
+import { tenants, users, locations } from "@/config/schema.js";
 import {
   tenantCreateSchema,
   tenantUpdateSchema,
@@ -22,14 +22,17 @@ import {
   type TenantCreate,
   type TenantUpdate,
   type TenantQuery,
-} from '@contracts/erp';
-import { getCurrentUser } from '@/shared/middleware/auth.js';
-import { requirePermission } from '@/shared/middleware/rbac.js';
+} from "@contracts/erp";
+import { getCurrentUser } from "@/shared/middleware/auth.js";
+import {
+  requirePermission,
+  requireSuperUser,
+} from "@/shared/middleware/rbac.js";
 import {
   createSuccessResponse,
   createNotFoundError,
   createBadRequestError,
-} from '@/shared/utils/responses.js';
+} from "@/shared/utils/responses.js";
 
 /**
  * Register tenant routes
@@ -47,23 +50,23 @@ export function tenantRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.post(
-    '/',
+    "/",
     {
       schema: {
-        description: 'Create a new tenant (super user only)',
-        tags: ['Tenants', 'Admin'],
+        description: "Create a new tenant (super user only)",
+        tags: ["Tenants", "Admin"],
         body: tenantCreateSchema,
         response: {
           201: tenantResponseSchema,
         },
       },
-      onRequest: [requirePermission('tenant', 'manage')],
+      onRequest: [requireSuperUser()],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
       const createData = request.body as TenantCreate;
 
-// Check if slug already exists
+      // Check if slug already exists
       const existingTenant = await db
         .select()
         .from(tenants)
@@ -71,7 +74,7 @@ export function tenantRoutes(fastify: FastifyInstance) {
         .limit(1);
 
       if (existingTenant.length > 0) {
-        return createBadRequestError('Tenant slug already exists', reply);
+        return createBadRequestError("Tenant slug already exists", reply);
       }
 
       // Create tenant
@@ -88,7 +91,7 @@ export function tenantRoutes(fastify: FastifyInstance) {
 
       const tenant = newTenants[0];
       if (!tenant) {
-        throw new Error('Failed to create tenant');
+        throw new Error("Failed to create tenant");
       }
 
       const responseData = {
@@ -104,7 +107,11 @@ export function tenantRoutes(fastify: FastifyInstance) {
         updatedAt: tenant.updatedAt.toISOString(),
       };
 
-      return reply.status(201).send(createSuccessResponse(responseData, 'Tenant created successfully'));
+      return reply
+        .status(201)
+        .send(
+          createSuccessResponse(responseData, "Tenant created successfully")
+        );
     }
   );
 
@@ -113,23 +120,23 @@ export function tenantRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.get(
-    '/',
+    "/",
     {
       schema: {
-        description: 'Get paginated list of tenants (super user only)',
-        tags: ['Tenants', 'Admin'],
+        description: "Get paginated list of tenants (super user only)",
+        tags: ["Tenants", "Admin"],
         querystring: tenantQuerySchema,
         response: {
           200: tenantsResponseSchema,
         },
       },
-      onRequest: [requirePermission('tenant', 'manage')],
+      onRequest: [requireSuperUser()],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
       const query = request.query as TenantQuery;
 
-const limit = query.limit || 50;
+      const limit = query.limit || 50;
       const offset = query.offset || 0;
 
       // Build where conditions
@@ -214,11 +221,11 @@ const limit = query.limit || 50;
   // ============================================================================
 
   fastify.get(
-    '/:id',
+    "/:id",
     {
       schema: {
-        description: 'Get tenant details (super user only)',
-        tags: ['Tenants', 'Admin'],
+        description: "Get tenant details (super user only)",
+        tags: ["Tenants", "Admin"],
         params: z.object({
           id: z.string().uuid(),
         }),
@@ -226,7 +233,7 @@ const limit = query.limit || 50;
           200: tenantResponseSchema,
         },
       },
-      onRequest: [requirePermission('tenant', 'manage')],
+      onRequest: [requireSuperUser()],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -239,12 +246,12 @@ const limit = query.limit || 50;
         .limit(1);
 
       if (!tenantResult.length) {
-        return createNotFoundError('Tenant not found', reply);
+        return createNotFoundError("Tenant not found", reply);
       }
 
       const tenant = tenantResult[0];
       if (!tenant) {
-        return createNotFoundError('Tenant not found', reply);
+        return createNotFoundError("Tenant not found", reply);
       }
 
       // Get user and location counts
@@ -281,11 +288,11 @@ const limit = query.limit || 50;
   // ============================================================================
 
   fastify.patch(
-    '/:id',
+    "/:id",
     {
       schema: {
-        description: 'Update tenant (super user only)',
-        tags: ['Tenants', 'Admin'],
+        description: "Update tenant (super user only)",
+        tags: ["Tenants", "Admin"],
         params: z.object({
           id: z.string().uuid(),
         }),
@@ -294,7 +301,7 @@ const limit = query.limit || 50;
           200: tenantResponseSchema,
         },
       },
-      onRequest: [requirePermission('tenant', 'manage')],
+      onRequest: [requireSuperUser()],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -309,7 +316,7 @@ const limit = query.limit || 50;
         .limit(1);
 
       if (!existingTenant.length) {
-        return createNotFoundError('Tenant not found', reply);
+        return createNotFoundError("Tenant not found", reply);
       }
 
       // Check slug uniqueness if being updated
@@ -317,11 +324,13 @@ const limit = query.limit || 50;
         const slugExists = await db
           .select()
           .from(tenants)
-          .where(and(eq(tenants.slug, updateData.slug), sql`${tenants.id} != ${id}`))
+          .where(
+            and(eq(tenants.slug, updateData.slug), sql`${tenants.id} != ${id}`)
+          )
           .limit(1);
 
         if (slugExists.length > 0) {
-          return createBadRequestError('Tenant slug already exists', reply);
+          return createBadRequestError("Tenant slug already exists", reply);
         }
       }
 
@@ -357,7 +366,7 @@ const limit = query.limit || 50;
 
       const tenant = updatedTenants[0];
       if (!tenant) {
-        throw new Error('Failed to update tenant');
+        throw new Error("Failed to update tenant");
       }
 
       // Get user and location counts
@@ -385,7 +394,9 @@ const limit = query.limit || 50;
         updatedAt: tenant.updatedAt.toISOString(),
       };
 
-      return reply.send(createSuccessResponse(responseData, 'Tenant updated successfully'));
+      return reply.send(
+        createSuccessResponse(responseData, "Tenant updated successfully")
+      );
     }
   );
 
@@ -394,11 +405,11 @@ const limit = query.limit || 50;
   // ============================================================================
 
   fastify.delete(
-    '/:id',
+    "/:id",
     {
       schema: {
-        description: 'Deactivate tenant (super user only)',
-        tags: ['Tenants', 'Admin'],
+        description: "Deactivate tenant (super user only)",
+        tags: ["Tenants", "Admin"],
         params: z.object({
           id: z.string().uuid(),
         }),
@@ -409,7 +420,7 @@ const limit = query.limit || 50;
           }),
         },
       },
-      onRequest: [requirePermission('tenant', 'manage')],
+      onRequest: [requireSuperUser()],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -423,12 +434,15 @@ const limit = query.limit || 50;
         .limit(1);
 
       if (!existingTenant.length) {
-        return createNotFoundError('Tenant not found', reply);
+        return createNotFoundError("Tenant not found", reply);
       }
 
       // Don't allow deactivating own tenant
       if (existingTenant[0]?.id === currentUser.tenantId) {
-        return createBadRequestError('Cannot deactivate your own tenant', reply);
+        return createBadRequestError(
+          "Cannot deactivate your own tenant",
+          reply
+        );
       }
 
       // Deactivate tenant
@@ -442,7 +456,7 @@ const limit = query.limit || 50;
 
       return reply.send({
         success: true,
-        message: 'Tenant deactivated successfully',
+        message: "Tenant deactivated successfully",
       });
     }
   );

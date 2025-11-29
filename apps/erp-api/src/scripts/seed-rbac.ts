@@ -7,25 +7,22 @@
  * - Super user role for app owner
  */
 
-import { db } from '../config/database.js';
+import { db } from "../config/database.js";
 import {
   roles,
   permissions,
   rolePermissions,
   userRoles,
   users,
-} from '../config/schema.js';
-import {
-  DEFAULT_PERMISSIONS,
-  DEFAULT_ROLES,
-} from '../config/schema-rbac.js';
-import { eq, and } from 'drizzle-orm';
+} from "../config/schema.js";
+import { DEFAULT_PERMISSIONS, DEFAULT_ROLES } from "../config/schema-rbac.js";
+import { eq, and } from "drizzle-orm";
 
 /**
  * Seed all permissions
  */
 async function seedPermissions() {
-  console.log('🔐 Seeding permissions...');
+  console.log("🔐 Seeding permissions...");
 
   const permissionRecords = [];
 
@@ -38,10 +35,7 @@ async function seedPermissions() {
   }
 
   // Insert permissions (skip duplicates)
-  await db
-    .insert(permissions)
-    .values(permissionRecords)
-    .onConflictDoNothing();
+  await db.insert(permissions).values(permissionRecords).onConflictDoNothing();
 
   console.log(`   ✓ Seeded ${permissionRecords.length} permissions`);
 }
@@ -50,7 +44,7 @@ async function seedPermissions() {
  * Seed super_user role (system-level, no tenant)
  */
 async function seedSuperUserRole() {
-  console.log('👑 Seeding super_user role...');
+  console.log("👑 Seeding super_user role...");
 
   const roleConfig = DEFAULT_ROLES.SUPER_USER;
 
@@ -69,18 +63,15 @@ async function seedSuperUserRole() {
     .returning();
 
   if (!superUserRole) {
-    console.log('   ⚠ Super user role already exists');
+    console.log("   ⚠ Super user role already exists");
     return;
   }
 
-  // Get permission IDs for super user
-  const permissionRecords = await db
-    .select()
-    .from(permissions)
-    .where(eq(permissions.resource, 'tenant'));
+  // Get ALL permission IDs for super user (super user should have all permissions)
+  const permissionRecords = await db.select().from(permissions);
 
-  // Assign tenant management permissions to super_user role
-  const rolePermissionValues = permissionRecords.map(perm => ({
+  // Assign ALL permissions to super_user role
+  const rolePermissionValues = permissionRecords.map((perm) => ({
     roleId: superUserRole.id,
     permissionId: perm.id,
     grantedBy: null, // System-seeded
@@ -91,7 +82,9 @@ async function seedSuperUserRole() {
     .values(rolePermissionValues)
     .onConflictDoNothing();
 
-  console.log(`   ✓ Created super_user role with ${rolePermissionValues.length} permissions`);
+  console.log(
+    `   ✓ Created super_user role with ${rolePermissionValues.length} permissions`
+  );
 }
 
 /**
@@ -130,10 +123,11 @@ async function seedTenantRoles(tenantId: string) {
     }
 
     // Parse permissions from "resource:action" format
-    const permissionChecks: Array<[string, string]> = roleConfig.permissions.map(p => {
-      const [resource, action] = p.split(':');
-      return [resource!, action!];
-    });
+    const permissionChecks: Array<[string, string]> =
+      roleConfig.permissions.map((p) => {
+        const [resource, action] = p.split(":");
+        return [resource!, action!];
+      });
 
     // Get permission IDs
     const permissionRecords = [];
@@ -156,7 +150,7 @@ async function seedTenantRoles(tenantId: string) {
 
     // Assign permissions to role
     if (permissionRecords.length > 0) {
-      const rolePermissionValues = permissionRecords.map(perm => ({
+      const rolePermissionValues = permissionRecords.map((perm) => ({
         roleId: role.id,
         permissionId: perm.id,
         grantedBy: null, // System-seeded
@@ -167,7 +161,9 @@ async function seedTenantRoles(tenantId: string) {
         .values(rolePermissionValues)
         .onConflictDoNothing();
 
-      console.log(`   ✓ Created ${roleConfig.slug} role with ${permissionRecords.length} permissions`);
+      console.log(
+        `   ✓ Created ${roleConfig.slug} role with ${permissionRecords.length} permissions`
+      );
     } else {
       console.log(`   ⚠ No permissions found for ${roleConfig.slug}`);
     }
@@ -196,16 +192,11 @@ export async function assignSuperUserRole(userEmail: string) {
   const [superUserRole] = await db
     .select()
     .from(roles)
-    .where(
-      and(
-        eq(roles.slug, 'super_user'),
-        eq(roles.isSystemRole, true)
-      )
-    )
+    .where(and(eq(roles.slug, "super_user"), eq(roles.isSystemRole, true)))
     .limit(1);
 
   if (!superUserRole) {
-    console.log('   ⚠ Super user role not found');
+    console.log("   ⚠ Super user role not found");
     return;
   }
 
@@ -232,12 +223,7 @@ export async function assignAdminRole(userEmail: string, tenantId: string) {
   const [user] = await db
     .select()
     .from(users)
-    .where(
-      and(
-        eq(users.email, userEmail),
-        eq(users.tenantId, tenantId)
-      )
-    )
+    .where(and(eq(users.email, userEmail), eq(users.tenantId, tenantId)))
     .limit(1);
 
   if (!user) {
@@ -249,16 +235,11 @@ export async function assignAdminRole(userEmail: string, tenantId: string) {
   const [adminRole] = await db
     .select()
     .from(roles)
-    .where(
-      and(
-        eq(roles.slug, 'admin'),
-        eq(roles.tenantId, tenantId)
-      )
-    )
+    .where(and(eq(roles.slug, "admin"), eq(roles.tenantId, tenantId)))
     .limit(1);
 
   if (!adminRole) {
-    console.log('   ⚠ Admin role not found');
+    console.log("   ⚠ Admin role not found");
     return;
   }
 
@@ -279,7 +260,7 @@ export async function assignAdminRole(userEmail: string, tenantId: string) {
  * Main seed function for RBAC
  */
 export async function seedRBAC(tenantId?: string) {
-  console.log('\n🔐 Seeding RBAC data...\n');
+  console.log("\n🔐 Seeding RBAC data...\n");
 
   try {
     // 1. Seed all permissions
@@ -293,22 +274,20 @@ export async function seedRBAC(tenantId?: string) {
       await seedTenantRoles(tenantId);
     }
 
-    console.log('\n✅ RBAC seeding completed successfully!\n');
+    console.log("\n✅ RBAC seeding completed successfully!\n");
   } catch (error) {
-    console.error('❌ Error seeding RBAC:', error);
+    console.error("❌ Error seeding RBAC:", error);
     throw error;
   }
 }
 
-// Run standalone if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  seedRBAC()
-    .then(() => {
-      console.log('Done!');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('Fatal error:', error);
-      process.exit(1);
-    });
-}
+// Always run when called directly
+seedRBAC()
+  .then(() => {
+    console.log("Done!");
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
