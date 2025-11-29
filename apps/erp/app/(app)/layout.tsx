@@ -314,17 +314,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <ScrollArea className="flex-1 min-h-0">
             <nav className="space-y-2 px-2 py-2">
               {navigation.map((section) => {
+                // Debug: Log current state
+                console.log('Debug - isSuperUser:', isSuperUser, 'permissionsLoading:', permissionsLoading, 'hasAnyPermission:', hasAnyPermission);
+
                 // Filter items based on location requirement and permissions
                 const visibleItems = section.items.filter((item) => {
                   // Check super user only items
-                  if (item.visibleOnlyToSuperUser && !isSuperUser) return false;
+                  if (item.visibleOnlyToSuperUser && !isSuperUser) {
+                    console.log('Filtering out item due to super user requirement:', item.title);
+                    return false;
+                  }
 
                   // Check location requirement
                   if (item.requiresLocation && !profile?.location) return false;
 
                   // Check permission requirement (skip check while loading)
                   if (item.requiredPermissions && !permissionsLoading) {
-                    return hasAnyPermission(item.requiredPermissions);
+                    const hasPermission = hasAnyPermission(item.requiredPermissions);
+                    console.log('Permission check for', item.title, ':', item.requiredPermissions, '=>', hasPermission);
+                    return hasPermission;
                   }
 
                   return true;
@@ -383,7 +391,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </ScrollArea>
 
           {/* Footer */}
-          <div className="border-t dark:border-zinc-800 p-2 space-y-1">
+          <div className="border-t dark:border-zinc-800 pt-3 pb-2 space-y-1">
             <Link href="/profile">
               <Button
                 variant="ghost"
