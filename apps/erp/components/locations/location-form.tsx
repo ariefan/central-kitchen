@@ -52,10 +52,16 @@ export function LocationForm({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(schema) as any,
     defaultValues: {
-      ...initialData,
+      ...(initialData && 'code' in initialData ? { code: initialData.code } : {}),
+      name: initialData?.name || "",
       locationType: initialData?.locationType || "central_kitchen",
-      isActive: initialData?.isActive ?? true,
+      address: initialData?.address,
+      city: initialData?.city,
+      postalCode: initialData?.postalCode,
       country: initialData?.country ?? "Singapore",
+      phone: initialData?.phone,
+      email: initialData?.email,
+      isActive: initialData?.isActive ?? true,
     },
     mode: "onChange",
   });
