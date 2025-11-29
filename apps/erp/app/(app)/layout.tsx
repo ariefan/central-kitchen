@@ -245,7 +245,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleSignOut = () => {
     signOut();
-    router.push("/auth");
+    // Only redirect if not already on auth page to prevent multiple redirects
+    if (pathname !== "/auth") {
+      router.push("/auth");
+    }
   };
 
   return (
@@ -314,7 +317,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 // Filter items based on location requirement and permissions
                 const visibleItems = section.items.filter((item) => {
                   // Check super user only items
-                  if (item.visibleOnlyToSuperUser && !isSuperUser()) return false;
+                  if (item.visibleOnlyToSuperUser && !isSuperUser) return false;
 
                   // Check location requirement
                   if (item.requiresLocation && !profile?.location) return false;
@@ -403,7 +406,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 Settings
               </Button>
             </Link>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 mt-2">
               <Button
                 variant="ghost"
                 size="sm"
