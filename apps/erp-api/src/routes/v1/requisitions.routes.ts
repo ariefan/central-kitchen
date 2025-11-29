@@ -1,11 +1,11 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { z } from 'zod';
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { z } from "zod";
 import {
   createSuccessResponse,
   createNotFoundError,
   createBadRequestError,
   notFoundResponseSchema,
-} from '@/modules/shared/responses.js';
+} from "@/modules/shared/responses.js";
 import {
   requisitionCreateSchema,
   requisitionUpdateSchema,
@@ -13,9 +13,13 @@ import {
   requisitionRejectSchema,
   requisitionResponseSchema,
   requisitionsResponseSchema,
-} from '@/modules/requisitions/requisition.schema.js';
-import { requisitionService, RequisitionServiceError } from '@/modules/requisitions/requisition.service.js';
-import { buildRequestContext } from '@/shared/middleware/auth.js';
+} from "@/modules/requisitions/requisition.schema.js";
+import {
+  requisitionService,
+  RequisitionServiceError,
+} from "@/modules/requisitions/requisition.service.js";
+import { transferDetailSchema } from "@/modules/transfers/transfer.schema.js";
+import { buildRequestContext } from "@/shared/middleware/auth.js";
 
 type RequisitionCreateBody = z.infer<typeof requisitionCreateSchema>;
 type RequisitionUpdateBody = z.infer<typeof requisitionUpdateSchema>;
@@ -24,7 +28,7 @@ type RequisitionQuery = z.infer<typeof requisitionQuerySchema>;
 
 const handleServiceError = (error: unknown, reply: FastifyReply) => {
   if (error instanceof RequisitionServiceError) {
-    if (error.kind === 'not_found') {
+    if (error.kind === "not_found") {
       return createNotFoundError(error.message, reply);
     }
     return createBadRequestError(error.message, reply);
@@ -35,30 +39,35 @@ const handleServiceError = (error: unknown, reply: FastifyReply) => {
 
 export function requisitionRoutes(fastify: FastifyInstance) {
   fastify.get(
-    '/',
+    "/",
     {
       schema: {
-        description: 'Get all requisitions',
-        tags: ['Requisitions'],
+        description: "Get all requisitions",
+        tags: ["Requisitions"],
         querystring: requisitionQuerySchema,
         response: {
           200: requisitionsResponseSchema,
         },
       },
     },
-    async (request: FastifyRequest<{ Querystring: RequisitionQuery }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Querystring: RequisitionQuery }>,
+      reply: FastifyReply
+    ) => {
       const context = buildRequestContext(request);
       const items = await requisitionService.list(request.query, context);
-      return reply.send(createSuccessResponse(items, 'Requisitions retrieved successfully'));
+      return reply.send(
+        createSuccessResponse(items, "Requisitions retrieved successfully")
+      );
     }
   );
 
   fastify.get(
-    '/:id',
+    "/:id",
     {
       schema: {
-        description: 'Get requisition by ID with items',
-        tags: ['Requisitions'],
+        description: "Get requisition by ID with items",
+        tags: ["Requisitions"],
         params: z.object({ id: z.string().uuid() }),
         response: {
           200: requisitionResponseSchema,
@@ -66,34 +75,55 @@ export function requisitionRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       const context = buildRequestContext(request);
-      const requisition = await requisitionService.getById(request.params.id, context);
+      const requisition = await requisitionService.getById(
+        request.params.id,
+        context
+      );
       if (!requisition) {
-        return createNotFoundError('Requisition not found', reply);
+        return createNotFoundError("Requisition not found", reply);
       }
 
-      return reply.send(createSuccessResponse(requisition, 'Requisition retrieved successfully'));
+      return reply.send(
+        createSuccessResponse(requisition, "Requisition retrieved successfully")
+      );
     }
   );
 
   fastify.post(
-    '/',
+    "/",
     {
       schema: {
-        description: 'Create a new requisition',
-        tags: ['Requisitions'],
+        description: "Create a new requisition",
+        tags: ["Requisitions"],
         body: requisitionCreateSchema,
         response: {
           201: requisitionResponseSchema,
         },
       },
     },
-    async (request: FastifyRequest<{ Body: RequisitionCreateBody }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Body: RequisitionCreateBody }>,
+      reply: FastifyReply
+    ) => {
       const context = buildRequestContext(request);
       try {
-        const requisition = await requisitionService.create(request.body, context);
-        return reply.status(201).send(createSuccessResponse(requisition, 'Requisition created successfully'));
+        const requisition = await requisitionService.create(
+          request.body,
+          context
+        );
+        return reply
+          .status(201)
+          .send(
+            createSuccessResponse(
+              requisition,
+              "Requisition created successfully"
+            )
+          );
       } catch (error) {
         return handleServiceError(error, reply);
       }
@@ -101,11 +131,11 @@ export function requisitionRoutes(fastify: FastifyInstance) {
   );
 
   fastify.patch(
-    '/:id',
+    "/:id",
     {
       schema: {
-        description: 'Update requisition (draft only)',
-        tags: ['Requisitions'],
+        description: "Update requisition (draft only)",
+        tags: ["Requisitions"],
         params: z.object({ id: z.string().uuid() }),
         body: requisitionUpdateSchema,
         response: {
@@ -115,17 +145,29 @@ export function requisitionRoutes(fastify: FastifyInstance) {
       },
     },
     async (
-      request: FastifyRequest<{ Params: { id: string }; Body: RequisitionUpdateBody }>,
-      reply: FastifyReply,
+      request: FastifyRequest<{
+        Params: { id: string };
+        Body: RequisitionUpdateBody;
+      }>,
+      reply: FastifyReply
     ) => {
       const context = buildRequestContext(request);
       try {
-        const requisition = await requisitionService.update(request.params.id, request.body, context);
+        const requisition = await requisitionService.update(
+          request.params.id,
+          request.body,
+          context
+        );
         if (!requisition) {
-          return createNotFoundError('Requisition not found or cannot be edited', reply);
+          return createNotFoundError(
+            "Requisition not found or cannot be edited",
+            reply
+          );
         }
 
-        return reply.send(createSuccessResponse(requisition, 'Requisition updated successfully'));
+        return reply.send(
+          createSuccessResponse(requisition, "Requisition updated successfully")
+        );
       } catch (error) {
         return handleServiceError(error, reply);
       }
@@ -133,11 +175,11 @@ export function requisitionRoutes(fastify: FastifyInstance) {
   );
 
   fastify.post(
-    '/:id/approve',
+    "/:id/approve",
     {
       schema: {
-        description: 'Approve requisition',
-        tags: ['Requisitions'],
+        description: "Approve requisition",
+        tags: ["Requisitions"],
         params: z.object({ id: z.string().uuid() }),
         response: {
           200: requisitionResponseSchema,
@@ -145,15 +187,29 @@ export function requisitionRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       const context = buildRequestContext(request);
       try {
-        const requisition = await requisitionService.approve(request.params.id, context);
+        const requisition = await requisitionService.approve(
+          request.params.id,
+          context
+        );
         if (!requisition) {
-          return createNotFoundError('Requisition not found or already processed', reply);
+          return createNotFoundError(
+            "Requisition not found or already processed",
+            reply
+          );
         }
 
-        return reply.send(createSuccessResponse(requisition, 'Requisition approved successfully'));
+        return reply.send(
+          createSuccessResponse(
+            requisition,
+            "Requisition approved successfully"
+          )
+        );
       } catch (error) {
         return handleServiceError(error, reply);
       }
@@ -161,11 +217,11 @@ export function requisitionRoutes(fastify: FastifyInstance) {
   );
 
   fastify.post(
-    '/:id/reject',
+    "/:id/reject",
     {
       schema: {
-        description: 'Reject requisition',
-        tags: ['Requisitions'],
+        description: "Reject requisition",
+        tags: ["Requisitions"],
         params: z.object({ id: z.string().uuid() }),
         body: requisitionRejectSchema,
         response: {
@@ -175,17 +231,74 @@ export function requisitionRoutes(fastify: FastifyInstance) {
       },
     },
     async (
-      request: FastifyRequest<{ Params: { id: string }; Body: RequisitionRejectBody }>,
-      reply: FastifyReply,
+      request: FastifyRequest<{
+        Params: { id: string };
+        Body: RequisitionRejectBody;
+      }>,
+      reply: FastifyReply
     ) => {
       const context = buildRequestContext(request);
       try {
-        const requisition = await requisitionService.reject(request.params.id, request.body, context);
+        const requisition = await requisitionService.reject(
+          request.params.id,
+          request.body,
+          context
+        );
         if (!requisition) {
-          return createNotFoundError('Requisition not found or already processed', reply);
+          return createNotFoundError(
+            "Requisition not found or already processed",
+            reply
+          );
         }
 
-        return reply.send(createSuccessResponse(requisition, 'Requisition rejected successfully'));
+        return reply.send(
+          createSuccessResponse(
+            requisition,
+            "Requisition rejected successfully"
+          )
+        );
+      } catch (error) {
+        return handleServiceError(error, reply);
+      }
+    }
+  );
+
+  fastify.post(
+    "/:id/issue",
+    {
+      schema: {
+        description: "Issue approved requisition and create transfer",
+        tags: ["Requisitions"],
+        params: z.object({ id: z.string().uuid() }),
+        response: {
+          200: z.object({
+            requisition: requisitionDetailSchema,
+            transfer: transferDetailSchema,
+          }),
+          404: notFoundResponseSchema,
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
+      const context = buildRequestContext(request);
+      try {
+        const result = await requisitionService.issue(
+          request.params.id,
+          context
+        );
+        if (!result) {
+          return createNotFoundError(
+            "Requisition not found or cannot be issued",
+            reply
+          );
+        }
+
+        return reply.send(
+          createSuccessResponse(result, "Requisition issued successfully")
+        );
       } catch (error) {
         return handleServiceError(error, reply);
       }

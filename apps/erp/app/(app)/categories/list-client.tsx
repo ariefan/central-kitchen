@@ -54,7 +54,7 @@ export default function CategoriesListClient() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Product Kinds</CardTitle>
+              <CardTitle>Product Categories</CardTitle>
               <CardDescription>
                 View available product types/kinds
               </CardDescription>

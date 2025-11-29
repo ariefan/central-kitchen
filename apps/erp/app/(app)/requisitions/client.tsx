@@ -13,16 +13,26 @@ interface Requisition {
   requisitionNumber: string;
   fromLocationId: string;
   toLocationId: string;
-  requestDate: string;
-  status: 'draft' | 'pending_approval' | 'approved' | 'issued' | 'cancelled';
+  requestedDate: string;
+  status: 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'issued' | 'completed' | 'cancelled';
+  transferId: string | null;
+  issueStatus: 'pending' | 'partial' | 'fully_issued';
 }
 
 const statusVariants = {
   draft: "secondary",
   pending_approval: "default",
   approved: "default",
+  rejected: "destructive",
   issued: "outline",
+  completed: "default",
   cancelled: "destructive",
+} as const;
+
+const issueStatusVariants = {
+  pending: "secondary",
+  partial: "default",
+  fully_issued: "default",
 } as const;
 
 export default function RequisitionsClient() {
@@ -70,7 +80,7 @@ export default function RequisitionsClient() {
       render: (value) => <span className="font-mono text-sm font-semibold">{value}</span>
     },
     {
-      key: "requestDate",
+      key: "requestedDate",
       label: "Request Date",
       render: (value) => new Date(value).toLocaleDateString()
     },
@@ -81,6 +91,33 @@ export default function RequisitionsClient() {
         <Badge variant={statusVariants[value]} className="capitalize">
           {value.replace('_', ' ')}
         </Badge>
+      ),
+    },
+    {
+      key: "issueStatus",
+      label: "Issue Status",
+      render: (value: Requisition['issueStatus']) => (
+        <Badge variant={issueStatusVariants[value]} className="capitalize">
+          {value.replace('_', ' ')}
+        </Badge>
+      ),
+    },
+    {
+      key: "transferId",
+      label: "Transfer",
+      render: (value) => value ? (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/stock-transfers/${value}`);
+          }}
+        >
+          View Transfer
+        </Button>
+      ) : (
+        <span className="text-sm text-muted-foreground">No transfer</span>
       ),
     },
     {

@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { docStatuses } from '@/config/schema.js';
-import { successResponseSchema } from '@/modules/shared/responses.js';
+import { z } from "zod";
+import { docStatuses } from "@/config/schema.js";
+import { successResponseSchema } from "@/modules/shared/responses.js";
 
 export const requisitionStatuses = docStatuses.requisition;
 
@@ -16,10 +16,12 @@ export const requisitionCreateSchema = z.object({
   toLocationId: z.string().uuid(),
   requiredDate: z.string().datetime().optional(),
   notes: z.string().optional(),
-  items: z.array(requisitionItemSchema).min(1, 'At least one item is required'),
+  items: z.array(requisitionItemSchema).min(1, "At least one item is required"),
 });
 
-export const requisitionUpdateSchema = requisitionCreateSchema.partial().omit({ items: true });
+export const requisitionUpdateSchema = requisitionCreateSchema
+  .partial()
+  .omit({ items: true });
 
 export const requisitionQuerySchema = z.object({
   status: z.enum(requisitionStatuses).optional(),
@@ -30,14 +32,16 @@ export const requisitionQuerySchema = z.object({
 });
 
 export const requisitionRejectSchema = z.object({
-  reason: z.string().min(1, 'Reason is required'),
+  reason: z.string().min(1, "Reason is required"),
 });
 
-const locationViewSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  code: z.string().nullable(),
-}).nullable();
+const locationViewSchema = z
+  .object({
+    id: z.string(),
+    name: z.string().nullable(),
+    code: z.string().nullable(),
+  })
+  .nullable();
 
 const requisitionItemResponseSchema = z.object({
   id: z.string(),
@@ -48,16 +52,20 @@ const requisitionItemResponseSchema = z.object({
   qtyIssued: z.string(),
   notes: z.string().nullable(),
   createdAt: z.date(),
-  product: z.object({
-    id: z.string(),
-    name: z.string().nullable(),
-    sku: z.string().nullable(),
-  }).nullable(),
-  uom: z.object({
-    id: z.string(),
-    name: z.string().nullable(),
-    code: z.string().nullable(),
-  }).nullable(),
+  product: z
+    .object({
+      id: z.string(),
+      name: z.string().nullable(),
+      sku: z.string().nullable(),
+    })
+    .nullable(),
+  uom: z
+    .object({
+      id: z.string(),
+      name: z.string().nullable(),
+      code: z.string().nullable(),
+    })
+    .nullable(),
 });
 
 export const requisitionDetailSchema = z.object({
@@ -72,6 +80,9 @@ export const requisitionDetailSchema = z.object({
   deliveredDate: z.date().nullable(),
   requestedBy: z.string().nullable(),
   approvedBy: z.string().nullable(),
+  approvedAt: z.date().nullable(),
+  transferId: z.string().nullable(),
+  issueStatus: z.enum(["pending", "partial", "fully_issued"]),
   notes: z.string().nullable(),
   metadata: z.any().nullable(),
   createdAt: z.date(),
@@ -81,9 +92,15 @@ export const requisitionDetailSchema = z.object({
   items: z.array(requisitionItemResponseSchema),
 });
 
-export const requisitionListItemSchema = requisitionDetailSchema.omit({ items: true });
+export const requisitionListItemSchema = requisitionDetailSchema.omit({
+  items: true,
+});
 
-export const requisitionResponseSchema = successResponseSchema(requisitionDetailSchema);
-export const requisitionsResponseSchema = successResponseSchema(z.array(requisitionListItemSchema));
+export const requisitionResponseSchema = successResponseSchema(
+  requisitionDetailSchema
+);
+export const requisitionsResponseSchema = successResponseSchema(
+  z.array(requisitionListItemSchema)
+);
 
 export type RequisitionQueryInput = z.infer<typeof requisitionQuerySchema>;

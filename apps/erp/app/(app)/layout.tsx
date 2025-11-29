@@ -141,6 +141,11 @@ const navigation: NavSection[] = [
         requiresLocation: true,
       },
       {
+        title: "Dashboard",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+      },
+      {
         title: "Requisitions",
         href: "/requisitions",
         icon: ClipboardList,
@@ -197,7 +202,7 @@ const navigation: NavSection[] = [
         icon: Package,
       },
       {
-        title: "Categories",
+        title: "Product Categories",
         href: "/categories",
         icon: Tags,
       },
