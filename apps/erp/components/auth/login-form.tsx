@@ -129,7 +129,7 @@ export function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => vo
               Create one
             </button>
           </p>
-          <p className="text-xs text-muted-foreground/60 text-center">
+          <p className="text-xs text-muted-foreground text-center">
             Build: {BUILD_INFO.timestamp}
           </p>
         </CardFooter>
