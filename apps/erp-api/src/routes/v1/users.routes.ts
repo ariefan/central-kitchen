@@ -47,7 +47,7 @@ export function userRoutes(fastify: FastifyInstance) {
           200: usersResponseSchema,
         },
       },
-      onRequest: [requirePermission('user', 'read')],
+      preHandler: [requirePermission('user', 'read')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -69,7 +69,7 @@ export function userRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('user', 'read')],
+      preHandler: [requirePermission('user', 'read')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -96,7 +96,7 @@ export function userRoutes(fastify: FastifyInstance) {
           201: userResponseSchema,
         },
       },
-      onRequest: [requirePermission('user', 'create')],
+      preHandler: [requirePermission('user', 'create')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -128,7 +128,7 @@ export function userRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('user', 'update')],
+      preHandler: [requirePermission('user', 'update')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -175,7 +175,7 @@ export function userRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('user', 'delete')],
+      preHandler: [requirePermission('user', 'delete')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);

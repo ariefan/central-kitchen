@@ -72,7 +72,7 @@ export function locationRoutes(fastify: FastifyInstance) {
           201: locationResponseSchema,
         },
       },
-      onRequest: [requirePermission('location', 'create')],
+      preHandler: [requirePermission('location', 'create')],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -216,7 +216,7 @@ export function locationRoutes(fastify: FastifyInstance) {
           200: locationsResponseSchema,
         },
       },
-      onRequest: [requirePermission('location', 'read')],
+      preHandler: [requirePermission('location', 'read')],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -326,7 +326,7 @@ export function locationRoutes(fastify: FastifyInstance) {
           200: locationResponseSchema,
         },
       },
-      onRequest: [requirePermission('location', 'read')],
+      preHandler: [requirePermission('location', 'read')],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -408,7 +408,7 @@ export function locationRoutes(fastify: FastifyInstance) {
           200: locationResponseSchema,
         },
       },
-      onRequest: [requirePermission('location', 'update')],
+      preHandler: [requirePermission('location', 'update')],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -570,7 +570,7 @@ export function locationRoutes(fastify: FastifyInstance) {
           }),
         },
       },
-      onRequest: [requirePermission('location', 'delete')],
+      preHandler: [requirePermission('location', 'delete')],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);

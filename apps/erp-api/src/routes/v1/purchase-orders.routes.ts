@@ -31,7 +31,7 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           200: purchaseOrdersResponseSchema,
         },
       },
-      onRequest: [requirePermission('purchase_order', 'read')],
+      preHandler: [requirePermission('purchase_order', 'read')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -53,7 +53,7 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('purchase_order', 'read')],
+      preHandler: [requirePermission('purchase_order', 'read')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -84,7 +84,7 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
         //   201: purchaseOrderWithItemsResponseSchema,
         // },
       },
-      onRequest: [requirePermission('purchase_order', 'create')],
+      preHandler: [requirePermission('purchase_order', 'create')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -107,7 +107,7 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('purchase_order', 'update')],
+      preHandler: [requirePermission('purchase_order', 'update')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -140,7 +140,7 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('purchase_order', 'update')],
+      preHandler: [requirePermission('purchase_order', 'update')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -167,7 +167,7 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('purchase_order', 'approve')],
+      preHandler: [requirePermission('purchase_order', 'approve')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -197,7 +197,7 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('purchase_order', 'reject')],
+      preHandler: [requirePermission('purchase_order', 'reject')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -229,7 +229,7 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('purchase_order', 'update')],
+      preHandler: [requirePermission('purchase_order', 'update')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -260,7 +260,7 @@ export function purchaseOrderRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('purchase_order', 'update')],
+      preHandler: [requirePermission('purchase_order', 'update')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);

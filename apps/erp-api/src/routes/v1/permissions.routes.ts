@@ -39,7 +39,7 @@ export function permissionsRoutes(fastify: FastifyInstance) {
         tags: ['Permissions'],
         querystring: permissionQuerySchema,
       },
-      onRequest: [requirePermission('role', 'read')],
+      preHandler: [requirePermission('role', 'read')],
     },
     async (request, reply) => {
       const query = request.query as PermissionQuery;
@@ -105,7 +105,7 @@ export function permissionsRoutes(fastify: FastifyInstance) {
         description: 'Get list of unique resource names',
         tags: ['Permissions'],
       },
-      onRequest: [requirePermission('role', 'read')],
+      preHandler: [requirePermission('role', 'read')],
     },
     async (_request, reply) => {
       const resources = await db
@@ -130,7 +130,7 @@ export function permissionsRoutes(fastify: FastifyInstance) {
         description: 'Get list of unique action names',
         tags: ['Permissions'],
       },
-      onRequest: [requirePermission('role', 'read')],
+      preHandler: [requirePermission('role', 'read')],
     },
     async (_request, reply) => {
       const actions = await db

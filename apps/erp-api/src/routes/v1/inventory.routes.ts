@@ -50,7 +50,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           200: inventoryListResponseSchema,
         },
       },
-      onRequest: [requirePermission('inventory', 'read')],
+      preHandler: [requirePermission('inventory', 'read')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -82,7 +82,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('inventory', 'read')],
+      preHandler: [requirePermission('inventory', 'read')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -109,7 +109,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('inventory', 'write')],
+      preHandler: [requirePermission('inventory', 'write')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -161,7 +161,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           }),
         },
       },
-      onRequest: [requirePermission('inventory', 'read')],
+      preHandler: [requirePermission('inventory', 'read')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -360,7 +360,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('inventory', 'read')],
+      preHandler: [requirePermission('inventory', 'read')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -536,7 +536,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('inventory', 'write')],
+      preHandler: [requirePermission('inventory', 'write')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -624,7 +624,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           200: inventoryListResponseSchema,
         },
       },
-      onRequest: [requirePermission('inventory', 'read')],
+      preHandler: [requirePermission('inventory', 'read')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -752,7 +752,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           200: inventoryListResponseSchema,
         },
       },
-      onRequest: [requirePermission('inventory', 'read')],
+      preHandler: [requirePermission('inventory', 'read')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -876,7 +876,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           }),
         },
       },
-      onRequest: [requirePermission('inventory', 'read')],
+      preHandler: [requirePermission('inventory', 'read')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -1015,7 +1015,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('inventory', 'read')],
+      preHandler: [requirePermission('inventory', 'read')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -1182,7 +1182,7 @@ export function inventoryRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('inventory', 'write')],
+      preHandler: [requirePermission('inventory', 'write')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);

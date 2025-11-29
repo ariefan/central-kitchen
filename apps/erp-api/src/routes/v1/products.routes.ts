@@ -83,7 +83,7 @@ export function productRoutes(fastify: FastifyInstance) {
           201: productResponseSchema,
         },
       },
-      onRequest: [requirePermission('product', 'create')],
+      preHandler: [requirePermission('product', 'create')],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -253,7 +253,7 @@ export function productRoutes(fastify: FastifyInstance) {
           200: productsResponseSchema,
         },
       },
-      onRequest: [requirePermission('product', 'read')],
+      preHandler: [requirePermission('product', 'read')],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -382,7 +382,7 @@ export function productRoutes(fastify: FastifyInstance) {
           200: productResponseSchema,
         },
       },
-      onRequest: [requirePermission('product', 'read')],
+      preHandler: [requirePermission('product', 'read')],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -482,7 +482,7 @@ export function productRoutes(fastify: FastifyInstance) {
           200: productResponseSchema,
         },
       },
-      onRequest: [requirePermission('product', 'update')],
+      preHandler: [requirePermission('product', 'update')],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -644,7 +644,7 @@ export function productRoutes(fastify: FastifyInstance) {
           }),
         },
       },
-      onRequest: [requirePermission('product', 'delete')],
+      preHandler: [requirePermission('product', 'delete')],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -720,7 +720,7 @@ export function productRoutes(fastify: FastifyInstance) {
           }),
         },
       },
-      onRequest: [requirePermission('product', 'read')],
+      preHandler: [requirePermission('product', 'read')],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);
@@ -841,7 +841,7 @@ export function productRoutes(fastify: FastifyInstance) {
           }),
         },
       },
-      onRequest: [requirePermission('product', 'create')],
+      preHandler: [requirePermission('product', 'create')],
     },
     async (request, reply) => {
       const currentUser = getCurrentUser(request);

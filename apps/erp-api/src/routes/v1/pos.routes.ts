@@ -34,7 +34,7 @@ export function posRoutes(fastify: FastifyInstance) {
           200: shiftsResponseSchema,
         },
       },
-      onRequest: [requirePermission('pos', 'read')],
+      preHandler: [requirePermission('pos', 'read')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -57,7 +57,7 @@ export function posRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('pos', 'read')],
+      preHandler: [requirePermission('pos', 'read')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -85,7 +85,7 @@ export function posRoutes(fastify: FastifyInstance) {
           201: shiftResponseSchema,
         },
       },
-      onRequest: [requirePermission('pos', 'operate')],
+      preHandler: [requirePermission('pos', 'operate')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -113,7 +113,7 @@ export function posRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('pos', 'operate')],
+      preHandler: [requirePermission('pos', 'operate')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -145,7 +145,7 @@ export function posRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('pos', 'operate')],
+      preHandler: [requirePermission('pos', 'operate')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -176,7 +176,7 @@ export function posRoutes(fastify: FastifyInstance) {
           404: notFoundResponseSchema,
         },
       },
-      onRequest: [requirePermission('pos', 'read')],
+      preHandler: [requirePermission('pos', 'read')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);
@@ -230,7 +230,7 @@ export function posRoutes(fastify: FastifyInstance) {
           }),
         },
       },
-      onRequest: [requirePermission('pos', 'read')],
+      preHandler: [requirePermission('pos', 'read')],
     },
     async (request, reply) => {
       const context = buildRequestContext(request);

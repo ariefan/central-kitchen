@@ -70,7 +70,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
         tags: ['Roles'],
         querystring: roleQuerySchema,
       },
-      onRequest: [requirePermission('role', 'read')],
+      preHandler: [requirePermission('role', 'read')],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
@@ -150,7 +150,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
           id: z.string().uuid(),
         }),
       },
-      onRequest: [requirePermission('role', 'read')],
+      preHandler: [requirePermission('role', 'read')],
     },
     async (
       request,
@@ -190,7 +190,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
           id: z.string().uuid(),
         }),
       },
-      onRequest: [requirePermission('role', 'read')],
+      preHandler: [requirePermission('role', 'read')],
     },
     async (
       request,
@@ -243,7 +243,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
         tags: ['Roles'],
         body: roleCreateSchema,
       },
-      onRequest: [requirePermission('role', 'create')],
+      preHandler: [requirePermission('role', 'create')],
     },
     async (
       request,
@@ -303,7 +303,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
         }),
         body: roleUpdateSchema,
       },
-      onRequest: [requirePermission('role', 'update')],
+      preHandler: [requirePermission('role', 'update')],
     },
     async (
       request,
@@ -390,7 +390,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
           id: z.string().uuid(),
         }),
       },
-      onRequest: [requirePermission('role', 'delete')],
+      preHandler: [requirePermission('role', 'delete')],
     },
     async (
       request,
@@ -453,7 +453,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
         }),
         body: assignPermissionsSchema,
       },
-      onRequest: [requirePermission('role', 'manage_permissions')],
+      preHandler: [requirePermission('role', 'manage_permissions')],
     },
     async (
       request,
@@ -531,7 +531,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
         }),
         body: removePermissionsSchema,
       },
-      onRequest: [requirePermission('role', 'manage_permissions')],
+      preHandler: [requirePermission('role', 'manage_permissions')],
     },
     async (
       request,
@@ -594,7 +594,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
         }),
         body: assignRolesToUserSchema,
       },
-      onRequest: [requirePermission('user', 'update')],
+      preHandler: [requirePermission('user', 'update')],
     },
     async (
       request,
@@ -668,7 +668,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
         }),
         body: removeRolesFromUserSchema,
       },
-      onRequest: [requirePermission('user', 'update')],
+      preHandler: [requirePermission('user', 'update')],
     },
     async (
       request,
@@ -723,7 +723,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
           userId: z.string().uuid(),
         }),
       },
-      onRequest: [requirePermission('user', 'read')],
+      preHandler: [requirePermission('user', 'read')],
     },
     async (
       request,
