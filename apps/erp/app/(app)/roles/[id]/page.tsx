@@ -206,7 +206,7 @@ export default function EditRolePage() {
 
     if (fetchingRole) {
         return (
-            <div className="container mx-auto p-6 max-w-4xl">
+            <div className="container mx-auto p-6 max-w-7xl">
                 <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
@@ -216,7 +216,7 @@ export default function EditRolePage() {
 
     if (!role) {
         return (
-            <div className="container mx-auto p-6 max-w-4xl">
+            <div className="container mx-auto p-6 max-w-7xl">
                 <div className="text-center py-8">
                     <p className="text-muted-foreground">Role not found</p>
                     <Link href="/roles">
@@ -230,7 +230,7 @@ export default function EditRolePage() {
     const isSystemRole = role.isSystemRole || role.slug === 'super_user';
 
     return (
-        <div className="container mx-auto p-6 max-w-4xl">
+        <div className="container mx-auto p-6 max-w-7xl">
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
@@ -338,8 +338,8 @@ export default function EditRolePage() {
                                     <div
                                         key={roleDef.id}
                                         className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedRole === roleDef.id
-                                                ? "border-primary bg-primary/5"
-                                                : "hover:bg-muted/50"
+                                            ? "border-primary bg-primary/5"
+                                            : "hover:bg-muted/50"
                                             }`}
                                         onClick={() => !isSystemRole && handleRoleSelect(roleDef.id)}
                                     >

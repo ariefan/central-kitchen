@@ -148,7 +148,7 @@ export default function RequisitionDetailPage() {
 
     if (loading) {
         return (
-            <div className="container mx-auto py-6">
+            <div className="container mx-auto py-6 max-w-7xl">
                 <div className="flex items-center justify-center h-64">
                     <div className="text-lg">Loading...</div>
                 </div>
@@ -158,7 +158,7 @@ export default function RequisitionDetailPage() {
 
     if (!requisition) {
         return (
-            <div className="container mx-auto py-6">
+            <div className="container mx-auto py-6 max-w-7xl">
                 <div className="flex items-center justify-center h-64">
                     <div className="text-lg">Requisition not found</div>
                 </div>
@@ -167,7 +167,7 @@ export default function RequisitionDetailPage() {
     }
 
     return (
-        <div className="container mx-auto py-6 space-y-6">
+        <div className="container mx-auto py-6 max-w-7xl space-y-6">
             <div className="flex items-center gap-4">
                 <Link href="/requisitions">
                     <Button variant="ghost" size="icon">

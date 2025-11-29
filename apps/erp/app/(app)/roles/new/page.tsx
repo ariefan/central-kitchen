@@ -130,7 +130,7 @@ export default function NewRolePage() {
     };
 
     return (
-        <div className="container mx-auto p-6 max-w-4xl">
+        <div className="container mx-auto p-6 max-w-7xl">
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex items-center gap-4">
@@ -208,8 +208,8 @@ export default function NewRolePage() {
                                     <div
                                         key={role.id}
                                         className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedRole === role.id
-                                                ? "border-primary bg-primary/5"
-                                                : "hover:bg-muted/50"
+                                            ? "border-primary bg-primary/5"
+                                            : "hover:bg-muted/50"
                                             }`}
                                         onClick={() => handleRoleSelect(role.id)}
                                     >
