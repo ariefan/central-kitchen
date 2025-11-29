@@ -4,6 +4,7 @@ import { createSelectSchema } from 'drizzle-zod';
 import { successResponseSchema, createSuccessResponse, createNotFoundError, notFoundResponseSchema } from '@/shared/utils/responses.js';
 import { users, tenants, locations, userLocations, accounts } from '@/config/schema.js';
 import { getCurrentUser, getCurrentTenant } from '@/shared/middleware/auth.js';
+import { getUserPermissions } from '@/shared/middleware/rbac.js';
 import { db } from '@/config/database.js';
 import { eq, and, inArray } from 'drizzle-orm';
 import {
@@ -152,18 +153,45 @@ export function authRoutes(fastify: FastifyInstance) {
         return createNotFoundError('User not found', reply);
       }
 
-      // Get user's assigned locations with location details
-      const userLocationsList = await db
-        .select({
-          id: locations.id,
-          code: locations.code,
-          name: locations.name,
-          locationType: locations.type,
-          isActive: locations.isActive,
-        })
-        .from(userLocations)
-        .innerJoin(locations, eq(userLocations.locationId, locations.id))
-        .where(eq(userLocations.userId, userId));
+      const userData = user[0];
+      if (!userData) {
+        return createNotFoundError('User not found', reply);
+      }
+
+      // Check if user is super user
+      const userPerms = await getUserPermissions(request);
+      const isSuperUser = userPerms.isSuperUser;
+
+      let userLocationsList;
+
+      if (isSuperUser) {
+        // Super users can access ALL locations in their tenant
+        userLocationsList = await db
+          .select({
+            id: locations.id,
+            code: locations.code,
+            name: locations.name,
+            locationType: locations.type,
+            isActive: locations.isActive,
+          })
+          .from(locations)
+          .where(eq(locations.tenantId, userData.tenantId!))
+          .orderBy(locations.name);
+      } else {
+        // Regular users get only their assigned locations
+        userLocationsList = await db
+          .select({
+            id: locations.id,
+            code: locations.code,
+            name: locations.name,
+            locationType: locations.type,
+            isActive: locations.isActive,
+          })
+          .from(userLocations)
+          .innerJoin(locations, eq(userLocations.locationId, locations.id))
+          .where(eq(userLocations.userId, userId))
+          .orderBy(locations.name);
+      }
 
       return reply.send(
         createSuccessResponse(
