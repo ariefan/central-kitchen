@@ -56,6 +56,7 @@ interface NavItem {
   badge?: string;
   requiresLocation?: boolean; // Hide if no location selected
   requiredPermissions?: Array<{ resource: string; action: string }>; // Hide if user lacks permissions
+  visibleOnlyToSuperUser?: boolean; // Hide if user is not super user
 }
 
 interface NavSection {
@@ -228,6 +229,8 @@ const navigation: NavSection[] = [
         href: "/tenants",
         icon: Building2,
         requiredPermissions: [{ resource: "tenant", action: "manage" }],
+        // Only show to super users
+        visibleOnlyToSuperUser: true,
       },
     ],
   },
@@ -237,7 +240,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, profile, signOut, needsTenant } = useAuth();
-  const { hasAnyPermission, loading: permissionsLoading } = usePermissions();
+  const { hasAnyPermission, isSuperUser, loading: permissionsLoading } = usePermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = () => {
@@ -310,6 +313,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {navigation.map((section) => {
                 // Filter items based on location requirement and permissions
                 const visibleItems = section.items.filter((item) => {
+                  // Check super user only items
+                  if (item.visibleOnlyToSuperUser && !isSuperUser()) return false;
+
                   // Check location requirement
                   if (item.requiresLocation && !profile?.location) return false;
 
