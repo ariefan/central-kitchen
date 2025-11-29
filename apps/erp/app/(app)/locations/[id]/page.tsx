@@ -3,7 +3,7 @@
 import { useRouter, useParams } from "next/navigation";
 import { LocationForm } from "@/components/locations/location-form";
 import { useLocation, useUpdateLocation } from "@/hooks/use-locations";
-import type { LocationUpdate } from "@contracts/erp";
+import type { LocationCreate, LocationUpdate } from "@contracts/erp";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -18,9 +18,9 @@ export default function EditLocationPage() {
   const { data: locationData, isLoading, error } = useLocation(locationId);
   const updateLocation = useUpdateLocation(locationId);
 
-  const handleSubmit = async (data: LocationUpdate) => {
+  const handleSubmit = async (data: LocationCreate | LocationUpdate) => {
     try {
-      await updateLocation.mutateAsync(data);
+      await updateLocation.mutateAsync(data as LocationUpdate);
       toast.success("Location updated successfully");
       router.push("/locations");
     } catch (error) {

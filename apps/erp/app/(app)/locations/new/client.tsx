@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { LocationForm } from "@/components/locations/location-form";
 import { useCreateLocation } from "@/hooks/use-locations";
-import type { LocationCreate } from "@contracts/erp";
+import type { LocationCreate, LocationUpdate } from "@contracts/erp";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -13,9 +13,9 @@ export default function NewLocationClient() {
   const router = useRouter();
   const createLocation = useCreateLocation();
 
-  const handleSubmit = async (data: LocationCreate) => {
+  const handleSubmit = async (data: LocationCreate | LocationUpdate) => {
     try {
-      await createLocation.mutateAsync(data);
+      await createLocation.mutateAsync(data as LocationCreate);
       toast.success("Location created successfully");
       router.push("/locations");
     } catch (error) {
