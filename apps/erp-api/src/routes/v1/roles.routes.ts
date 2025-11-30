@@ -78,8 +78,10 @@ export function rolesRoutes(fastify: FastifyInstance) {
       const slug = query.slug;
       const isActive = query.isActive;
 
-      // Build where conditions
-      const conditions = [eq(roles.tenantId, tenantId)];
+      // Build where conditions - include both tenant-specific and system roles (tenantId IS NULL)
+      const conditions = [
+        sql`(${roles.tenantId} = ${tenantId} OR ${roles.tenantId} IS NULL)`,
+      ];
 
       if (name) {
         conditions.push(sql`${roles.name} ILIKE ${`%${name}%`}`);
