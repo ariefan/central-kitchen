@@ -23,7 +23,6 @@ export interface Role {
   name: string;
   slug: string;
   description?: string;
-  isSystemRole: boolean;
   isActive: boolean;
   parentRoles?: string[];
   permissions?: Permission[];

@@ -24,7 +24,7 @@ import {
     Download,
     Filter
 } from 'lucide-react';
-import { useEnhancedPermissions } from '@/hooks/use-enhanced-permissions';
+import { usePermissions } from '@/hooks/use-permissions';
 import { PermissionGuard } from './permission-guard';
 import {
     AuditLog,
@@ -38,7 +38,7 @@ interface AuditLogProps {
 }
 
 export function AuditLogViewer({ className, autoRefresh = false }: AuditLogProps) {
-    const { hasPermission } = useEnhancedPermissions();
+    const { hasPermission } = usePermissions();
     const queryClient = useQueryClient();
 
     // State
@@ -503,7 +503,7 @@ interface AuditLogSummaryProps {
 }
 
 export function AuditLogSummary({ timeRange = 'today', className }: AuditLogSummaryProps) {
-    const { hasPermission } = useEnhancedPermissions();
+    const { hasPermission } = usePermissions();
 
     // Fetch summary data
     const { data: summary = [], isLoading } = useQuery({

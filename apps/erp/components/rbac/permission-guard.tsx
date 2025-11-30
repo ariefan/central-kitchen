@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { useEnhancedPermissions } from '@/hooks/use-enhanced-permissions';
+import { usePermissions } from '@/hooks/use-permissions';
 import { PermissionGuardProps } from '@/types/rbac';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Lock } from 'lucide-react';
@@ -29,7 +29,7 @@ export function PermissionGuard({
         hasPermission,
         hasAnyPermission,
         loading: permissionsLoading
-    } = useEnhancedPermissions();
+    } = usePermissions();
 
     // Handle loading state
     if (permissionsLoading) {
@@ -193,7 +193,7 @@ export function PermissionAlert({
     message?: string;
     className?: string;
 }) {
-    const { hasPermission, hasAnyPermission } = useEnhancedPermissions();
+    const { hasPermission, hasAnyPermission } = usePermissions();
 
     let hasAccess = false;
 
@@ -255,7 +255,7 @@ export function withPermissionGuard<P extends object>(
  * Hook for creating permission-aware components
  */
 export function usePermissionGuard() {
-    const { checkPermission, hasPermission, hasAnyPermission } = useEnhancedPermissions();
+    const { checkPermission, hasPermission, hasAnyPermission } = usePermissions();
 
     const createGuard = React.useCallback((
         check: { permission?: string; permissions?: string[]; resource?: string; action?: string },

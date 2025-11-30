@@ -35,7 +35,7 @@ interface MultiRoleAssignmentProps {
     className?: string;
 }
 
-export function MultiRoleAssignment({ onRoleAssignmentChange, className }: MultiRoleAssignmentProps) {
+export function MultiRoleAssignment({ userId, onRoleAssignmentChange, className }: MultiRoleAssignmentProps) {
     const queryClient = useQueryClient();
 
     // State
@@ -391,7 +391,6 @@ export function MultiRoleAssignment({ onRoleAssignmentChange, className }: Multi
                                                                 variant="outline"
                                                                 size="sm"
                                                                 onClick={() => handleRoleRemoval(role.id)}
-                                                                disabled={role.isSystemRole}
                                                             >
                                                                 <UserMinus className="h-4 w-4 mr-1" />
                                                                 Remove
@@ -426,9 +425,6 @@ export function MultiRoleAssignment({ onRoleAssignmentChange, className }: Multi
                                         <Shield className="h-5 w-5" />
                                         {role.name}
                                     </CardTitle>
-                                    {role.isSystemRole && (
-                                        <Badge variant="outline">System</Badge>
-                                    )}
                                 </CardHeader>
                                 <CardContent>
                                     <CardDescription>{role.description}</CardDescription>

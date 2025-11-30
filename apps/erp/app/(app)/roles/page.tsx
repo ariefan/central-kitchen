@@ -279,15 +279,6 @@ export default function RolesPage() {
             ),
         },
         {
-            key: "isSystemRole",
-            label: "Type",
-            render: (value) => (
-                <Badge variant={value ? "destructive" : "outline"}>
-                    {value ? "System" : "Custom"}
-                </Badge>
-            ),
-        },
-        {
             key: "id",
             label: "Actions",
             render: (_, row) => (
@@ -312,7 +303,6 @@ export default function RolesPage() {
                             }}
                             title="Delete role"
                             className="text-destructive hover:text-destructive"
-                            disabled={row.isSystemRole}
                         >
                             <Trash2 className="w-4 h-4" />
                         </Button>
@@ -404,18 +394,13 @@ export default function RolesPage() {
                         <AlertDialogDescription>
                             Are you sure you want to delete the role "{roleToDelete?.name}"?
                             This action cannot be undone and will remove all permissions associated with this role.
-                            {roleToDelete?.isSystemRole && (
-                                <div className="mt-2 p-2 bg-destructive/10 border border-destructive/20 rounded-md">
-                                    <strong>Warning:</strong> This is a system role and cannot be deleted.
-                                </div>
-                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
-                            disabled={deleting || roleToDelete?.isSystemRole}
+                            disabled={deleting}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                             {deleting ? "Deleting..." : "Delete"}

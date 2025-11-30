@@ -23,7 +23,7 @@ import {
     PERMISSION_RESOURCES,
     PERMISSION_ACTIONS
 } from '@/types/rbac';
-import { useEnhancedPermissions } from '@/hooks/use-enhanced-permissions';
+import { usePermissions } from '@/hooks/use-permissions';
 import { ChevronDown, ChevronRight, Shield, Users, Settings, AlertCircle, Save, Trash2, Copy } from 'lucide-react';
 
 interface RoleFormProps {
@@ -108,7 +108,7 @@ export function RoleFormSimple({
     const [selectedTemplate, setSelectedTemplate] = useState<string>('');
     const [isTemplateApplied, setIsTemplateApplied] = useState(false);
 
-    const { hasPermission } = useEnhancedPermissions();
+    const { hasPermission } = usePermissions();
 
     // Handle form field changes
     const handleFieldChange = (field: string, value: string | string[] | boolean) => {
@@ -471,7 +471,7 @@ export function RoleFormSimple({
                                 <Button type="button" variant="outline" onClick={onCancel}>
                                     Cancel
                                 </Button>
-                                {mode === 'edit' && role && !role.isSystemRole && (
+                                {mode === 'edit' && role && (
                                     <Button
                                         type="button"
                                         variant="destructive"

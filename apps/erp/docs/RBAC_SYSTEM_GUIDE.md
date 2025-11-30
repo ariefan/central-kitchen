@@ -221,7 +221,7 @@ import { AuditLogViewer } from "@/components/rbac/audit-log";
 <AuditLogViewer className="custom-class" autoRefresh={true} />;
 ```
 
-### 7. Enhanced Permissions Hook (`apps/erp/hooks/use-enhanced-permissions.ts`)
+### 7. Enhanced Permissions Hook (`apps/erp/hooks/use-permissions.ts`)
 
 **Purpose**: Client-side permission checking and caching
 
@@ -236,7 +236,7 @@ import { AuditLogViewer } from "@/components/rbac/audit-log";
 **Usage**:
 
 ```tsx
-import { useEnhancedPermissions } from "@/hooks/use-enhanced-permissions";
+import { usePermissions } from "@/hooks/use-permissions";
 
 function MyComponent() {
   const { hasPermission, canAccess, effectivePermissions } =

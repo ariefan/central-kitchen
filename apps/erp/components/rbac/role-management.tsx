@@ -23,7 +23,7 @@ import {
     Search,
     Eye
 } from 'lucide-react';
-import { useEnhancedPermissions } from '@/hooks/use-enhanced-permissions';
+import { usePermissions } from '@/hooks/use-permissions';
 import { PermissionGuard } from './permission-guard';
 import {
     Role,
@@ -40,7 +40,7 @@ interface RoleManagementProps {
 }
 
 export function RoleManagement({ tenantId, onRoleSelect, className }: RoleManagementProps) {
-    const { hasPermission } = useEnhancedPermissions();
+    const { hasPermission } = usePermissions();
     const queryClient = useQueryClient();
 
     // State
@@ -204,7 +204,7 @@ export function RoleManagement({ tenantId, onRoleSelect, className }: RoleManage
                                 </DialogDescription>
                             </DialogHeader>
                             <RoleForm
-                                onSubmit={(data: RoleCreateRequest | RoleUpdateRequest) => {
+                                onSubmit={(data: RoleCreateRequest | (RoleUpdateRequest & { id?: string })) => {
                                     if (isCreateDialogOpen) {
                                         handleCreateRole(data as RoleCreateRequest);
                                     } else {
@@ -267,9 +267,6 @@ export function RoleManagement({ tenantId, onRoleSelect, className }: RoleManage
                                             <Badge variant={role.isActive ? 'default' : 'secondary'}>
                                                 {role.isActive ? 'Active' : 'Inactive'}
                                             </Badge>
-                                            {role.isSystemRole && (
-                                                <Badge variant="outline">System</Badge>
-                                            )}
                                         </div>
                                     </div>
                                     <CardDescription>{role.description}</CardDescription>
@@ -326,7 +323,6 @@ export function RoleManagement({ tenantId, onRoleSelect, className }: RoleManage
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => handleDeleteRole(role.id)}
-                                                    disabled={role.isSystemRole}
                                                 >
                                                     <Trash2 className="h-4 w-4 mr-1" />
                                                     Delete
@@ -411,7 +407,9 @@ export function RoleManagement({ tenantId, onRoleSelect, className }: RoleManage
                     {selectedRole && (
                         <RoleForm
                             role={selectedRole}
-                            onSubmit={handleUpdateRole}
+                            onSubmit={(data: RoleCreateRequest | (RoleUpdateRequest & { id?: string })) => {
+                                handleUpdateRole(data as RoleUpdateRequest);
+                            }}
                             onCancel={() => setIsEditDialogOpen(false)}
                             permissions={permissions}
                             templates={templates}
@@ -427,7 +425,7 @@ export function RoleManagement({ tenantId, onRoleSelect, className }: RoleManage
 // Role Form Component
 interface RoleFormProps {
     role?: Role;
-    onSubmit: (data: RoleCreateRequest | RoleUpdateRequest) => void;
+    onSubmit: (data: RoleCreateRequest | (RoleUpdateRequest & { id?: string })) => void;
     onCancel: () => void;
     permissions: Permission[];
     templates: RoleTemplate[];
@@ -628,12 +626,12 @@ interface RoleHierarchyViewProps {
     editable?: boolean;
 }
 
-function RoleHierarchyView({ roles }: RoleHierarchyViewProps) {
+function RoleHierarchyView({ roles, onRoleSelect }: RoleHierarchyViewProps) {
     // This is a simplified hierarchy view
     // In a real implementation, you'd have a more sophisticated tree structure
 
-    const systemRoles = roles.filter(r => r.isSystemRole);
-    const tenantRoles = roles.filter(r => !r.isSystemRole);
+    const systemRoles = roles.filter(r => r.isActive && !r.tenantId);
+    const tenantRoles = roles.filter(r => r.isActive && r.tenantId);
 
     return (
         <div className="space-y-6">
@@ -642,7 +640,7 @@ function RoleHierarchyView({ roles }: RoleHierarchyViewProps) {
                 <h3 className="text-lg font-semibold mb-4">System Roles</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {systemRoles.map((role) => (
-                        <Card key={role.id} className="p-4">
+                        <Card key={role.id} className="p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => onRoleSelect?.(role)}>
                             <div className="flex items-center gap-3">
                                 <Shield className="h-8 w-8 text-blue-500" />
                                 <div>
@@ -660,7 +658,7 @@ function RoleHierarchyView({ roles }: RoleHierarchyViewProps) {
                 <h3 className="text-lg font-semibold mb-4">Tenant Roles</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {tenantRoles.map((role) => (
-                        <Card key={role.id} className="p-4">
+                        <Card key={role.id} className="p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => onRoleSelect?.(role)}>
                             <div className="flex items-center gap-3">
                                 <Shield className="h-8 w-8 text-green-500" />
                                 <div>

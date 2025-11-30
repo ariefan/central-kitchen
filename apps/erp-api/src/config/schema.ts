@@ -292,7 +292,6 @@ export const roles = erp.table(
     name: varchar("name", { length: 100 }).notNull(),
     slug: varchar("slug", { length: 100 }).notNull(),
     description: text("description"),
-    isSystemRole: boolean("is_system_role").notNull().default(false),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -300,7 +299,6 @@ export const roles = erp.table(
   (t) => ({
     uqTenantSlug: unique("uq_role_tenant_slug").on(t.tenantId, t.slug),
     idxTenant: index("idx_role_tenant").on(t.tenantId),
-    idxSystemRole: index("idx_role_system").on(t.isSystemRole),
   })
 );
 

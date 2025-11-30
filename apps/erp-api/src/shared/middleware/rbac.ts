@@ -85,7 +85,7 @@ export async function loadUserPermissions(
     isActive: r.role.isActive,
   }));
 
-  // Check if user has admin role (only admin username is super_user)
+  // Check if user has super_user role
   const isSuperUser = roleData.some((r) => r.slug === "super_user");
 
   // Get permissions for these roles

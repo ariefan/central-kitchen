@@ -275,7 +275,7 @@ export default function UsersPage() {
                             </CardDescription>
                         </div>
                         <PermissionGuard permission="user:create">
-                            <Button onClick={() => {/* TODO: Navigate to user creation page */ }}>
+                            <Button onClick={() => window.location.href = '/users/new'}>
                                 <Plus className="w-4 h-4 mr-2" />
                                 New User
                             </Button>

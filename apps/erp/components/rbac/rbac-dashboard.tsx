@@ -62,8 +62,6 @@ export function RbacDashboard({
     const stats = {
         totalRoles: roles.length,
         activeRoles: roles.filter(r => r.isActive).length,
-        systemRoles: roles.filter(r => r.isSystemRole).length,
-        customRoles: roles.filter(r => !r.isSystemRole).length,
         totalUsers: users.length,
         usersWithRoles: users.filter(u => u.roles && u.roles.length > 0).length,
         totalPermissions: permissions.length,
@@ -141,7 +139,7 @@ export function RbacDashboard({
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.totalRoles}</div>
                         <p className="text-xs text-muted-foreground">
-                            {stats.activeRoles} active, {stats.systemRoles} system
+                            {stats.activeRoles} active
                         </p>
                     </CardContent>
                 </Card>
@@ -244,7 +242,7 @@ export function RbacDashboard({
                                                 <div>
                                                     <p className="font-medium">{role.name}</p>
                                                     <p className="text-sm text-muted-foreground">
-                                                        {role.isSystemRole ? 'System Role' : 'Custom Role'}
+                                                        Role
                                                     </p>
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -340,7 +338,7 @@ export function RbacDashboard({
                                     {stats.usersWithRoles < stats.totalUsers && (
                                         <Alert>
                                             <AlertDescription>
-                                                {stats.totalUsers - stats.usersWithRoles} users don't have assigned roles.
+                                                {stats.totalUsers - stats.usersWithRoles} users don&apos;t have assigned roles.
                                                 Consider assigning appropriate roles to ensure proper access control.
                                             </AlertDescription>
                                         </Alert>
@@ -360,7 +358,6 @@ export function RbacDashboard({
 
                     <TabsContent value="assignments">
                         <MultiRoleAssignment
-                            userId={undefined}
                             onRoleAssignmentChange={handleUserRoleAssignment}
                             className=""
                         />

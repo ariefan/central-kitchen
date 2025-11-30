@@ -27,14 +27,13 @@ import {
     PERMISSION_RESOURCES,
     PERMISSION_ACTIONS
 } from '@/types/rbac';
-import { useEnhancedPermissions } from '@/hooks/use-enhanced-permissions';
+import { usePermissions } from '@/hooks/use-permissions';
 import { ChevronDown, ChevronRight, Shield, Users, Settings, AlertCircle, Save, Trash2, Copy } from 'lucide-react';
 
 // Form validation schema
 const roleFormSchema = z.object({
     name: z.string().min(1, 'Role name is required').max(100, 'Role name must be less than 100 characters'),
     description: z.string().max(500, 'Description must be less than 500 characters').optional(),
-    isSystemRole: z.boolean(),
     isActive: z.boolean(),
     parentRoles: z.array(z.string()).optional(),
     permissions: z.array(z.string()).default([]),
@@ -47,7 +46,7 @@ interface RoleFormProps {
     templates?: RoleTemplate[];
     parentRoles?: Role[];
     availablePermissions?: Permission[];
-    onSubmit: (data: RoleCreateRequest | RoleUpdateRequest) => Promise<void>;
+    onSubmit: (data: RoleCreateRequest | (RoleUpdateRequest & { id?: string })) => Promise<void>;
     onCancel: () => void;
     isLoading?: boolean;
     mode: 'create' | 'edit';
@@ -114,14 +113,13 @@ export function RoleForm({
     const [selectedTemplate, setSelectedTemplate] = useState<string>('');
     const [isTemplateApplied, setIsTemplateApplied] = useState(false);
 
-    const { hasPermission } = useEnhancedPermissions();
+    const { hasPermission } = usePermissions();
 
     const form = useForm({
         resolver: zodResolver(roleFormSchema),
         defaultValues: {
             name: role?.name || '',
             description: role?.description || '',
-            isSystemRole: role?.isSystemRole || false,
             isActive: role?.isActive ?? true,
             parentRoles: role?.parentRoles || [],
             permissions: role?.permissions?.map(p => `${p.resource}:${p.action}`) || [],
@@ -518,7 +516,7 @@ export function RoleForm({
                                     <Button type="button" variant="outline" onClick={onCancel}>
                                         Cancel
                                     </Button>
-                                    {mode === 'edit' && role && !role.isSystemRole && (
+                                    {mode === 'edit' && role && (
                                         <Button
                                             type="button"
                                             variant="destructive"
