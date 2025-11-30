@@ -66,13 +66,13 @@ export default function RbacPage() {
         credentials: "include",
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && Array.isArray(data.data)) {
         setRoles(data.data);
       }
     } catch {
       toast.error("Failed to fetch roles");
     }
-  }, [apiUrl, toast]);
+  }, [apiUrl]);
 
   const fetchPermissions = useCallback(async () => {
     try {
@@ -80,13 +80,13 @@ export default function RbacPage() {
         credentials: "include",
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && Array.isArray(data.data)) {
         setPermissions(data.data);
       }
     } catch {
       toast.error("Failed to fetch permissions");
     }
-  }, [apiUrl, toast]);
+  }, [apiUrl]);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -94,13 +94,13 @@ export default function RbacPage() {
         credentials: "include",
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && Array.isArray(data.data)) {
         setUsers(data.data);
       }
     } catch {
       toast.error("Failed to fetch users");
     }
-  }, [apiUrl, toast]);
+  }, [apiUrl]);
 
   // Fetch data
   useEffect(() => {
@@ -181,11 +181,13 @@ export default function RbacPage() {
   };
 
   // Group permissions by resource
-  const groupedPermissions = permissions.reduce((acc, perm) => {
-    if (!acc[perm.resource]) acc[perm.resource] = [];
-    acc[perm.resource].push(perm);
-    return acc;
-  }, {} as Record<string, Permission[]>);
+  const groupedPermissions = Array.isArray(permissions)
+    ? permissions.reduce((acc, perm) => {
+        if (!acc[perm.resource]) acc[perm.resource] = [];
+        acc[perm.resource].push(perm);
+        return acc;
+      }, {} as Record<string, Permission[]>)
+    : {};
 
   return (
     <div className="container mx-auto p-6 max-w-7xl space-y-6">
