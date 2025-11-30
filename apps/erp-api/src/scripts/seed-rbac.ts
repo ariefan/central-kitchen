@@ -125,6 +125,45 @@ async function seedTenantRoles(tenantId: string) {
 /**
  * Assign super_user role to a specific user
  */
+export async function assignSuperUserRole(userEmail: string, tenantId: string) {
+  console.log(`👤 Assigning super user role to ${userEmail}...`);
+
+  // Find user by email
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(and(eq(users.email, userEmail), eq(users.tenantId, tenantId)))
+    .limit(1);
+
+  if (!user) {
+    console.log(`   ⚠ User ${userEmail} not found in tenant ${tenantId}`);
+    return;
+  }
+
+  // Find super_user role for tenant
+  const [superUserRole] = await db
+    .select()
+    .from(roles)
+    .where(and(eq(roles.slug, "super_user"), eq(roles.tenantId, tenantId)))
+    .limit(1);
+
+  if (!superUserRole) {
+    console.log("   ⚠ Super user role not found");
+    return;
+  }
+
+  // Assign role to user
+  await db
+    .insert(userRoles)
+    .values({
+      userId: user.id,
+      roleId: superUserRole.id,
+      assignedBy: null, // System-assigned
+    })
+    .onConflictDoNothing();
+
+  console.log(`   ✓ Assigned super user role to ${userEmail}`);
+}
 
 /**
  * Assign admin role to a specific user
