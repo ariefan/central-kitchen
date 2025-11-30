@@ -251,7 +251,7 @@ const navigation: NavSection[] = [
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const { user, profile, signOut, needsTenant } = useAuth();
-  const { hasAnyPermission, isSuperUser, loading: permissionsLoading } = useEnhancedPermissions();
+  const { hasAnyPermission, isSuperUser, loading: permissionsLoading, roles } = useEnhancedPermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = () => {
@@ -308,6 +308,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <p className="text-sm font-medium truncate">
                     {user.name || user.email}
                   </p>
+                  {roles.length > 0 && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {roles.map(role => role.name).join(", ")}
+                    </p>
+                  )}
                 </div>
               </div>
               {/* Tenant switcher (super users only) */}
@@ -325,8 +330,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {navigation.map((section) => {
                 // Filter items based on location requirement and permissions
                 const visibleItems = section.items.filter((item) => {
+                  // Super users see everything except location-specific items when no location is selected
+                  if (isSuperUser()) {
+                    // Only hide location-specific items if no location is selected
+                    if (item.requiresLocation && !profile?.location) return false;
+                    return true;
+                  }
+
                   // Check super user only items
-                  if (item.visibleOnlyToSuperUser && !isSuperUser) return false;
+                  if (item.visibleOnlyToSuperUser) return false;
 
                   // Check location requirement
                   if (item.requiresLocation && !profile?.location) return false;
