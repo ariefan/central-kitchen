@@ -327,7 +327,7 @@ export default function RolesPage() {
                             </CardDescription>
                         </div>
                         <PermissionGuard permission="role:create">
-                            <Button onClick={() => setCreateDialogOpen(true)}>
+                            <Button onClick={() => window.location.href = '/roles/new'}>
                                 <Plus className="w-4 h-4 mr-2" />
                                 New Role
                             </Button>
