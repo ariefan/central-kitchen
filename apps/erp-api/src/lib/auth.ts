@@ -4,6 +4,8 @@ import { username } from "better-auth/plugins";
 import { db } from "../config/database.js";
 import bcrypt from "bcryptjs";
 
+import { randomUUID }
+
 export const auth = betterAuth({
   // Database adapter (uses existing Drizzle instance)
   database: drizzleAdapter(db, {
