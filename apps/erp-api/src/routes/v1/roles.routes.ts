@@ -86,7 +86,6 @@ export function rolesRoutes(fastify: FastifyInstance) {
       const name = query.name;
       const slug = query.slug;
       const isActive = query.isActive;
-      const isSystemRole = query.isSystemRole;
 
       // Build where conditions
       const conditions = [eq(roles.tenantId, tenantId)];

@@ -203,7 +203,6 @@ export function permissionsRoutes(fastify: FastifyInstance) {
           roles: userPerms.roles.map((r) => ({
             id: r.id,
             name: r.name,
-            isSystemRole: r.isSystemRole,
           })),
         })
       );
