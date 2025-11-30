@@ -13,6 +13,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { db } from "@/config/database.js";
 import {
+  users,
   roles,
   permissions,
   userRoles,
@@ -67,7 +68,49 @@ export async function loadUserPermissions(
     return cached;
   }
 
-  // Get user's roles
+  // Get user's direct role first
+  const [userRecord] = await db
+    .select({
+      role: users.role,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  const roleData: RoleData[] = [];
+  let isSuperUser = false;
+
+  // Check direct role field first
+  if (userRecord?.role) {
+    // Check if direct role is a super user role
+    if (
+      userRecord.role === "super_user" ||
+      userRecord.role === "admin" ||
+      userRecord.role === "super_admin"
+    ) {
+      isSuperUser = true;
+    }
+
+    // Try to find matching role in roles table
+    const [matchingRole] = await db
+      .select()
+      .from(roles)
+      .where(eq(roles.slug, userRecord.role))
+      .limit(1);
+
+    if (matchingRole) {
+      roleData.push({
+        id: matchingRole.id,
+        tenantId: matchingRole.tenantId,
+        name: matchingRole.name,
+        slug: matchingRole.slug,
+        description: matchingRole.description,
+        isActive: matchingRole.isActive,
+      });
+    }
+  }
+
+  // Get user's roles from junction table
   const userRoleRecords = await db
     .select({
       role: roles,
@@ -76,20 +119,29 @@ export async function loadUserPermissions(
     .innerJoin(roles, eq(userRoles.roleId, roles.id))
     .where(and(eq(userRoles.userId, userId), eq(roles.isActive, true)));
 
-  const roleData: RoleData[] = userRoleRecords.map((r) => ({
-    id: r.role.id,
-    tenantId: r.role.tenantId,
-    name: r.role.name,
-    slug: r.role.slug,
-    description: r.role.description,
-    isActive: r.role.isActive,
-  }));
+  // Add junction table roles
+  for (const r of userRoleRecords) {
+    // Avoid duplicates
+    if (!roleData.find((rd) => rd.id === r.role.id)) {
+      roleData.push({
+        id: r.role.id,
+        tenantId: r.role.tenantId,
+        name: r.role.name,
+        slug: r.role.slug,
+        description: r.role.description,
+        isActive: r.role.isActive,
+      });
+    }
 
-  // Check if user has super_user, admin, or super_admin role
-  const isSuperUser = roleData.some(
-    (r) =>
-      r.slug === "super_user" || r.slug === "admin" || r.slug === "super_admin"
-  );
+    // Check if any role is a super user role
+    if (
+      r.role.slug === "super_user" ||
+      r.role.slug === "admin" ||
+      r.role.slug === "super_admin"
+    ) {
+      isSuperUser = true;
+    }
+  }
 
   // Get permissions for these roles
   let permissionData: PermissionData[] = [];
