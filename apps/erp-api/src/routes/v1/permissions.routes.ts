@@ -7,21 +7,21 @@
  * @module routes/v1/permissions
  */
 
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { sql, like, and, desc } from 'drizzle-orm';
+import type { FastifyInstance } from "fastify";
+import { sql, like, and, desc } from "drizzle-orm";
 
-import { db } from '@/config/database.js';
-import { permissions } from '@/config/schema.js';
-import { getUserId } from '@/shared/middleware/auth.js';
-import { requirePermission, getUserPermissions } from '@/shared/middleware/rbac.js';
+import { db } from "@/config/database.js";
+import { permissions } from "@/config/schema.js";
+import { getUserId } from "@/shared/middleware/auth.js";
+import {
+  requirePermission,
+  getUserPermissions,
+} from "@/shared/middleware/rbac.js";
 import {
   createSuccessResponse,
   createPaginatedResponse,
-} from '@/shared/utils/responses.js';
-import {
-  permissionQuerySchema,
-  type PermissionQuery,
-} from '@contracts/erp';
+} from "@/shared/utils/responses.js";
+import { permissionQuerySchema, type PermissionQuery } from "@contracts/erp";
 
 /**
  * Register permission management routes
@@ -32,21 +32,21 @@ export function permissionsRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.get(
-    '/',
+    "/",
     {
       schema: {
-        description: 'List all available permissions in the system',
-        tags: ['Permissions'],
+        description: "List all available permissions in the system",
+        tags: ["Permissions"],
         querystring: permissionQuerySchema,
       },
-      preHandler: [requirePermission('role', 'read')],
+      preHandler: [requirePermission("role", "read")],
     },
     async (request, reply) => {
       const query = request.query as PermissionQuery;
-      const limit = query.limit || 100;
-      const offset = query.offset || 0;
-      const sortBy = query.sortBy || 'resource';
-      const sortOrder = query.sortOrder || 'asc';
+      const limit = query.limit ?? 100;
+      const offset = query.offset ?? 0;
+      const sortBy = query.sortBy ?? "resource";
+      const sortOrder = query.sortOrder ?? "asc";
       const resource = query.resource;
       const action = query.action;
 
@@ -60,7 +60,8 @@ export function permissionsRoutes(fastify: FastifyInstance) {
         conditions.push(like(permissions.action, `%${action}%`));
       }
 
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+      const whereClause =
+        conditions.length > 0 ? and(...conditions) : undefined;
 
       // Get total count
       const countResult = await db
@@ -68,16 +69,23 @@ export function permissionsRoutes(fastify: FastifyInstance) {
         .from(permissions)
         .where(whereClause);
 
-      const total = countResult[0]?.count || 0;
+      const total = countResult[0]?.count ?? 0;
 
       // Get paginated data
       let orderByClause;
-      if (sortBy === 'resource') {
-        orderByClause = sortOrder === 'desc' ? desc(permissions.resource) : permissions.resource;
-      } else if (sortBy === 'action') {
-        orderByClause = sortOrder === 'desc' ? desc(permissions.action) : permissions.action;
+      if (sortBy === "resource") {
+        orderByClause =
+          sortOrder === "desc"
+            ? desc(permissions.resource)
+            : permissions.resource;
+      } else if (sortBy === "action") {
+        orderByClause =
+          sortOrder === "desc" ? desc(permissions.action) : permissions.action;
       } else {
-        orderByClause = sortOrder === 'desc' ? desc(permissions.resource) : permissions.resource;
+        orderByClause =
+          sortOrder === "desc"
+            ? desc(permissions.resource)
+            : permissions.resource;
       }
 
       const permissionRecords = await db
@@ -99,13 +107,13 @@ export function permissionsRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.get(
-    '/resources',
+    "/resources",
     {
       schema: {
-        description: 'Get list of unique resource names',
-        tags: ['Permissions'],
+        description: "Get list of unique resource names",
+        tags: ["Permissions"],
       },
-      preHandler: [requirePermission('role', 'read')],
+      preHandler: [requirePermission("role", "read")],
     },
     async (_request, reply) => {
       const resources = await db
@@ -114,7 +122,7 @@ export function permissionsRoutes(fastify: FastifyInstance) {
         .orderBy(permissions.resource);
 
       return reply.send(
-        createSuccessResponse(resources.map(r => r.resource))
+        createSuccessResponse(resources.map((r) => r.resource))
       );
     }
   );
@@ -124,13 +132,13 @@ export function permissionsRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.get(
-    '/actions',
+    "/actions",
     {
       schema: {
-        description: 'Get list of unique action names',
-        tags: ['Permissions'],
+        description: "Get list of unique action names",
+        tags: ["Permissions"],
       },
-      preHandler: [requirePermission('role', 'read')],
+      preHandler: [requirePermission("role", "read")],
     },
     async (_request, reply) => {
       const actions = await db
@@ -138,9 +146,7 @@ export function permissionsRoutes(fastify: FastifyInstance) {
         .from(permissions)
         .orderBy(permissions.action);
 
-      return reply.send(
-        createSuccessResponse(actions.map(a => a.action))
-      );
+      return reply.send(createSuccessResponse(actions.map((a) => a.action)));
     }
   );
 
@@ -149,11 +155,11 @@ export function permissionsRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.get(
-    '/me',
+    "/me",
     {
       schema: {
-        description: 'Get current user\'s full permission set',
-        tags: ['Permissions'],
+        description: "Get current user's full permission set",
+        tags: ["Permissions"],
       },
     },
     async (request, reply) => {
@@ -176,11 +182,11 @@ export function permissionsRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.get(
-    '/my-permissions',
+    "/my-permissions",
     {
       schema: {
-        description: 'Get current user\'s permissions in frontend format',
-        tags: ['Permissions'],
+        description: "Get current user's permissions in frontend format",
+        tags: ["Permissions"],
       },
     },
     async (request, reply) => {
@@ -188,13 +194,13 @@ export function permissionsRoutes(fastify: FastifyInstance) {
 
       // Transform permissions to "resource:action" format
       const permissionStrings = userPerms.permissions.map(
-        p => `${p.resource}:${p.action}`
+        (p) => `${p.resource}:${p.action}`
       );
 
       return reply.send(
         createSuccessResponse({
           permissions: permissionStrings,
-          roles: userPerms.roles.map(r => ({
+          roles: userPerms.roles.map((r) => ({
             id: r.id,
             name: r.name,
             isSystemRole: r.isSystemRole,
@@ -209,24 +215,26 @@ export function permissionsRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.post(
-    '/check',
+    "/check",
     {
       schema: {
-        description: 'Check if current user has a specific permission',
-        tags: ['Permissions'],
+        description: "Check if current user has a specific permission",
+        tags: ["Permissions"],
         body: {
-          type: 'object',
+          type: "object",
           properties: {
-            resource: { type: 'string' },
-            action: { type: 'string' },
+            resource: { type: "string" },
+            action: { type: "string" },
           },
-          required: ['resource', 'action'],
+          required: ["resource", "action"],
         },
       },
     },
     async (request, reply) => {
-      const userId = getUserId(request);
-      const { resource, action } = request.body as { resource: string; action: string };
+      const { resource, action } = request.body as {
+        resource: string;
+        action: string;
+      };
 
       const userPerms = await getUserPermissions(request);
 
@@ -235,19 +243,19 @@ export function permissionsRoutes(fastify: FastifyInstance) {
         return reply.send(
           createSuccessResponse({
             hasPermission: true,
-            roles: userPerms.roles.map(r => r.name),
+            roles: userPerms.roles.map((r) => r.name),
           })
         );
       }
 
       // Check if user has the specific permission
       const hasPermission = userPerms.permissions.some(
-        p => p.resource === resource && p.action === action
+        (p) => p.resource === resource && p.action === action
       );
 
       // Find which roles granted this permission
       const grantingRoles = hasPermission
-        ? userPerms.roles.map(r => r.name)
+        ? userPerms.roles.map((r) => r.name)
         : [];
 
       return reply.send(

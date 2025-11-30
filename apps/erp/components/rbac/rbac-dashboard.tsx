@@ -11,7 +11,9 @@ import {
     RoleTemplate,
     Permission,
     User,
-    AuditLog
+    AuditLog,
+    RoleCreateRequest,
+    RoleUpdateRequest
 } from '@/types/rbac';
 import { RoleManagement } from './role-management';
 import { RoleFormSimple } from './role-form-simple';
@@ -24,9 +26,7 @@ import {
     Settings,
     FileText,
     History,
-    Plus,
-    Search,
-    Filter
+    Plus
 } from 'lucide-react';
 
 interface RbacDashboardProps {
@@ -35,11 +35,10 @@ interface RbacDashboardProps {
     permissions?: Permission[];
     users?: User[];
     auditLogs?: AuditLog[];
-    onRoleCreate?: (data: any) => Promise<void>;
-    onRoleUpdate?: (data: any) => Promise<void>;
+    onRoleCreate?: (data: RoleCreateRequest) => Promise<void>;
+    onRoleUpdate?: (data: RoleUpdateRequest & { id: string }) => Promise<void>;
     onRoleDelete?: (roleId: string) => Promise<void>;
     onUserAssignRoles?: (userId: string, roleIds: string[]) => Promise<void>;
-    onPermissionCheck?: (resource: string, action: string) => Promise<boolean>;
     isLoading?: boolean;
 }
 
@@ -53,7 +52,6 @@ export function RbacDashboard({
     onRoleUpdate,
     onRoleDelete,
     onUserAssignRoles,
-    onPermissionCheck,
     isLoading = false
 }: RbacDashboardProps) {
     const [activeTab, setActiveTab] = useState('overview');
@@ -87,10 +85,10 @@ export function RbacDashboard({
         setIsCreatingRole(false);
     };
 
-    const handleRoleFormSubmit = async (data: any) => {
+    const handleRoleFormSubmit = async (data: RoleCreateRequest | (RoleUpdateRequest & { id?: string })) => {
         try {
             if (isCreatingRole && onRoleCreate) {
-                await onRoleCreate(data);
+                await onRoleCreate(data as RoleCreateRequest);
                 setIsCreatingRole(false);
                 setSelectedRole(null);
             } else if (!isCreatingRole && selectedRole && onRoleUpdate) {
@@ -102,15 +100,6 @@ export function RbacDashboard({
         }
     };
 
-    const handleRoleDelete = async (roleId: string) => {
-        if (onRoleDelete) {
-            try {
-                await onRoleDelete(roleId);
-            } catch (error) {
-                console.error('Failed to delete role:', error);
-            }
-        }
-    };
 
     const handleUserRoleAssignment = async (userId: string, roleIds: string[]) => {
         if (onUserAssignRoles) {

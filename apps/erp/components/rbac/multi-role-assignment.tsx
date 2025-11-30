@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,23 +14,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
-    Plus,
-    Users,
     Shield,
     Search,
-    Filter,
-    MoreHorizontal,
     UserPlus,
     UserMinus,
     Settings,
     AlertTriangle
 } from 'lucide-react';
-import { useEnhancedPermissions } from '@/hooks/use-enhanced-permissions';
 import { PermissionGuard } from './permission-guard';
 import {
     Role,
-    Permission,
-    UserRole,
     UserRoleAssignment,
     RoleContext,
     User
@@ -42,8 +35,7 @@ interface MultiRoleAssignmentProps {
     className?: string;
 }
 
-export function MultiRoleAssignment({ userId, onRoleAssignmentChange, className }: MultiRoleAssignmentProps) {
-    const { hasPermission } = useEnhancedPermissions();
+export function MultiRoleAssignment({ onRoleAssignmentChange, className }: MultiRoleAssignmentProps) {
     const queryClient = useQueryClient();
 
     // State
@@ -56,7 +48,7 @@ export function MultiRoleAssignment({ userId, onRoleAssignmentChange, className 
     const [activeTab, setActiveTab] = useState('individual');
 
     // Fetch users
-    const { data: users = [], isLoading: usersLoading } = useQuery({
+    const { data: users = [] } = useQuery({
         queryKey: ['users'],
         queryFn: async () => {
             const response = await fetch('/api/v1/users', {
@@ -69,7 +61,7 @@ export function MultiRoleAssignment({ userId, onRoleAssignmentChange, className 
     });
 
     // Fetch roles
-    const { data: roles = [], isLoading: rolesLoading } = useQuery({
+    const { data: roles = [] } = useQuery({
         queryKey: ['roles'],
         queryFn: async () => {
             const response = await fetch('/api/v1/roles', {

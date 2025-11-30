@@ -100,7 +100,7 @@ export function useEnhancedPermissions(): UseEnhancedPermissionsReturn {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/permissions/enhanced`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/permissions/me`,
         {
           credentials: "include",
           headers: {
@@ -120,7 +120,7 @@ export function useEnhancedPermissions(): UseEnhancedPermissionsReturn {
           userId: user.id,
           permissions: data.data.permissions,
           roles: data.data.roles,
-          inheritedPermissions: data.data.inheritedPermissions || [],
+          inheritedPermissions: [],
           lastCalculated: new Date().toISOString(),
         };
 
@@ -132,7 +132,7 @@ export function useEnhancedPermissions(): UseEnhancedPermissionsReturn {
           ...prev,
           permissions: data.data.permissions,
           roles: data.data.roles,
-          userRoles: data.data.userRoles || [],
+          userRoles: [],
           effectivePermissions,
           loading: false,
           error: null,
@@ -141,7 +141,7 @@ export function useEnhancedPermissions(): UseEnhancedPermissionsReturn {
         throw new Error(data.message || "Failed to load permissions");
       }
     } catch (error) {
-      console.error("Error fetching enhanced permissions:", error);
+      console.error("Error fetching permissions:", error);
       setState((prev) => ({
         ...prev,
         loading: false,

@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -18,6 +17,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import {
     Role,
     RoleTemplate,
+    Permission,
+    RoleCreateRequest,
+    RoleUpdateRequest,
     PERMISSION_RESOURCES,
     PERMISSION_ACTIONS
 } from '@/types/rbac';
@@ -28,8 +30,8 @@ interface RoleFormProps {
     role?: Role | null;
     templates?: RoleTemplate[];
     parentRoles?: Role[];
-    availablePermissions?: any[];
-    onSubmit: (data: any) => Promise<void>;
+    availablePermissions?: Permission[];
+    onSubmit: (data: RoleCreateRequest | (RoleUpdateRequest & { id?: string })) => Promise<void>;
     onCancel: () => void;
     isLoading?: boolean;
     mode: 'create' | 'edit';
@@ -86,7 +88,6 @@ export function RoleFormSimple({
     role,
     templates = [],
     parentRoles = [],
-    availablePermissions = [],
     onSubmit,
     onCancel,
     isLoading = false,
@@ -97,11 +98,11 @@ export function RoleFormSimple({
         description: role?.description || '',
         isActive: role?.isActive ?? true,
         parentRoles: role?.parentRoles || [],
-        permissions: role?.permissions?.map((p: any) => `${p.resource}:${p.action}`) || [],
+        permissions: role?.permissions?.map((p: Permission) => `${p.resource}:${p.action}`) || [],
     });
 
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>(
-        role?.permissions?.map((p: any) => `${p.resource}:${p.action}`) || []
+        role?.permissions?.map((p: Permission) => `${p.resource}:${p.action}`) || []
     );
     const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
     const [selectedTemplate, setSelectedTemplate] = useState<string>('');
@@ -110,7 +111,7 @@ export function RoleFormSimple({
     const { hasPermission } = useEnhancedPermissions();
 
     // Handle form field changes
-    const handleFieldChange = (field: string, value: any) => {
+    const handleFieldChange = (field: string, value: string | string[] | boolean) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
@@ -213,14 +214,11 @@ export function RoleFormSimple({
         e.preventDefault();
 
         try {
-            const permissions = selectedPermissions.map(key => {
-                const [resource, action] = key.split(':');
-                return { resource, action };
-            });
+            const permissionStrings = selectedPermissions;
 
             const submitData = {
                 ...formData,
-                permissions,
+                permissions: permissionStrings,
             };
 
             if (mode === 'create') {
@@ -268,7 +266,7 @@ export function RoleFormSimple({
                             <Textarea
                                 id="description"
                                 placeholder="Describe the role's purpose and responsibilities"
-                                className="min-h-[80px]"
+                                className="min-h-20"
                                 value={formData.description}
                                 onChange={(e) => handleFieldChange('description', e.target.value)}
                             />
