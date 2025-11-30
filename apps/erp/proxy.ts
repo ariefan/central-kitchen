@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Get the session cookie - handle both secure and non-secure cookie names
@@ -14,7 +14,9 @@ export function middleware(request: NextRequest) {
 
   // Public routes that don't require authentication
   const publicRoutes = ["/auth"];
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+  const isPublicRoute = publicRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
 
   // Root path handling
   if (pathname === "/") {

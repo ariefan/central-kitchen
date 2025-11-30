@@ -207,11 +207,11 @@ export function usePermissions(): UsePermissionsReturn {
       // Check cache first
       const cacheKey = generateCacheKey(check);
       if (permissionCache.has(cacheKey)) {
-
-  if (DEMO_BYPASS_RBAC) {
-    return {
-      granted
         return permissionCache.get(cacheKey)!;
+      }
+
+      if (DEMO_BYPASS_RBAC) {
+        return { granted: true, reason: "Demo bypass" };
       }
 
       const effective = getEffectivePermissions(check.context);

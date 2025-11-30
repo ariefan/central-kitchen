@@ -4,7 +4,7 @@ import { username } from "better-auth/plugins";
 import { db } from "../config/database.js";
 import bcrypt from "bcryptjs";
 
-import { randomUUID }
+import { randomUUID } from "crypto";
 
 export const auth = betterAuth({
   // Database adapter (uses existing Drizzle instance)
@@ -14,8 +14,9 @@ export const auth = betterAuth({
   }),
 
   // Base URL for auth endpoints (frontend URL for cookie domain)
-  baseURL: process.env.BETTER_AUTH_URL ||
-    (process.env.NODE_ENV === 'production'
+  baseURL:
+    process.env.BETTER_AUTH_URL ||
+    (process.env.NODE_ENV === "production"
       ? "https://erp.personalapp.id"
       : "http://localhost:8000"),
 
@@ -65,7 +66,7 @@ export const auth = betterAuth({
       domain: process.env.COOKIE_DOMAIN || undefined, // Let browser use current domain
       sameSite: "lax", // Secure same-site setting (was "none" for cross-origin)
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production",
     },
   },
 
@@ -77,7 +78,7 @@ export const auth = betterAuth({
 
   // Advanced options
   advanced: {
-    generateId: () => crypto.randomUUID(), // Use UUID for consistency
+    generateId: () => randomUUID(), // Use UUID for consistency
     // Cookie prefix (Better Auth adds __Secure- automatically when secure=true)
     cookiePrefix: "better-auth",
   },
