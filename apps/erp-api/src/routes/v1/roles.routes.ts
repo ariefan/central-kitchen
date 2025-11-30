@@ -12,7 +12,7 @@
  * @module routes/v1/roles
  */
 
-import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { eq, and, inArray, sql, desc } from "drizzle-orm";
 import { z } from "zod";
 
@@ -24,14 +24,9 @@ import {
   userRoles,
   users,
 } from "@/config/schema.js";
-import {
-  getCurrentUser,
-  getTenantId,
-  getUserId,
-} from "@/shared/middleware/auth.js";
+import { getTenantId, getUserId } from "@/shared/middleware/auth.js";
 import {
   requirePermission,
-  requireSuperUser,
   clearUserPermissionCache,
   loadUserPermissions,
 } from "@/shared/middleware/rbac.js";
@@ -52,10 +47,6 @@ import {
   type RoleCreate,
   type RoleUpdate,
   type RoleQuery,
-  type AssignPermissions,
-  type RemovePermissions,
-  type AssignRolesToUser,
-  type RemoveRolesFromUser,
 } from "@contracts/erp";
 
 /**
@@ -79,10 +70,10 @@ export function rolesRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const tenantId = getTenantId(request);
       const query = request.query as RoleQuery;
-      const limit = query.limit || 50;
-      const offset = query.offset || 0;
-      const sortBy = query.sortBy || "name";
-      const sortOrder = query.sortOrder || "asc";
+      const limit = query.limit ?? 50;
+      const offset = query.offset ?? 0;
+      const sortBy = query.sortBy ?? "name";
+      const sortOrder = query.sortOrder ?? "asc";
       const name = query.name;
       const slug = query.slug;
       const isActive = query.isActive;
@@ -108,7 +99,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
         .from(roles)
         .where(whereClause);
 
-      const total = countResult[0]?.count || 0;
+      const total = countResult[0]?.count ?? 0;
 
       // Get paginated data
       let orderByClause;
@@ -239,7 +230,6 @@ export function rolesRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
-      const currentUser = getCurrentUser(request);
       const data = request.body as RoleCreate;
 
       // Check if role slug already exists for this tenant
@@ -260,7 +250,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
           tenantId,
           name: data.name,
           slug: data.slug,
-          description: data.description || null,
+          description: data.description ?? null,
           isActive: data.isActive ?? true,
         })
         .returning();

@@ -494,7 +494,7 @@ export async function attachUserPermissions(
   const perms = await loadUserPermissions(userId);
 
   // Attach to request for easy access
-  (request as any).userPermissions = perms;
+  request.userPermissions = perms;
 }
 
 // Type augmentation for Fastify request

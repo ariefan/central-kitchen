@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
@@ -23,7 +22,6 @@ import {
     Role,
     Permission,
     RoleTemplate,
-    RoleHierarchy,
     RoleCreateRequest,
     RoleUpdateRequest,
     PERMISSION_RESOURCES,
@@ -43,7 +41,6 @@ const roleFormSchema = z.object({
     metadata: z.record(z.string(), z.any()).optional(),
 });
 
-type RoleFormData = z.infer<typeof roleFormSchema>;
 
 interface RoleFormProps {
     role?: Role | null;
@@ -107,7 +104,6 @@ export function RoleForm({
     role,
     templates = [],
     parentRoles = [],
-    availablePermissions = [],
     onSubmit,
     onCancel,
     isLoading = false,
@@ -144,7 +140,7 @@ export function RoleForm({
 
             return () => clearTimeout(timeoutId);
         }
-    }, [role, form.setValue]);
+    }, [role, form]);
 
     // Handle template selection
     const handleTemplateChange = (templateId: string) => {
@@ -301,7 +297,7 @@ export function RoleForm({
                                         <FormControl>
                                             <Textarea
                                                 placeholder="Describe the role's purpose and responsibilities"
-                                                className="min-h-[80px]"
+                                                className="min-h-20"
                                                 {...field}
                                             />
                                         </FormControl>

@@ -532,7 +532,7 @@ export function authRoutes(fastify: FastifyInstance) {
         lastName?: string | null;
         phone?: string;
         image?: string;
-        metadata?: Record<string, any>;
+        metadata?: Record<string, unknown>;
       } = {};
 
       if (updateData.name !== undefined) {

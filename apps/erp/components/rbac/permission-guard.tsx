@@ -28,9 +28,7 @@ export function PermissionGuard({
     const {
         hasPermission,
         hasAnyPermission,
-        hasAllPermissions,
-        loading: permissionsLoading,
-        checkPermission
+        loading: permissionsLoading
     } = useEnhancedPermissions();
 
     // Handle loading state
@@ -40,13 +38,11 @@ export function PermissionGuard({
 
     // Determine what to check
     let hasAccess = false;
-    let permissionResult: { granted: boolean; source?: string; reason?: string } | null = null;
 
     if (permission) {
         // Single permission check
         const [res, act] = permission.split(':');
         hasAccess = hasPermission(res, act);
-        permissionResult = checkPermission({ resource: res, action: act });
     } else if (permissions && permissions.length > 0) {
         // Multiple permissions check (ANY by default)
         const checks = permissions.map(p => {
@@ -57,7 +53,6 @@ export function PermissionGuard({
     } else if (resource && action) {
         // Resource/action check
         hasAccess = hasPermission(resource, action);
-        permissionResult = checkPermission({ resource, action });
     }
 
     // Handle access denied
@@ -221,7 +216,7 @@ export function PermissionAlert({
 
     return (
         <div className={`flex items-center gap-2 p-4 border rounded-lg bg-yellow-50 border-yellow-200 ${className}`}>
-            <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+            <AlertCircle className="h-5 w-5 text-yellow-600 shrink-0" />
             <div>
                 <h4 className="font-medium text-yellow-800">{title}</h4>
                 <p className="text-sm text-yellow-700 mt-1">
@@ -266,7 +261,7 @@ export function usePermissionGuard() {
         check: { permission?: string; permissions?: string[]; resource?: string; action?: string },
         options?: { mode?: 'hide' | 'disable' | 'readonly' }
     ) => {
-        const GuardComponent = (children: React.ReactNode, fallback?: React.ReactNode) => (
+        const GuardWrapper = ({ children, fallback }: { children: React.ReactNode; fallback?: React.ReactNode }) => (
             <PermissionGuard
                 permission={check.permission}
                 permissions={check.permissions}
@@ -278,13 +273,19 @@ export function usePermissionGuard() {
                 {children}
             </PermissionGuard>
         );
-    }, [checkPermission, hasPermission, hasAnyPermission]);
+        GuardWrapper.displayName = 'GuardWrapper';
+        return GuardWrapper;
+    }, []);
 
     const createButton = React.useCallback((
         check: { permission?: string; permissions?: string[]; resource?: string; action?: string },
         options?: { mode?: 'hide' | 'disable' | 'readonly' }
     ) => {
-        const ButtonComponent = (props: React.ComponentProps<typeof Button>, children: React.ReactNode, fallback?: React.ReactNode) => (
+        const ButtonWrapper = ({ props, children, fallback }: {
+            props: React.ComponentProps<typeof Button>;
+            children: React.ReactNode;
+            fallback?: React.ReactNode;
+        }) => (
             <PermissionButton
                 permission={check.permission}
                 permissions={check.permissions}
@@ -297,7 +298,9 @@ export function usePermissionGuard() {
                 {children}
             </PermissionButton>
         );
-    }, [checkPermission, hasPermission, hasAnyPermission]);
+        ButtonWrapper.displayName = 'ButtonWrapper';
+        return ButtonWrapper;
+    }, []);
 
     return {
         createGuard,
