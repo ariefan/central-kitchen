@@ -120,10 +120,10 @@ export function RoleFormSimple({
 
     // Handle template selection
     const handleTemplateChange = (templateId: string) => {
-        setSelectedTemplate(templateId);
+        setSelectedTemplate(templateId === 'none' ? '' : templateId);
         const template = templates.find(t => t.id === templateId);
 
-        if (template && !isTemplateApplied) {
+        if (template && !isTemplateApplied && templateId !== 'none') {
             // Pre-fill form with template data
             setFormData(prev => ({
                 ...prev,
@@ -277,14 +277,14 @@ export function RoleFormSimple({
                             <div>
                                 <Label htmlFor="parentRoles">Parent Role</Label>
                                 <Select
-                                    value={formData.parentRoles?.[0] || ''}
-                                    onValueChange={(value) => handleFieldChange('parentRoles', value ? [value] : [])}
+                                    value={formData.parentRoles?.[0] || 'none'}
+                                    onValueChange={(value) => handleFieldChange('parentRoles', value === 'none' ? [] : [value])}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select parent role" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">None</SelectItem>
+                                        <SelectItem value="none">None</SelectItem>
                                         {parentRoles.map((parentRole) => (
                                             <SelectItem key={parentRole.id} value={parentRole.id}>
                                                 {parentRole.name}
@@ -322,12 +322,12 @@ export function RoleFormSimple({
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <Label htmlFor="template">Select Template</Label>
-                                            <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
+                                            <Select value={selectedTemplate || 'none'} onValueChange={handleTemplateChange}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder="Choose a template" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="">None</SelectItem>
+                                                    <SelectItem value="none">None</SelectItem>
                                                     {templates.map((template) => (
                                                         <SelectItem key={template.id} value={template.id}>
                                                             {template.name}

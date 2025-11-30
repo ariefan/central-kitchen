@@ -392,7 +392,7 @@ export default function RolesPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Role</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete the role "{roleToDelete?.name}"?
+                            Are you sure you want to delete the role &quot;{roleToDelete?.name}&quot;?
                             This action cannot be undone and will remove all permissions associated with this role.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

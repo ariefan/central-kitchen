@@ -211,8 +211,15 @@ export function usePermissions(): UsePermissionsReturn {
 
       const effective = getEffectivePermissions(check.context);
 
-      // Super user has all permissions
-      if (effective.roles.some((role) => role.slug === "super_user")) {
+      // Super user has all permissions (check for super_user, admin, and super_admin roles)
+      if (
+        effective.roles.some(
+          (role) =>
+            role.slug === "super_user" ||
+            role.slug === "admin" ||
+            role.slug === "super_admin"
+        )
+      ) {
         const result = {
           granted: true,
           source: "role" as const,
@@ -333,7 +340,7 @@ export function usePermissions(): UsePermissionsReturn {
 
   // Check if user is super user
   const isSuperUser = useCallback((): boolean => {
-    return hasRole("super_user");
+    return hasRole("super_user") || hasRole("admin") || hasRole("super_admin");
   }, [hasRole]);
 
   // Clear all caches
