@@ -1,3 +1,5 @@
+'use client';
+
 import { RoleFormSimple } from "@/components/rbac/role-form-simple";
 
 export default function NewRolePage() {
