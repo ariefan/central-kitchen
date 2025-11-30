@@ -41,53 +41,6 @@ async function seedPermissions() {
 }
 
 /**
- * Seed super_user role (system-level, no tenant)
- */
-async function seedSuperUserRole() {
-  console.log("👑 Seeding super_user role...");
-
-  const roleConfig = DEFAULT_ROLES.SUPER_USER;
-
-  // Create super_user role
-  const [superUserRole] = await db
-    .insert(roles)
-    .values({
-      tenantId: null, // System role, no tenant
-      name: roleConfig.name,
-      slug: roleConfig.slug,
-      description: roleConfig.description,
-      isSystemRole: true,
-      isActive: true,
-    })
-    .onConflictDoNothing()
-    .returning();
-
-  if (!superUserRole) {
-    console.log("   ⚠ Super user role already exists");
-    return;
-  }
-
-  // Get ALL permission IDs for super user (super user should have all permissions)
-  const permissionRecords = await db.select().from(permissions);
-
-  // Assign ALL permissions to super_user role
-  const rolePermissionValues = permissionRecords.map((perm) => ({
-    roleId: superUserRole.id,
-    permissionId: perm.id,
-    grantedBy: null, // System-seeded
-  }));
-
-  await db
-    .insert(rolePermissions)
-    .values(rolePermissionValues)
-    .onConflictDoNothing();
-
-  console.log(
-    `   ✓ Created super_user role with ${rolePermissionValues.length} permissions`
-  );
-}
-
-/**
  * Seed default tenant roles
  */
 async function seedTenantRoles(tenantId: string) {
@@ -111,7 +64,6 @@ async function seedTenantRoles(tenantId: string) {
         name: roleConfig.name,
         slug: roleConfig.slug,
         description: roleConfig.description,
-        isSystemRole: false,
         isActive: true,
       })
       .onConflictDoNothing()
@@ -173,45 +125,6 @@ async function seedTenantRoles(tenantId: string) {
 /**
  * Assign super_user role to a specific user
  */
-export async function assignSuperUserRole(userEmail: string) {
-  console.log(`👤 Assigning super_user role to ${userEmail}...`);
-
-  // Find user by email
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, userEmail))
-    .limit(1);
-
-  if (!user) {
-    console.log(`   ⚠ User ${userEmail} not found`);
-    return;
-  }
-
-  // Find super_user role
-  const [superUserRole] = await db
-    .select()
-    .from(roles)
-    .where(and(eq(roles.slug, "super_user"), eq(roles.isSystemRole, true)))
-    .limit(1);
-
-  if (!superUserRole) {
-    console.log("   ⚠ Super user role not found");
-    return;
-  }
-
-  // Assign role to user
-  await db
-    .insert(userRoles)
-    .values({
-      userId: user.id,
-      roleId: superUserRole.id,
-      assignedBy: null, // System-assigned
-    })
-    .onConflictDoNothing();
-
-  console.log(`   ✓ Assigned super_user role to ${userEmail}`);
-}
 
 /**
  * Assign admin role to a specific user
@@ -266,10 +179,7 @@ export async function seedRBAC(tenantId?: string) {
     // 1. Seed all permissions
     await seedPermissions();
 
-    // 2. Seed super_user role
-    await seedSuperUserRole();
-
-    // 3. Seed tenant roles if tenant ID provided
+    // 2. Seed tenant roles if tenant ID provided
     if (tenantId) {
       await seedTenantRoles(tenantId);
     }

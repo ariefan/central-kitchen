@@ -185,7 +185,7 @@ export function authRoutes(fastify: FastifyInstance) {
         return createNotFoundError("User not found", reply);
       }
 
-      // Check if user is super user
+      // Check if user is admin (super user)
       const userPerms = await getUserPermissions(request);
       const isSuperUser = userPerms.isSuperUser;
 

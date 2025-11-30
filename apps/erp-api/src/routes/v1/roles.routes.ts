@@ -12,31 +12,35 @@
  * @module routes/v1/roles
  */
 
-import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { eq, and, inArray, sql, desc } from 'drizzle-orm';
-import { z } from 'zod';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { eq, and, inArray, sql, desc } from "drizzle-orm";
+import { z } from "zod";
 
-import { db } from '@/config/database.js';
+import { db } from "@/config/database.js";
 import {
   roles,
   permissions,
   rolePermissions,
   userRoles,
   users,
-} from '@/config/schema.js';
-import { getCurrentUser, getTenantId, getUserId } from '@/shared/middleware/auth.js';
+} from "@/config/schema.js";
+import {
+  getCurrentUser,
+  getTenantId,
+  getUserId,
+} from "@/shared/middleware/auth.js";
 import {
   requirePermission,
   requireSuperUser,
   clearUserPermissionCache,
   loadUserPermissions,
-} from '@/shared/middleware/rbac.js';
+} from "@/shared/middleware/rbac.js";
 import {
   createSuccessResponse,
   createPaginatedResponse,
   createNotFoundError,
   createBadRequestError,
-} from '@/shared/utils/responses.js';
+} from "@/shared/utils/responses.js";
 import {
   roleCreateSchema,
   roleUpdateSchema,
@@ -52,7 +56,7 @@ import {
   type RemovePermissions,
   type AssignRolesToUser,
   type RemoveRolesFromUser,
-} from '@contracts/erp';
+} from "@contracts/erp";
 
 /**
  * Register role management routes
@@ -63,22 +67,22 @@ export function rolesRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.get(
-    '/',
+    "/",
     {
       schema: {
-        description: 'List roles for current tenant',
-        tags: ['Roles'],
+        description: "List roles for current tenant",
+        tags: ["Roles"],
         querystring: roleQuerySchema,
       },
-      preHandler: [requirePermission('role', 'read')],
+      preHandler: [requirePermission("role", "read")],
     },
     async (request, reply) => {
       const tenantId = getTenantId(request);
       const query = request.query as RoleQuery;
       const limit = query.limit || 50;
       const offset = query.offset || 0;
-      const sortBy = query.sortBy || 'name';
-      const sortOrder = query.sortOrder || 'asc';
+      const sortBy = query.sortBy || "name";
+      const sortOrder = query.sortOrder || "asc";
       const name = query.name;
       const slug = query.slug;
       const isActive = query.isActive;
@@ -96,9 +100,6 @@ export function rolesRoutes(fastify: FastifyInstance) {
       if (isActive !== undefined) {
         conditions.push(eq(roles.isActive, isActive));
       }
-      if (isSystemRole !== undefined) {
-        conditions.push(eq(roles.isSystemRole, isSystemRole));
-      }
 
       const whereClause = and(...conditions);
 
@@ -112,14 +113,15 @@ export function rolesRoutes(fastify: FastifyInstance) {
 
       // Get paginated data
       let orderByClause;
-      if (sortBy === 'name') {
-        orderByClause = sortOrder === 'desc' ? desc(roles.name) : roles.name;
-      } else if (sortBy === 'slug') {
-        orderByClause = sortOrder === 'desc' ? desc(roles.slug) : roles.slug;
-      } else if (sortBy === 'createdAt') {
-        orderByClause = sortOrder === 'desc' ? desc(roles.createdAt) : roles.createdAt;
+      if (sortBy === "name") {
+        orderByClause = sortOrder === "desc" ? desc(roles.name) : roles.name;
+      } else if (sortBy === "slug") {
+        orderByClause = sortOrder === "desc" ? desc(roles.slug) : roles.slug;
+      } else if (sortBy === "createdAt") {
+        orderByClause =
+          sortOrder === "desc" ? desc(roles.createdAt) : roles.createdAt;
       } else {
-        orderByClause = sortOrder === 'desc' ? desc(roles.name) : roles.name;
+        orderByClause = sortOrder === "desc" ? desc(roles.name) : roles.name;
       }
 
       const roleRecords = await db
@@ -141,35 +143,29 @@ export function rolesRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.get(
-    '/:id',
+    "/:id",
     {
       schema: {
-        description: 'Get role by ID',
-        tags: ['Roles'],
+        description: "Get role by ID",
+        tags: ["Roles"],
         params: z.object({
           id: z.string().uuid(),
         }),
       },
-      preHandler: [requirePermission('role', 'read')],
+      preHandler: [requirePermission("role", "read")],
     },
-    async (
-      request,
-      reply
-    ) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const { id } = request.params as { id: string };
 
       const [role] = await db
         .select()
         .from(roles)
-        .where(and(
-          eq(roles.id, id),
-          eq(roles.tenantId, tenantId)
-        ))
+        .where(and(eq(roles.id, id), eq(roles.tenantId, tenantId)))
         .limit(1);
 
       if (!role) {
-        return createNotFoundError('Role not found', reply);
+        return createNotFoundError("Role not found", reply);
       }
 
       return reply.send(createSuccessResponse(role));
@@ -181,21 +177,18 @@ export function rolesRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.get(
-    '/:id/permissions',
+    "/:id/permissions",
     {
       schema: {
-        description: 'Get role with its permissions',
-        tags: ['Roles'],
+        description: "Get role with its permissions",
+        tags: ["Roles"],
         params: z.object({
           id: z.string().uuid(),
         }),
       },
-      preHandler: [requirePermission('role', 'read')],
+      preHandler: [requirePermission("role", "read")],
     },
-    async (
-      request,
-      reply
-    ) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const { id } = request.params as { id: string };
 
@@ -203,14 +196,11 @@ export function rolesRoutes(fastify: FastifyInstance) {
       const [role] = await db
         .select()
         .from(roles)
-        .where(and(
-          eq(roles.id, id),
-          eq(roles.tenantId, tenantId)
-        ))
+        .where(and(eq(roles.id, id), eq(roles.tenantId, tenantId)))
         .limit(1);
 
       if (!role) {
-        return createNotFoundError('Role not found', reply);
+        return createNotFoundError("Role not found", reply);
       }
 
       // Get role's permissions
@@ -219,13 +209,16 @@ export function rolesRoutes(fastify: FastifyInstance) {
           permission: permissions,
         })
         .from(rolePermissions)
-        .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+        .innerJoin(
+          permissions,
+          eq(rolePermissions.permissionId, permissions.id)
+        )
         .where(eq(rolePermissions.roleId, id));
 
       return reply.send(
         createSuccessResponse({
           ...role,
-          permissions: rolePerms.map(rp => rp.permission),
+          permissions: rolePerms.map((rp) => rp.permission),
         })
       );
     }
@@ -236,19 +229,16 @@ export function rolesRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.post(
-    '/',
+    "/",
     {
       schema: {
-        description: 'Create a new role',
-        tags: ['Roles'],
+        description: "Create a new role",
+        tags: ["Roles"],
         body: roleCreateSchema,
       },
-      preHandler: [requirePermission('role', 'create')],
+      preHandler: [requirePermission("role", "create")],
     },
-    async (
-      request,
-      reply
-    ) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const currentUser = getCurrentUser(request);
       const data = request.body as RoleCreate;
@@ -257,14 +247,11 @@ export function rolesRoutes(fastify: FastifyInstance) {
       const [existing] = await db
         .select()
         .from(roles)
-        .where(and(
-          eq(roles.tenantId, tenantId),
-          eq(roles.slug, data.slug)
-        ))
+        .where(and(eq(roles.tenantId, tenantId), eq(roles.slug, data.slug)))
         .limit(1);
 
       if (existing) {
-        return createBadRequestError('Role slug already exists', reply);
+        return createBadRequestError("Role slug already exists", reply);
       }
 
       // Create role
@@ -275,16 +262,17 @@ export function rolesRoutes(fastify: FastifyInstance) {
           name: data.name,
           slug: data.slug,
           description: data.description || null,
-          isSystemRole: false, // Only super user can create system roles
           isActive: data.isActive ?? true,
         })
         .returning();
 
       if (!newRole) {
-        throw new Error('Failed to create role');
+        throw new Error("Failed to create role");
       }
 
-      return reply.status(201).send(createSuccessResponse(newRole, 'Role created'));
+      return reply
+        .status(201)
+        .send(createSuccessResponse(newRole, "Role created"));
     }
   );
 
@@ -293,22 +281,19 @@ export function rolesRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.put(
-    '/:id',
+    "/:id",
     {
       schema: {
-        description: 'Update a role',
-        tags: ['Roles'],
+        description: "Update a role",
+        tags: ["Roles"],
         params: z.object({
           id: z.string().uuid(),
         }),
         body: roleUpdateSchema,
       },
-      preHandler: [requirePermission('role', 'update')],
+      preHandler: [requirePermission("role", "update")],
     },
-    async (
-      request,
-      reply
-    ) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const { id } = request.params as { id: string };
       const data = request.body as RoleUpdate;
@@ -317,19 +302,11 @@ export function rolesRoutes(fastify: FastifyInstance) {
       const [existing] = await db
         .select()
         .from(roles)
-        .where(and(
-          eq(roles.id, id),
-          eq(roles.tenantId, tenantId)
-        ))
+        .where(and(eq(roles.id, id), eq(roles.tenantId, tenantId)))
         .limit(1);
 
       if (!existing) {
-        return createNotFoundError('Role not found', reply);
-      }
-
-      // Prevent updating system roles
-      if (existing.isSystemRole) {
-        return createBadRequestError('Cannot update system roles', reply);
+        return createNotFoundError("Role not found", reply);
       }
 
       // Check slug uniqueness if being changed
@@ -337,14 +314,11 @@ export function rolesRoutes(fastify: FastifyInstance) {
         const [duplicate] = await db
           .select()
           .from(roles)
-          .where(and(
-            eq(roles.tenantId, tenantId),
-            eq(roles.slug, data.slug)
-          ))
+          .where(and(eq(roles.tenantId, tenantId), eq(roles.slug, data.slug)))
           .limit(1);
 
         if (duplicate) {
-          return createBadRequestError('Role slug already exists', reply);
+          return createBadRequestError("Role slug already exists", reply);
         }
       }
 
@@ -359,7 +333,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
         .returning();
 
       if (!updated) {
-        throw new Error('Failed to update role');
+        throw new Error("Failed to update role");
       }
 
       // Clear permission cache for users with this role
@@ -372,7 +346,7 @@ export function rolesRoutes(fastify: FastifyInstance) {
         clearUserPermissionCache(ur.userId);
       }
 
-      return reply.send(createSuccessResponse(updated, 'Role updated'));
+      return reply.send(createSuccessResponse(updated, "Role updated"));
     }
   );
 
@@ -381,21 +355,18 @@ export function rolesRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.delete(
-    '/:id',
+    "/:id",
     {
       schema: {
-        description: 'Delete a role',
-        tags: ['Roles'],
+        description: "Delete a role",
+        tags: ["Roles"],
         params: z.object({
           id: z.string().uuid(),
         }),
       },
-      preHandler: [requirePermission('role', 'delete')],
+      preHandler: [requirePermission("role", "delete")],
     },
-    async (
-      request,
-      reply
-    ) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const { id } = request.params as { id: string };
 
@@ -403,19 +374,11 @@ export function rolesRoutes(fastify: FastifyInstance) {
       const [existing] = await db
         .select()
         .from(roles)
-        .where(and(
-          eq(roles.id, id),
-          eq(roles.tenantId, tenantId)
-        ))
+        .where(and(eq(roles.id, id), eq(roles.tenantId, tenantId)))
         .limit(1);
 
       if (!existing) {
-        return createNotFoundError('Role not found', reply);
-      }
-
-      // Prevent deleting system roles
-      if (existing.isSystemRole) {
-        return createBadRequestError('Cannot delete system roles', reply);
+        return createNotFoundError("Role not found", reply);
       }
 
       // Clear permission cache for users with this role
@@ -425,16 +388,16 @@ export function rolesRoutes(fastify: FastifyInstance) {
         .where(eq(userRoles.roleId, id));
 
       // Delete role (cascades to user_roles and role_permissions)
-      await db
-        .delete(roles)
-        .where(eq(roles.id, id));
+      await db.delete(roles).where(eq(roles.id, id));
 
       // Clear permission caches
       for (const ur of usersWithRole) {
         clearUserPermissionCache(ur.userId);
       }
 
-      return reply.send(createSuccessResponse({ deleted: true }, 'Role deleted'));
+      return reply.send(
+        createSuccessResponse({ deleted: true }, "Role deleted")
+      );
     }
   );
 
@@ -443,22 +406,19 @@ export function rolesRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.post(
-    '/:id/permissions',
+    "/:id/permissions",
     {
       schema: {
-        description: 'Assign permissions to role',
-        tags: ['Roles'],
+        description: "Assign permissions to role",
+        tags: ["Roles"],
         params: z.object({
           id: z.string().uuid(),
         }),
         body: assignPermissionsSchema,
       },
-      preHandler: [requirePermission('role', 'manage_permissions')],
+      preHandler: [requirePermission("role", "manage_permissions")],
     },
-    async (
-      request,
-      reply
-    ) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const userId = getUserId(request);
       const { id } = request.params as { id: string };
@@ -468,14 +428,11 @@ export function rolesRoutes(fastify: FastifyInstance) {
       const [role] = await db
         .select()
         .from(roles)
-        .where(and(
-          eq(roles.id, id),
-          eq(roles.tenantId, tenantId)
-        ))
+        .where(and(eq(roles.id, id), eq(roles.tenantId, tenantId)))
         .limit(1);
 
       if (!role) {
-        return createNotFoundError('Role not found', reply);
+        return createNotFoundError("Role not found", reply);
       }
 
       // Verify all permissions exist
@@ -485,20 +442,20 @@ export function rolesRoutes(fastify: FastifyInstance) {
         .where(inArray(permissions.id, permissionIds));
 
       if (existingPermissions.length !== permissionIds.length) {
-        return createBadRequestError('One or more permissions not found', reply);
+        return createBadRequestError(
+          "One or more permissions not found",
+          reply
+        );
       }
 
       // Insert role-permission mappings (ignore duplicates)
-      const values = permissionIds.map(permId => ({
+      const values = permissionIds.map((permId) => ({
         roleId: id,
         permissionId: permId,
         grantedBy: userId,
       }));
 
-      await db
-        .insert(rolePermissions)
-        .values(values)
-        .onConflictDoNothing();
+      await db.insert(rolePermissions).values(values).onConflictDoNothing();
 
       // Clear permission cache for users with this role
       const usersWithRole = await db
@@ -511,7 +468,10 @@ export function rolesRoutes(fastify: FastifyInstance) {
       }
 
       return reply.send(
-        createSuccessResponse({ assigned: permissionIds.length }, 'Permissions assigned')
+        createSuccessResponse(
+          { assigned: permissionIds.length },
+          "Permissions assigned"
+        )
       );
     }
   );
@@ -521,22 +481,19 @@ export function rolesRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.delete(
-    '/:id/permissions',
+    "/:id/permissions",
     {
       schema: {
-        description: 'Remove permissions from role',
-        tags: ['Roles'],
+        description: "Remove permissions from role",
+        tags: ["Roles"],
         params: z.object({
           id: z.string().uuid(),
         }),
         body: removePermissionsSchema,
       },
-      preHandler: [requirePermission('role', 'manage_permissions')],
+      preHandler: [requirePermission("role", "manage_permissions")],
     },
-    async (
-      request,
-      reply
-    ) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const { id } = request.params as { id: string };
       const { permissionIds } = request.body as { permissionIds: string[] };
@@ -545,23 +502,22 @@ export function rolesRoutes(fastify: FastifyInstance) {
       const [role] = await db
         .select()
         .from(roles)
-        .where(and(
-          eq(roles.id, id),
-          eq(roles.tenantId, tenantId)
-        ))
+        .where(and(eq(roles.id, id), eq(roles.tenantId, tenantId)))
         .limit(1);
 
       if (!role) {
-        return createNotFoundError('Role not found', reply);
+        return createNotFoundError("Role not found", reply);
       }
 
       // Remove role-permission mappings
       await db
         .delete(rolePermissions)
-        .where(and(
-          eq(rolePermissions.roleId, id),
-          inArray(rolePermissions.permissionId, permissionIds)
-        ));
+        .where(
+          and(
+            eq(rolePermissions.roleId, id),
+            inArray(rolePermissions.permissionId, permissionIds)
+          )
+        );
 
       // Clear permission cache for users with this role
       const usersWithRole = await db
@@ -574,7 +530,10 @@ export function rolesRoutes(fastify: FastifyInstance) {
       }
 
       return reply.send(
-        createSuccessResponse({ removed: permissionIds.length }, 'Permissions removed')
+        createSuccessResponse(
+          { removed: permissionIds.length },
+          "Permissions removed"
+        )
       );
     }
   );
@@ -584,22 +543,19 @@ export function rolesRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.post(
-    '/users/:userId/roles',
+    "/users/:userId/roles",
     {
       schema: {
-        description: 'Assign roles to user',
-        tags: ['Roles'],
+        description: "Assign roles to user",
+        tags: ["Roles"],
         params: z.object({
           userId: z.string().uuid(),
         }),
         body: assignRolesToUserSchema,
       },
-      preHandler: [requirePermission('user', 'update')],
+      preHandler: [requirePermission("user", "update")],
     },
-    async (
-      request,
-      reply
-    ) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const currentUserId = getUserId(request);
       const { userId } = request.params as { userId: string };
@@ -609,46 +565,37 @@ export function rolesRoutes(fastify: FastifyInstance) {
       const [user] = await db
         .select()
         .from(users)
-        .where(and(
-          eq(users.id, userId),
-          eq(users.tenantId, tenantId)
-        ))
+        .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)))
         .limit(1);
 
       if (!user) {
-        return createNotFoundError('User not found', reply);
+        return createNotFoundError("User not found", reply);
       }
 
       // Verify all roles exist and belong to tenant
       const existingRoles = await db
         .select()
         .from(roles)
-        .where(and(
-          inArray(roles.id, roleIds),
-          eq(roles.tenantId, tenantId)
-        ));
+        .where(and(inArray(roles.id, roleIds), eq(roles.tenantId, tenantId)));
 
       if (existingRoles.length !== roleIds.length) {
-        return createBadRequestError('One or more roles not found', reply);
+        return createBadRequestError("One or more roles not found", reply);
       }
 
       // Insert user-role mappings (ignore duplicates)
-      const values = roleIds.map(roleId => ({
+      const values = roleIds.map((roleId) => ({
         userId,
         roleId,
         assignedBy: currentUserId,
       }));
 
-      await db
-        .insert(userRoles)
-        .values(values)
-        .onConflictDoNothing();
+      await db.insert(userRoles).values(values).onConflictDoNothing();
 
       // Clear permission cache for user
       clearUserPermissionCache(userId);
 
       return reply.send(
-        createSuccessResponse({ assigned: roleIds.length }, 'Roles assigned')
+        createSuccessResponse({ assigned: roleIds.length }, "Roles assigned")
       );
     }
   );
@@ -658,22 +605,19 @@ export function rolesRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.delete(
-    '/users/:userId/roles',
+    "/users/:userId/roles",
     {
       schema: {
-        description: 'Remove roles from user',
-        tags: ['Roles'],
+        description: "Remove roles from user",
+        tags: ["Roles"],
         params: z.object({
           userId: z.string().uuid(),
         }),
         body: removeRolesFromUserSchema,
       },
-      preHandler: [requirePermission('user', 'update')],
+      preHandler: [requirePermission("user", "update")],
     },
-    async (
-      request,
-      reply
-    ) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const { userId } = request.params as { userId: string };
       const { roleIds } = request.body as { roleIds: string[] };
@@ -682,29 +626,25 @@ export function rolesRoutes(fastify: FastifyInstance) {
       const [user] = await db
         .select()
         .from(users)
-        .where(and(
-          eq(users.id, userId),
-          eq(users.tenantId, tenantId)
-        ))
+        .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)))
         .limit(1);
 
       if (!user) {
-        return createNotFoundError('User not found', reply);
+        return createNotFoundError("User not found", reply);
       }
 
       // Remove user-role mappings
       await db
         .delete(userRoles)
-        .where(and(
-          eq(userRoles.userId, userId),
-          inArray(userRoles.roleId, roleIds)
-        ));
+        .where(
+          and(eq(userRoles.userId, userId), inArray(userRoles.roleId, roleIds))
+        );
 
       // Clear permission cache for user
       clearUserPermissionCache(userId);
 
       return reply.send(
-        createSuccessResponse({ removed: roleIds.length }, 'Roles removed')
+        createSuccessResponse({ removed: roleIds.length }, "Roles removed")
       );
     }
   );
@@ -714,21 +654,18 @@ export function rolesRoutes(fastify: FastifyInstance) {
   // ============================================================================
 
   fastify.get(
-    '/users/:userId',
+    "/users/:userId",
     {
       schema: {
-        description: 'Get user\'s roles',
-        tags: ['Roles'],
+        description: "Get user's roles",
+        tags: ["Roles"],
         params: z.object({
           userId: z.string().uuid(),
         }),
       },
-      preHandler: [requirePermission('user', 'read')],
+      preHandler: [requirePermission("user", "read")],
     },
-    async (
-      request,
-      reply
-    ) => {
+    async (request, reply) => {
       const tenantId = getTenantId(request);
       const { userId } = request.params as { userId: string };
 
@@ -736,14 +673,11 @@ export function rolesRoutes(fastify: FastifyInstance) {
       const [user] = await db
         .select()
         .from(users)
-        .where(and(
-          eq(users.id, userId),
-          eq(users.tenantId, tenantId)
-        ))
+        .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)))
         .limit(1);
 
       if (!user) {
-        return createNotFoundError('User not found', reply);
+        return createNotFoundError("User not found", reply);
       }
 
       // Get user's permissions

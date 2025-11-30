@@ -4,7 +4,7 @@
  * Provides comprehensive permission management with:
  * - Multiple roles per user
  * - Dynamic permissions per role
- * - Tenant-scoped and system-level roles
+ * - Tenant-scoped roles
  * - Fine-grained access control
  *
  * @module schema-rbac
@@ -18,7 +18,6 @@ import {
   boolean,
   index,
   unique,
-  primaryKey,
 } from "drizzle-orm/pg-core";
 import { erp } from "./schema.js";
 import { tenants, users } from "./schema.js";
@@ -30,26 +29,28 @@ import { tenants, users } from "./schema.js";
 /**
  * Roles table
  *
- * Stores role definitions. Roles can be:
- * - System-level (tenant_id = null) for super_user, app owner
- * - Tenant-scoped (tenant_id set) for regular tenant roles
+ * Stores role definitions for tenant-scoped roles
  */
-export const roles = erp.table("roles", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  name: varchar("name", { length: 100 }).notNull(),
-  slug: varchar("slug", { length: 100 }).notNull(),
-  description: text("description"),
-  isSystemRole: boolean("is_system_role").notNull().default(false),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-}, (t) => ({
-  // System roles have null tenant_id, tenant roles have tenant_id
-  uqTenantSlug: unique("uq_role_tenant_slug").on(t.tenantId, t.slug),
-  idxTenant: index("idx_role_tenant").on(t.tenantId),
-  idxSystemRole: index("idx_role_system").on(t.isSystemRole),
-}));
+export const roles = erp.table(
+  "roles",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id").references(() => tenants.id, {
+      onDelete: "cascade",
+    }),
+    name: varchar("name", { length: 100 }).notNull(),
+    slug: varchar("slug", { length: 100 }).notNull(),
+    description: text("description"),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    // Unique slug per tenant
+    uqTenantSlug: unique("uq_role_tenant_slug").on(t.tenantId, t.slug),
+    idxTenant: index("idx_role_tenant").on(t.tenantId),
+  })
+);
 
 /**
  * Permissions table
@@ -62,16 +63,23 @@ export const roles = erp.table("roles", {
  * - purchase_order:approve
  * - pos:operate
  */
-export const permissions = erp.table("permissions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  resource: varchar("resource", { length: 100 }).notNull(),
-  action: varchar("action", { length: 100 }).notNull(),
-  description: text("description"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-}, (t) => ({
-  uqResourceAction: unique("uq_permission_resource_action").on(t.resource, t.action),
-  idxResource: index("idx_permission_resource").on(t.resource),
-}));
+export const permissions = erp.table(
+  "permissions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    resource: varchar("resource", { length: 100 }).notNull(),
+    action: varchar("action", { length: 100 }).notNull(),
+    description: text("description"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    uqResourceAction: unique("uq_permission_resource_action").on(
+      t.resource,
+      t.action
+    ),
+    idxResource: index("idx_permission_resource").on(t.resource),
+  })
+);
 
 /**
  * User Roles junction table
@@ -79,17 +87,27 @@ export const permissions = erp.table("permissions", {
  * Many-to-many relationship between users and roles.
  * Users can have multiple roles.
  */
-export const userRoles = erp.table("user_roles", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  roleId: uuid("role_id").notNull().references(() => roles.id, { onDelete: "cascade" }),
-  assignedBy: uuid("assigned_by").references(() => users.id, { onDelete: "set null" }),
-  assignedAt: timestamp("assigned_at").notNull().defaultNow(),
-}, (t) => ({
-  uqUserRole: unique("uq_user_role").on(t.userId, t.roleId),
-  idxUser: index("idx_user_roles_user").on(t.userId),
-  idxRole: index("idx_user_roles_role").on(t.roleId),
-}));
+export const userRoles = erp.table(
+  "user_roles",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    roleId: uuid("role_id")
+      .notNull()
+      .references(() => roles.id, { onDelete: "cascade" }),
+    assignedBy: uuid("assigned_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    assignedAt: timestamp("assigned_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    uqUserRole: unique("uq_user_role").on(t.userId, t.roleId),
+    idxUser: index("idx_user_roles_user").on(t.userId),
+    idxRole: index("idx_user_roles_role").on(t.roleId),
+  })
+);
 
 /**
  * Role Permissions junction table
@@ -97,17 +115,27 @@ export const userRoles = erp.table("user_roles", {
  * Many-to-many relationship between roles and permissions.
  * Roles can have multiple permissions.
  */
-export const rolePermissions = erp.table("role_permissions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  roleId: uuid("role_id").notNull().references(() => roles.id, { onDelete: "cascade" }),
-  permissionId: uuid("permission_id").notNull().references(() => permissions.id, { onDelete: "cascade" }),
-  grantedBy: uuid("granted_by").references(() => users.id, { onDelete: "set null" }),
-  grantedAt: timestamp("granted_at").notNull().defaultNow(),
-}, (t) => ({
-  uqRolePermission: unique("uq_role_permission").on(t.roleId, t.permissionId),
-  idxRole: index("idx_role_permissions_role").on(t.roleId),
-  idxPermission: index("idx_role_permissions_permission").on(t.permissionId),
-}));
+export const rolePermissions = erp.table(
+  "role_permissions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    roleId: uuid("role_id")
+      .notNull()
+      .references(() => roles.id, { onDelete: "cascade" }),
+    permissionId: uuid("permission_id")
+      .notNull()
+      .references(() => permissions.id, { onDelete: "cascade" }),
+    grantedBy: uuid("granted_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    grantedAt: timestamp("granted_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    uqRolePermission: unique("uq_role_permission").on(t.roleId, t.permissionId),
+    idxRole: index("idx_role_permissions_role").on(t.roleId),
+    idxPermission: index("idx_role_permissions_permission").on(t.permissionId),
+  })
+);
 
 // ===========================================================================
 // PERMISSION CONSTANTS
@@ -178,7 +206,7 @@ export const ACTIONS = {
 
   // Special actions
   MANAGE: "manage", // Full control
-  VIEW: "view",     // Read-only
+  VIEW: "view", // Read-only
   APPROVE: "approve",
   REJECT: "reject",
   OPERATE: "operate",
@@ -200,7 +228,11 @@ export const ACTIONS = {
  */
 export const DEFAULT_PERMISSIONS = [
   // System-level permissions
-  ["tenant", "manage", "Full tenant management (create, update, delete tenants)"],
+  [
+    "tenant",
+    "manage",
+    "Full tenant management (create, update, delete tenants)",
+  ],
   ["tenant", "view", "View tenant information"],
 
   // Location permissions
@@ -323,24 +355,13 @@ export const DEFAULT_PERMISSIONS = [
 /**
  * Default role configurations
  *
- * Format: [slug, name, description, isSystemRole, permissions[]]
+ * Format: [slug, name, description, permissions[]]
  */
 export const DEFAULT_ROLES = {
-  SUPER_USER: {
-    slug: "super_user",
-    name: "Super User",
-    description: "App owner with full system access including tenant management",
-    isSystemRole: true,
-    permissions: [
-      "tenant:manage",
-      "tenant:view",
-    ],
-  },
   ADMIN: {
     slug: "admin",
     name: "Administrator",
     description: "Full access to all tenant features",
-    isSystemRole: false,
     permissions: [
       // All permissions except tenant management
       "location:manage",
@@ -361,7 +382,6 @@ export const DEFAULT_ROLES = {
     slug: "manager",
     name: "Manager",
     description: "Manage operations and approve transactions",
-    isSystemRole: false,
     permissions: [
       "location:read",
       "user:read",
@@ -383,7 +403,6 @@ export const DEFAULT_ROLES = {
     slug: "warehouse_staff",
     name: "Warehouse Staff",
     description: "Manage warehouse operations and inventory",
-    isSystemRole: false,
     permissions: [
       "product:read",
       "goods_receipt:create",
@@ -403,7 +422,6 @@ export const DEFAULT_ROLES = {
     slug: "kitchen_staff",
     name: "Kitchen Staff",
     description: "Manage production and recipes",
-    isSystemRole: false,
     permissions: [
       "recipe:read",
       "production_order:create",
@@ -418,7 +436,6 @@ export const DEFAULT_ROLES = {
     slug: "cashier",
     name: "Cashier",
     description: "Operate POS and process sales",
-    isSystemRole: false,
     permissions: [
       "pos:operate",
       "order:create",
@@ -431,11 +448,6 @@ export const DEFAULT_ROLES = {
     slug: "staff",
     name: "Staff",
     description: "General staff with basic access",
-    isSystemRole: false,
-    permissions: [
-      "product:read",
-      "inventory:view",
-      "order:read",
-    ],
+    permissions: ["product:read", "inventory:view", "order:read"],
   },
 } as const;

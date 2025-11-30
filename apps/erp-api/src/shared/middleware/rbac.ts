@@ -10,11 +10,16 @@
  * @module middleware/rbac
  */
 
-import { FastifyRequest, FastifyReply } from 'fastify';
-import { db } from '@/config/database.js';
-import { roles, permissions, userRoles, rolePermissions } from '@/config/schema.js';
-import { eq, and, inArray } from 'drizzle-orm';
-import { getCurrentUser, getUserId } from './auth.js';
+import { FastifyRequest, FastifyReply } from "fastify";
+import { db } from "@/config/database.js";
+import {
+  roles,
+  permissions,
+  userRoles,
+  rolePermissions,
+} from "@/config/schema.js";
+import { eq, and, inArray } from "drizzle-orm";
+import { getUserId } from "./auth.js";
 
 // ============================================================================
 // TYPES
@@ -26,7 +31,6 @@ export interface RoleData {
   name: string;
   slug: string;
   description: string | null;
-  isSystemRole: boolean;
   isActive: boolean;
 }
 
@@ -54,7 +58,9 @@ const permissionCache = new Map<string, UserPermissions>();
  * Load all roles and permissions for a user
  * Results are cached per request
  */
-export async function loadUserPermissions(userId: string): Promise<UserPermissions> {
+export async function loadUserPermissions(
+  userId: string
+): Promise<UserPermissions> {
   // Check cache first
   const cached = permissionCache.get(userId);
   if (cached) {
@@ -68,29 +74,25 @@ export async function loadUserPermissions(userId: string): Promise<UserPermissio
     })
     .from(userRoles)
     .innerJoin(roles, eq(userRoles.roleId, roles.id))
-    .where(and(
-      eq(userRoles.userId, userId),
-      eq(roles.isActive, true)
-    ));
+    .where(and(eq(userRoles.userId, userId), eq(roles.isActive, true)));
 
-  const roleData: RoleData[] = userRoleRecords.map(r => ({
+  const roleData: RoleData[] = userRoleRecords.map((r) => ({
     id: r.role.id,
     tenantId: r.role.tenantId,
     name: r.role.name,
     slug: r.role.slug,
     description: r.role.description,
-    isSystemRole: r.role.isSystemRole,
     isActive: r.role.isActive,
   }));
 
-  // Check if user has super_user role
-  const isSuperUser = roleData.some(r => r.slug === 'super_user' && r.isSystemRole);
+  // Check if user has admin role (only admin username is super_user)
+  const isSuperUser = roleData.some((r) => r.slug === "admin");
 
   // Get permissions for these roles
   let permissionData: PermissionData[] = [];
 
   if (roleData.length > 0) {
-    const roleIds = roleData.map(r => r.id);
+    const roleIds = roleData.map((r) => r.id);
 
     const rolePermissionRecords = await db
       .select({
@@ -100,7 +102,7 @@ export async function loadUserPermissions(userId: string): Promise<UserPermissio
       .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
       .where(inArray(rolePermissions.roleId, roleIds));
 
-    permissionData = rolePermissionRecords.map(rp => ({
+    permissionData = rolePermissionRecords.map((rp) => ({
       id: rp.permission.id,
       resource: rp.permission.resource,
       action: rp.permission.action,
@@ -109,7 +111,9 @@ export async function loadUserPermissions(userId: string): Promise<UserPermissio
 
     // Remove duplicates
     permissionData = Array.from(
-      new Map(permissionData.map(p => [`${p.resource}:${p.action}`, p])).values()
+      new Map(
+        permissionData.map((p) => [`${p.resource}:${p.action}`, p])
+      ).values()
     );
   }
 
@@ -165,7 +169,7 @@ export async function hasPermission(
 
   // Check if user has the specific permission
   return userPerms.permissions.some(
-    p => p.resource === resource && p.action === action
+    (p) => p.resource === resource && p.action === action
   );
 }
 
@@ -189,7 +193,7 @@ export async function hasAnyPermission(
   // Check if user has any of the permissions
   return checks.some(([resource, action]) =>
     userPerms.permissions.some(
-      p => p.resource === resource && p.action === action
+      (p) => p.resource === resource && p.action === action
     )
   );
 }
@@ -214,7 +218,7 @@ export async function hasAllPermissions(
   // Check if user has all of the permissions
   return checks.every(([resource, action]) =>
     userPerms.permissions.some(
-      p => p.resource === resource && p.action === action
+      (p) => p.resource === resource && p.action === action
     )
   );
 }
@@ -225,9 +229,12 @@ export async function hasAllPermissions(
  * @param roleSlug - Role slug (e.g., 'admin', 'manager', 'super_user')
  * @returns true if user has role
  */
-export async function hasRole(userId: string, roleSlug: string): Promise<boolean> {
+export async function hasRole(
+  userId: string,
+  roleSlug: string
+): Promise<boolean> {
   const userPerms = await loadUserPermissions(userId);
-  return userPerms.roles.some(r => r.slug === roleSlug);
+  return userPerms.roles.some((r) => r.slug === roleSlug);
 }
 
 /**
@@ -236,9 +243,12 @@ export async function hasRole(userId: string, roleSlug: string): Promise<boolean
  * @param roleSlugs - Array of role slugs
  * @returns true if user has at least one role
  */
-export async function hasAnyRole(userId: string, roleSlugs: string[]): Promise<boolean> {
+export async function hasAnyRole(
+  userId: string,
+  roleSlugs: string[]
+): Promise<boolean> {
   const userPerms = await loadUserPermissions(userId);
-  return userPerms.roles.some(r => roleSlugs.includes(r.slug));
+  return userPerms.roles.some((r) => roleSlugs.includes(r.slug));
 }
 
 /**
@@ -247,9 +257,14 @@ export async function hasAnyRole(userId: string, roleSlugs: string[]): Promise<b
  * @param roleSlugs - Array of role slugs
  * @returns true if user has all roles
  */
-export async function hasAllRoles(userId: string, roleSlugs: string[]): Promise<boolean> {
+export async function hasAllRoles(
+  userId: string,
+  roleSlugs: string[]
+): Promise<boolean> {
   const userPerms = await loadUserPermissions(userId);
-  return roleSlugs.every(slug => userPerms.roles.some(r => r.slug === slug));
+  return roleSlugs.every((slug) =>
+    userPerms.roles.some((r) => r.slug === slug)
+  );
 }
 
 /**
@@ -281,18 +296,18 @@ export function requirePermission(resource: string, action: string) {
       if (!allowed) {
         return reply.status(403).send({
           success: false,
-          error: 'Forbidden',
+          error: "Forbidden",
           message: `You don't have permission to ${action} ${resource}`,
-          code: 'PERMISSION_DENIED',
+          code: "PERMISSION_DENIED",
         });
       }
     } catch (error) {
-      request.log.error({ err: error }, 'Permission check error');
+      request.log.error({ err: error }, "Permission check error");
       return reply.status(403).send({
         success: false,
-        error: 'Forbidden',
-        message: 'Permission check failed',
-        code: 'PERMISSION_CHECK_FAILED',
+        error: "Forbidden",
+        message: "Permission check failed",
+        code: "PERMISSION_CHECK_FAILED",
       });
     }
   };
@@ -312,18 +327,18 @@ export function requireAnyPermission(checks: Array<[string, string]>) {
       if (!allowed) {
         return reply.status(403).send({
           success: false,
-          error: 'Forbidden',
-          message: 'You don\'t have the required permissions',
-          code: 'PERMISSION_DENIED',
+          error: "Forbidden",
+          message: "You don't have the required permissions",
+          code: "PERMISSION_DENIED",
         });
       }
     } catch (error) {
-      request.log.error({ err: error }, 'Permission check error');
+      request.log.error({ err: error }, "Permission check error");
       return reply.status(403).send({
         success: false,
-        error: 'Forbidden',
-        message: 'Permission check failed',
-        code: 'PERMISSION_CHECK_FAILED',
+        error: "Forbidden",
+        message: "Permission check failed",
+        code: "PERMISSION_CHECK_FAILED",
       });
     }
   };
@@ -343,18 +358,18 @@ export function requireAllPermissions(checks: Array<[string, string]>) {
       if (!allowed) {
         return reply.status(403).send({
           success: false,
-          error: 'Forbidden',
-          message: 'You don\'t have all required permissions',
-          code: 'PERMISSION_DENIED',
+          error: "Forbidden",
+          message: "You don't have all required permissions",
+          code: "PERMISSION_DENIED",
         });
       }
     } catch (error) {
-      request.log.error({ err: error }, 'Permission check error');
+      request.log.error({ err: error }, "Permission check error");
       return reply.status(403).send({
         success: false,
-        error: 'Forbidden',
-        message: 'Permission check failed',
-        code: 'PERMISSION_CHECK_FAILED',
+        error: "Forbidden",
+        message: "Permission check failed",
+        code: "PERMISSION_CHECK_FAILED",
       });
     }
   };
@@ -374,18 +389,18 @@ export function requireRole(roleSlug: string) {
       if (!allowed) {
         return reply.status(403).send({
           success: false,
-          error: 'Forbidden',
+          error: "Forbidden",
           message: `You need the '${roleSlug}' role to access this resource`,
-          code: 'ROLE_REQUIRED',
+          code: "ROLE_REQUIRED",
         });
       }
     } catch (error) {
-      request.log.error({ err: error }, 'Role check error');
+      request.log.error({ err: error }, "Role check error");
       return reply.status(403).send({
         success: false,
-        error: 'Forbidden',
-        message: 'Role check failed',
-        code: 'ROLE_CHECK_FAILED',
+        error: "Forbidden",
+        message: "Role check failed",
+        code: "ROLE_CHECK_FAILED",
       });
     }
   };
@@ -405,18 +420,18 @@ export function requireAnyRole(roleSlugs: string[]) {
       if (!allowed) {
         return reply.status(403).send({
           success: false,
-          error: 'Forbidden',
-          message: `You need one of these roles: ${roleSlugs.join(', ')}`,
-          code: 'ROLE_REQUIRED',
+          error: "Forbidden",
+          message: `You need one of these roles: ${roleSlugs.join(", ")}`,
+          code: "ROLE_REQUIRED",
         });
       }
     } catch (error) {
-      request.log.error({ err: error }, 'Role check error');
+      request.log.error({ err: error }, "Role check error");
       return reply.status(403).send({
         success: false,
-        error: 'Forbidden',
-        message: 'Role check failed',
-        code: 'ROLE_CHECK_FAILED',
+        error: "Forbidden",
+        message: "Role check failed",
+        code: "ROLE_CHECK_FAILED",
       });
     }
   };
@@ -435,18 +450,18 @@ export function requireSuperUser() {
       if (!allowed) {
         return reply.status(403).send({
           success: false,
-          error: 'Forbidden',
-          message: 'Super user access required',
-          code: 'SUPER_USER_REQUIRED',
+          error: "Forbidden",
+          message: "Super user access required",
+          code: "SUPER_USER_REQUIRED",
         });
       }
     } catch (error) {
-      request.log.error({ err: error }, 'Super user check error');
+      request.log.error({ err: error }, "Super user check error");
       return reply.status(403).send({
         success: false,
-        error: 'Forbidden',
-        message: 'Super user check failed',
-        code: 'SUPER_USER_CHECK_FAILED',
+        error: "Forbidden",
+        message: "Super user check failed",
+        code: "SUPER_USER_CHECK_FAILED",
       });
     }
   };
@@ -460,7 +475,9 @@ export function requireSuperUser() {
  * Get user permissions from request
  * This loads and caches the user's roles and permissions
  */
-export async function getUserPermissions(request: FastifyRequest): Promise<UserPermissions> {
+export async function getUserPermissions(
+  request: FastifyRequest
+): Promise<UserPermissions> {
   const userId = getUserId(request);
   return loadUserPermissions(userId);
 }
@@ -481,7 +498,7 @@ export async function attachUserPermissions(
 }
 
 // Type augmentation for Fastify request
-declare module 'fastify' {
+declare module "fastify" {
   export interface FastifyRequest {
     userPermissions?: UserPermissions;
   }

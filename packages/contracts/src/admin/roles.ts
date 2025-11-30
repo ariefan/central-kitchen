@@ -11,14 +11,14 @@
  * @module @contracts/erp/admin/roles
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 import {
   baseQuerySchema,
   successResponseSchema,
   paginatedResponseSchema,
   deleteResponseSchema,
-} from '../common.js';
-import { uuidSchema, booleanQueryParamSchema } from '../primitives.js';
+} from "../common.js";
+import { uuidSchema, booleanQueryParamSchema } from "../primitives.js";
 
 // ============================================================================
 // PERMISSION SCHEMAS
@@ -46,8 +46,10 @@ export const permissionQuerySchema = baseQuerySchema.extend({
 /**
  * Permission responses
  */
-export const permissionResponseSchema = successResponseSchema(permissionDataSchema);
-export const permissionsResponseSchema = paginatedResponseSchema(permissionDataSchema);
+export const permissionResponseSchema =
+  successResponseSchema(permissionDataSchema);
+export const permissionsResponseSchema =
+  paginatedResponseSchema(permissionDataSchema);
 
 // ============================================================================
 // ROLE SCHEMAS
@@ -57,12 +59,16 @@ export const permissionsResponseSchema = paginatedResponseSchema(permissionDataS
  * Role creation input
  */
 export const roleCreateSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
-  slug: z.string()
-    .min(2, 'Slug must be at least 2 characters')
-    .max(100, 'Slug too long')
-    .regex(/^[a-z0-9_]+$/, 'Slug can only contain lowercase letters, numbers, and underscores'),
-  description: z.string().max(500, 'Description too long').optional(),
+  name: z.string().min(1, "Name is required").max(100, "Name too long"),
+  slug: z
+    .string()
+    .min(2, "Slug must be at least 2 characters")
+    .max(100, "Slug too long")
+    .regex(
+      /^[a-z0-9_]+$/,
+      "Slug can only contain lowercase letters, numbers, and underscores"
+    ),
+  description: z.string().max(500, "Description too long").optional(),
   isActive: z.boolean().default(true),
 });
 
@@ -78,7 +84,6 @@ export const roleQuerySchema = baseQuerySchema.extend({
   name: z.string().optional(),
   slug: z.string().optional(),
   isActive: booleanQueryParamSchema.optional(),
-  isSystemRole: booleanQueryParamSchema.optional(),
 });
 
 /**
@@ -90,7 +95,6 @@ export const roleDataSchema = z.object({
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
-  isSystemRole: z.boolean(),
   isActive: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -111,7 +115,9 @@ export const roleWithPermissionsSchema = roleDataSchema.extend({
  */
 export const roleResponseSchema = successResponseSchema(roleDataSchema);
 export const rolesResponseSchema = paginatedResponseSchema(roleDataSchema);
-export const roleWithPermissionsResponseSchema = successResponseSchema(roleWithPermissionsSchema);
+export const roleWithPermissionsResponseSchema = successResponseSchema(
+  roleWithPermissionsSchema
+);
 export const roleDeleteResponseSchema = deleteResponseSchema;
 
 // ============================================================================
@@ -122,14 +128,14 @@ export const roleDeleteResponseSchema = deleteResponseSchema;
  * Assign permissions to role
  */
 export const assignPermissionsSchema = z.object({
-  permissionIds: z.array(uuidSchema).min(1, 'At least one permission required'),
+  permissionIds: z.array(uuidSchema).min(1, "At least one permission required"),
 });
 
 /**
  * Remove permissions from role
  */
 export const removePermissionsSchema = z.object({
-  permissionIds: z.array(uuidSchema).min(1, 'At least one permission required'),
+  permissionIds: z.array(uuidSchema).min(1, "At least one permission required"),
 });
 
 // ============================================================================
@@ -140,14 +146,14 @@ export const removePermissionsSchema = z.object({
  * Assign roles to user
  */
 export const assignRolesToUserSchema = z.object({
-  roleIds: z.array(uuidSchema).min(1, 'At least one role required'),
+  roleIds: z.array(uuidSchema).min(1, "At least one role required"),
 });
 
 /**
  * Remove roles from user
  */
 export const removeRolesFromUserSchema = z.object({
-  roleIds: z.array(uuidSchema).min(1, 'At least one role required'),
+  roleIds: z.array(uuidSchema).min(1, "At least one role required"),
 });
 
 /**
@@ -160,7 +166,9 @@ export const userWithRolesDataSchema = z.object({
   roles: z.array(roleDataSchema),
 });
 
-export const userWithRolesResponseSchema = successResponseSchema(userWithRolesDataSchema);
+export const userWithRolesResponseSchema = successResponseSchema(
+  userWithRolesDataSchema
+);
 
 // ============================================================================
 // PERMISSION CHECK SCHEMAS
@@ -182,7 +190,9 @@ export const permissionCheckResultSchema = z.object({
   roles: z.array(z.string()).optional(), // Role names that granted permission
 });
 
-export const permissionCheckResponseSchema = successResponseSchema(permissionCheckResultSchema);
+export const permissionCheckResponseSchema = successResponseSchema(
+  permissionCheckResultSchema
+);
 
 // ============================================================================
 // CURRENT USER PERMISSIONS SCHEMA
@@ -198,7 +208,9 @@ export const currentUserPermissionsSchema = z.object({
   isSuperUser: z.boolean(),
 });
 
-export const currentUserPermissionsResponseSchema = successResponseSchema(currentUserPermissionsSchema);
+export const currentUserPermissionsResponseSchema = successResponseSchema(
+  currentUserPermissionsSchema
+);
 
 // ============================================================================
 // EXPORT TYPES
@@ -218,7 +230,9 @@ export type RoleData = z.infer<typeof roleDataSchema>;
 export type RoleWithPermissions = z.infer<typeof roleWithPermissionsSchema>;
 export type RoleResponse = z.infer<typeof roleResponseSchema>;
 export type RolesResponse = z.infer<typeof rolesResponseSchema>;
-export type RoleWithPermissionsResponse = z.infer<typeof roleWithPermissionsResponseSchema>;
+export type RoleWithPermissionsResponse = z.infer<
+  typeof roleWithPermissionsResponseSchema
+>;
 export type RoleDeleteResponse = z.infer<typeof roleDeleteResponseSchema>;
 
 // Role permission management types
@@ -234,8 +248,14 @@ export type UserWithRolesResponse = z.infer<typeof userWithRolesResponseSchema>;
 // Permission check types
 export type CheckPermission = z.infer<typeof checkPermissionSchema>;
 export type PermissionCheckResult = z.infer<typeof permissionCheckResultSchema>;
-export type PermissionCheckResponse = z.infer<typeof permissionCheckResponseSchema>;
+export type PermissionCheckResponse = z.infer<
+  typeof permissionCheckResponseSchema
+>;
 
 // Current user permissions types
-export type CurrentUserPermissions = z.infer<typeof currentUserPermissionsSchema>;
-export type CurrentUserPermissionsResponse = z.infer<typeof currentUserPermissionsResponseSchema>;
+export type CurrentUserPermissions = z.infer<
+  typeof currentUserPermissionsSchema
+>;
+export type CurrentUserPermissionsResponse = z.infer<
+  typeof currentUserPermissionsResponseSchema
+>;
