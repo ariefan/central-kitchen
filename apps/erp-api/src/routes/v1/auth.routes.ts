@@ -28,8 +28,10 @@ import {
 
 // Generate schemas from database tables with proper type handling
 const userSchema = createSelectSchema(users, {
-  // Override role to be more specific
-  role: z.enum(["admin", "manager", "cashier", "staff"]).nullable(),
+  // Override role to be more specific - include super_user and super_admin
+  role: z
+    .enum(["admin", "manager", "cashier", "staff", "super_user", "super_admin"])
+    .nullable(),
   // Handle Date fields properly - convert them to strings
   createdAt: z.string(),
   updatedAt: z.string(),
