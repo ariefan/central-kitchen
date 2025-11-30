@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
-import { usePermissions } from "@/hooks/use-permissions";
+import { useEnhancedPermissions } from "@/hooks/use-enhanced-permissions";
 import { LocationSwitcher } from "@/components/location-switcher";
 import { TenantSwitcher } from "@/components/tenant-switcher";
 import { TenantRequiredDialog } from "@/components/tenant-required-dialog";
@@ -251,7 +251,7 @@ const navigation: NavSection[] = [
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const { user, profile, signOut, needsTenant } = useAuth();
-  const { hasAnyPermission, isSuperUser, loading: permissionsLoading } = usePermissions();
+  const { hasAnyPermission, isSuperUser, loading: permissionsLoading } = useEnhancedPermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSignOut = () => {
