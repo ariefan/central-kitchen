@@ -1,9 +1,9 @@
-import { FastifyRequest, FastifyReply } from 'fastify';
-import { randomUUID } from 'node:crypto';
-import { users, tenants, locations } from '../../config/schema.js';
-import { db } from '../../config/database.js';
-import { eq } from 'drizzle-orm';
-import { auth } from '../../lib/auth.js';
+import { FastifyRequest, FastifyReply } from "fastify";
+import { randomUUID } from "node:crypto";
+import { users, tenants, locations } from "../../config/schema.js";
+import { db } from "../../config/database.js";
+import { eq } from "drizzle-orm";
+import { auth } from "../../lib/auth.js";
 
 // Interface for user data (matches database schema)
 interface User {
@@ -14,7 +14,14 @@ interface User {
   firstName: string | null;
   lastName: string | null;
   phone: string | null;
-  role: 'admin' | 'manager' | 'cashier' | 'staff' | null;
+  role:
+    | "admin"
+    | "manager"
+    | "cashier"
+    | "staff"
+    | "super_user"
+    | "super_admin"
+    | null;
   locationId: string | null;
   isActive: boolean;
   lastLogin: Date | null;
@@ -49,7 +56,7 @@ type AuthBypassContext = {
 
 let cachedBypassContext: AuthBypassContext | null = null;
 
-const shouldBypassAuth = () => process.env.BYPASS_AUTH_FOR_TESTS === 'true';
+const shouldBypassAuth = () => process.env.BYPASS_AUTH_FOR_TESTS === "true";
 
 const loadBypassContext = async (): Promise<AuthBypassContext> => {
   if (cachedBypassContext) {
@@ -57,9 +64,7 @@ const loadBypassContext = async (): Promise<AuthBypassContext> => {
   }
 
   const preferredUsername = process.env.TEST_USER_USERNAME;
-  let userData:
-    | (typeof users.$inferSelect)
-    | undefined;
+  let userData: typeof users.$inferSelect | undefined;
 
   if (preferredUsername) {
     [userData] = await db
@@ -73,48 +78,57 @@ const loadBypassContext = async (): Promise<AuthBypassContext> => {
 
   if (!userData) {
     const tenantId = randomUUID();
-    const tenantResult = await db.insert(tenants).values({
-      id: tenantId,
-      orgId: randomUUID(),
-      name: 'Test Tenant',
-      slug: 'test-tenant',
-      isActive: true,
-    }).returning();
+    const tenantResult = await db
+      .insert(tenants)
+      .values({
+        id: tenantId,
+        orgId: randomUUID(),
+        name: "Test Tenant",
+        slug: "test-tenant",
+        isActive: true,
+      })
+      .returning();
 
     const tenantInsert = tenantResult[0];
     if (!tenantInsert) {
-      throw new Error('Failed to create test tenant');
+      throw new Error("Failed to create test tenant");
     }
 
-    const locationResult = await db.insert(locations).values({
-      id: randomUUID(),
-      tenantId: tenantInsert.id,
-      code: 'TEST-LOC',
-      name: 'Test Location',
-      type: 'warehouse',
-      country: 'Testland',
-      isActive: true,
-    }).returning();
+    const locationResult = await db
+      .insert(locations)
+      .values({
+        id: randomUUID(),
+        tenantId: tenantInsert.id,
+        code: "TEST-LOC",
+        name: "Test Location",
+        type: "warehouse",
+        country: "Testland",
+        isActive: true,
+      })
+      .returning();
 
     const userId = randomUUID();
-    const userResult = await db.insert(users).values({
-      id: userId,
-      authUserId: userId,
-      tenantId: tenantInsert.id,
-      email: 'test@example.com',
-      username: 'test-user',
-      displayUsername: 'Test User',
-      firstName: 'Test',
-      lastName: 'User',
-      role: 'admin',
-      locationId: locationResult[0]?.id ?? null,
-      isActive: true,
-      emailVerified: true,
-    }).returning();
+    const userResult = await db
+      .insert(users)
+      .values({
+        id: userId,
+        authUserId: userId,
+        tenantId: tenantInsert.id,
+        email: "test@example.com",
+        username: "test-user",
+        displayUsername: "Test User",
+        firstName: "Test",
+        lastName: "User",
+        role: "admin",
+        locationId: locationResult[0]?.id ?? null,
+        isActive: true,
+        emailVerified: true,
+      })
+      .returning();
 
     const newUser = userResult[0];
     if (!newUser) {
-      throw new Error('Failed to create test user');
+      throw new Error("Failed to create test user");
     }
 
     userData = newUser;
@@ -122,7 +136,9 @@ const loadBypassContext = async (): Promise<AuthBypassContext> => {
 
   // At this point userData is guaranteed to be defined
   if (!userData.tenantId) {
-    throw new Error('Auth bypass enabled but test user has no tenant assigned.');
+    throw new Error(
+      "Auth bypass enabled but test user has no tenant assigned."
+    );
   }
 
   const tenantResult = await db
@@ -133,7 +149,9 @@ const loadBypassContext = async (): Promise<AuthBypassContext> => {
 
   const tenantData = tenantResult[0];
   if (!tenantData) {
-    throw new Error('Auth bypass enabled but tenant for test user was not found.');
+    throw new Error(
+      "Auth bypass enabled but tenant for test user was not found."
+    );
   }
 
   let locationData: LocationRecord = null;
@@ -155,7 +173,10 @@ const loadBypassContext = async (): Promise<AuthBypassContext> => {
   return cachedBypassContext;
 };
 
-const applyRequestContext = (request: FastifyRequest, context: AuthBypassContext) => {
+const applyRequestContext = (
+  request: FastifyRequest,
+  context: AuthBypassContext
+) => {
   request.user = context.user;
   request.tenant = context.tenant;
   request.location = context.location;
@@ -173,8 +194,8 @@ export const authMiddleware = async (
 ) => {
   if (shouldBypassAuth()) {
     // Check if test headers are provided
-    const testTenantId = request.headers['x-tenant-id'] as string | undefined;
-    const testUserId = request.headers['x-user-id'] as string | undefined;
+    const testTenantId = request.headers["x-tenant-id"] as string | undefined;
+    const testUserId = request.headers["x-user-id"] as string | undefined;
 
     if (testTenantId && testUserId) {
       // Use header-based context for tests
@@ -187,8 +208,8 @@ export const authMiddleware = async (
       if (!userData) {
         return reply.status(401).send({
           success: false,
-          error: 'Test user not found',
-          code: 'USER_NOT_FOUND',
+          error: "Test user not found",
+          code: "USER_NOT_FOUND",
         });
       }
 
@@ -201,8 +222,8 @@ export const authMiddleware = async (
       if (!tenantData) {
         return reply.status(403).send({
           success: false,
-          error: 'Test tenant not found',
-          code: 'TENANT_NOT_FOUND',
+          error: "Test tenant not found",
+          code: "TENANT_NOT_FOUND",
         });
       }
 
@@ -239,8 +260,8 @@ export const authMiddleware = async (
     if (!session?.session || !session?.user) {
       return reply.status(401).send({
         success: false,
-        error: 'Unauthorized',
-        code: 'UNAUTHORIZED',
+        error: "Unauthorized",
+        code: "UNAUTHORIZED",
       });
     }
 
@@ -254,8 +275,8 @@ export const authMiddleware = async (
     if (!userData) {
       return reply.status(401).send({
         success: false,
-        error: 'User not found',
-        code: 'USER_NOT_FOUND',
+        error: "User not found",
+        code: "USER_NOT_FOUND",
       });
     }
 
@@ -263,8 +284,8 @@ export const authMiddleware = async (
     if (!userData.tenantId) {
       return reply.status(403).send({
         success: false,
-        error: 'User has no tenant assigned',
-        code: 'NO_TENANT_ASSIGNED',
+        error: "User has no tenant assigned",
+        code: "NO_TENANT_ASSIGNED",
       });
     }
 
@@ -278,8 +299,8 @@ export const authMiddleware = async (
     if (!tenantData) {
       return reply.status(403).send({
         success: false,
-        error: 'Tenant not found',
-        code: 'TENANT_NOT_FOUND',
+        error: "Tenant not found",
+        code: "TENANT_NOT_FOUND",
       });
     }
 
@@ -302,13 +323,12 @@ export const authMiddleware = async (
     // Set tenant context for database operations
     request.tenantId = tenantData.id;
     request.userId = userData.id;
-
   } catch (error) {
-    request.log.error({ err: error }, 'Auth middleware error');
+    request.log.error({ err: error }, "Auth middleware error");
     return reply.status(401).send({
       success: false,
-      error: 'Invalid session',
-      code: 'INVALID_SESSION',
+      error: "Invalid session",
+      code: "INVALID_SESSION",
     });
   }
 };
@@ -323,8 +343,8 @@ export const optionalAuthMiddleware = async (
 ) => {
   if (shouldBypassAuth()) {
     // Check if test headers are provided
-    const testTenantId = request.headers['x-tenant-id'] as string | undefined;
-    const testUserId = request.headers['x-user-id'] as string | undefined;
+    const testTenantId = request.headers["x-tenant-id"] as string | undefined;
+    const testUserId = request.headers["x-user-id"] as string | undefined;
 
     if (testTenantId && testUserId) {
       // Use header-based context for tests
@@ -413,7 +433,7 @@ export const optionalAuthMiddleware = async (
     }
   } catch (error) {
     // Silently fail for optional auth
-    request.log.debug({ err: error }, 'Optional auth failed');
+    request.log.debug({ err: error }, "Optional auth failed");
   }
 };
 
@@ -439,8 +459,8 @@ export const sessionOnlyMiddleware = async (
     if (!session?.session || !session?.user) {
       return reply.status(401).send({
         success: false,
-        error: 'Unauthorized',
-        code: 'UNAUTHORIZED',
+        error: "Unauthorized",
+        code: "UNAUTHORIZED",
       });
     }
 
@@ -454,8 +474,8 @@ export const sessionOnlyMiddleware = async (
     if (!userData) {
       return reply.status(401).send({
         success: false,
-        error: 'User not found',
-        code: 'USER_NOT_FOUND',
+        error: "User not found",
+        code: "USER_NOT_FOUND",
       });
     }
 
@@ -477,11 +497,11 @@ export const sessionOnlyMiddleware = async (
       }
     }
   } catch (error) {
-    request.log.error({ err: error }, 'Session-only auth middleware error');
+    request.log.error({ err: error }, "Session-only auth middleware error");
     return reply.status(401).send({
       success: false,
-      error: 'Invalid session',
-      code: 'INVALID_SESSION',
+      error: "Invalid session",
+      code: "INVALID_SESSION",
     });
   }
 };
@@ -489,19 +509,21 @@ export const sessionOnlyMiddleware = async (
 // Helper to get current user from request (session only - tenant may be null)
 export const getSessionUser = (request: FastifyRequest): User => {
   if (!request.user) {
-    throw new Error('User not found in request context');
+    throw new Error("User not found in request context");
   }
   return request.user;
 };
 
 // Helper to get current user from request
 // Note: After authMiddleware, tenantId is guaranteed to be non-null
-export const getCurrentUser = (request: FastifyRequest): User & { tenantId: string } => {
+export const getCurrentUser = (
+  request: FastifyRequest
+): User & { tenantId: string } => {
   if (!request.user) {
-    throw new Error('User not found in request context');
+    throw new Error("User not found in request context");
   }
   if (!request.user.tenantId) {
-    throw new Error('User has no tenant assigned');
+    throw new Error("User has no tenant assigned");
   }
   return request.user as User & { tenantId: string };
 };
@@ -509,7 +531,7 @@ export const getCurrentUser = (request: FastifyRequest): User & { tenantId: stri
 // Helper to get current tenant from request
 export const getCurrentTenant = (request: FastifyRequest): Tenant => {
   if (!request.tenant) {
-    throw new Error('Tenant not found in request context');
+    throw new Error("Tenant not found in request context");
   }
   return request.tenant;
 };
@@ -517,7 +539,7 @@ export const getCurrentTenant = (request: FastifyRequest): Tenant => {
 // Helper to get tenant ID from request
 export const getTenantId = (request: FastifyRequest): string => {
   if (!request.tenantId) {
-    throw new Error('Tenant ID not found in request context');
+    throw new Error("Tenant ID not found in request context");
   }
   return request.tenantId;
 };
@@ -525,14 +547,21 @@ export const getTenantId = (request: FastifyRequest): string => {
 // Helper to get user ID from request
 export const getUserId = (request: FastifyRequest): string => {
   if (!request.userId) {
-    throw new Error('User ID not found in request context');
+    throw new Error("User ID not found in request context");
   }
   return request.userId;
 };
 
-export const buildRequestContext = (request: FastifyRequest): RequestContext => {
-  if (!request.user || !request.tenant || !request.tenantId || !request.userId) {
-    throw new Error('Request context is missing authentication data');
+export const buildRequestContext = (
+  request: FastifyRequest
+): RequestContext => {
+  if (
+    !request.user ||
+    !request.tenant ||
+    !request.tenantId ||
+    !request.userId
+  ) {
+    throw new Error("Request context is missing authentication data");
   }
 
   return {
@@ -545,7 +574,7 @@ export const buildRequestContext = (request: FastifyRequest): RequestContext => 
 };
 
 // Type augmentation for Fastify request
-declare module 'fastify' {
+declare module "fastify" {
   export interface FastifyRequest {
     user?: User;
     tenant?: Tenant;
@@ -576,5 +605,5 @@ export interface RequestContext {
   userId: string;
   user: User;
   tenant: Tenant;
-  location: FastifyRequest['location'] | null | undefined;
+  location: FastifyRequest["location"] | null | undefined;
 }
