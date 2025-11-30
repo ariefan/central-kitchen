@@ -9,11 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { authClient } from "@/lib/auth-client";
 import { BUILD_INFO } from "@/lib/build-info";
+import { Eye, EyeOff } from "lucide-react";
 
 export function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -26,10 +28,23 @@ export function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => vo
     setError(null);
 
     try {
-      const result = await authClient.signIn.username({
-        username: formData.username,
-        password: formData.password,
-      });
+      // Determine if the input is an email or username
+      const isEmailInput = isEmail(formData.username);
+
+      let result;
+      if (isEmailInput) {
+        // Use email sign-in for email addresses
+        result = await authClient.signIn.email({
+          email: formData.username,
+          password: formData.password,
+        });
+      } else {
+        // Use username sign-in for usernames
+        result = await authClient.signIn.username({
+          username: formData.username,
+          password: formData.password,
+        });
+      }
 
       if (result.error) {
         setError(result.error.message || "Invalid credentials");
@@ -46,6 +61,11 @@ export function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => vo
     }
   };
 
+  // Check if input looks like an email
+  const isEmail = (input: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+  };
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
@@ -60,16 +80,16 @@ export function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => vo
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">Username or Email</Label>
             <Input
               id="username"
               type="text"
-              placeholder="admin"
+              placeholder="Enter username or email"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               required
               disabled={isLoading}
-              autoComplete="username"
+              autoComplete={isEmail(formData.username) ? "email" : "username"}
             />
           </div>
           <div className="space-y-2">
@@ -87,16 +107,32 @@ export function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => vo
                 Forgot password?
               </button>
             </div>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-              disabled={isLoading}
-              autoComplete="current-password"
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                required
+                disabled={isLoading}
+                autoComplete="current-password"
+                className="pr-10"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
