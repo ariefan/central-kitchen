@@ -129,6 +129,14 @@ export async function loadUserPermissions(
   // Cache result
   permissionCache.set(userId, result);
 
+  // Clear cache for super users to ensure fresh permissions
+  if (isSuperUser) {
+    // Don't cache super user permissions as they should always be fresh
+    setTimeout(() => {
+      permissionCache.delete(userId);
+    }, 1000); // Clear after 1 second
+  }
+
   return result;
 }
 
