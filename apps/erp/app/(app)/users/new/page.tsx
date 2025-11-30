@@ -80,7 +80,7 @@ export default function NewUserPage() {
                 <Card>
                     <CardContent className="p-6">
                         <p className="text-center text-muted-foreground">
-                            You don't have permission to create users.
+                            You don&apos;t have permission to create users.
                         </p>
                     </CardContent>
                 </Card>

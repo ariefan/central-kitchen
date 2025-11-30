@@ -12,6 +12,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { LocationSwitcher } from "@/components/location-switcher";
 import { TenantSwitcher } from "@/components/tenant-switcher";
 import { TenantRequiredDialog } from "@/components/tenant-required-dialog";
+import { PermissionsDebug } from "@/components/debug/permissions-debug";
 import {
   MapPin,
   Package,
@@ -461,6 +462,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Page content */}
         <main className="flex-1 overflow-y-auto bg-background">
           {children}
+          {/* Debug component for development */}
+          <PermissionsDebug />
         </main>
       </div>
     </div>

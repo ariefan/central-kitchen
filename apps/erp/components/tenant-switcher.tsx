@@ -25,14 +25,20 @@ import { toast } from "sonner";
 export function TenantSwitcher() {
   const [open, setOpen] = useState(false);
   const { profile } = useAuth();
-  const { hasPermission } = usePermissions();
-  const { data: tenantsData, isLoading: isLoadingTenants } = useAllTenants();
+  const { hasPermission, isSuperUser } = usePermissions();
+  const { data: tenantsData, isLoading: isLoadingTenants, error: tenantsError } = useAllTenants();
   const switchTenant = useSwitchTenant();
 
   // Only show for users with tenant:manage permission (super users)
-  const canManageTenants = hasPermission("tenant", "manage");
+  const canManageTenants = hasPermission("tenant", "manage") || isSuperUser();
 
   if (!canManageTenants) {
+    return null;
+  }
+
+  // Handle tenant loading error
+  if (tenantsError) {
+    console.warn("Failed to load tenants:", tenantsError);
     return null;
   }
 
