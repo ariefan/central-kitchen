@@ -526,8 +526,14 @@ export function authRoutes(fastify: FastifyInstance) {
       const currentUser = getCurrentUser(request);
       const updateData = request.body;
 
-      // Prepare update object
-      const updates: any = {};
+      // Prepare update object with proper typing
+      const updates: {
+        firstName?: string;
+        lastName?: string | null;
+        phone?: string;
+        image?: string;
+        metadata?: Record<string, any>;
+      } = {};
 
       if (updateData.name !== undefined) {
         // Split name into firstName and lastName
@@ -709,7 +715,7 @@ export function authRoutes(fastify: FastifyInstance) {
       }
 
       const account = userAccount[0];
-      if (!account || !account.password) {
+      if (!account?.password) {
         return reply.status(400).send({
           success: false,
           error: "Invalid credentials",
