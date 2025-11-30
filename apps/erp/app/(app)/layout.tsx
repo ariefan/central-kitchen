@@ -225,18 +225,6 @@ const navigation: NavSection[] = [
         requiredPermissions: [{ resource: "role", action: "read" }],
       },
       {
-        title: "Permissions",
-        href: "/permissions",
-        icon: Key,
-        requiredPermissions: [{ resource: "permission", action: "read" }],
-      },
-      {
-        title: "RBAC Dashboard",
-        href: "/rbac",
-        icon: ShieldCheck,
-        requiredPermissions: [{ resource: "role", action: "read" }],
-      },
-      {
         title: "Tenants",
         href: "/tenants",
         icon: Building2,
